@@ -1,0 +1,46 @@
+name: Mirror to Codeberg
+
+# Keeps an independent copy of every branch and tag on Codeberg, so the
+# project survives a GitHub account problem. Push mirrors are one-way:
+# Codeberg is read-only for this repo — keep working on GitHub.
+#
+# Setup (once): see docs/GITHUB_ACCOUNT_MIGRATION.md
+#   * create the Codeberg repo, then add the secrets
+#     CODEBERG_USER and CODEBERG_TOKEN to this repository.
+# Until both secrets exist this job prints a notice and exits cleanly.
+
+on:
+  push:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push mirror
+        env:
+          CODEBERG_USER: ${{ secrets.CODEBERG_USER }}
+          CODEBERG_TOKEN: ${{ secrets.CODEBERG_TOKEN }}
+        run: |
+          if [ -z "$CODEBERG_TOKEN" ] || [ -z "$CODEBERG_USER" ]; then
+            echo "Codeberg mirror is not configured yet — skipping."
+            exit 0
+          fi
+          git config user.name "codeberg-mirror"
+          git config user.email "mirror@neoarch.invalid"
+          # Local branches for every branch we mirror, so `--all` pushes all.
+          for branch in main dev; do
+            git branch "$branch" "origin/$branch" 2>/dev/null || true
+          done
+          git remote add codeberg \
+            "https://${CODEBERG_USER}:${CODEBERG_TOKEN}@codeberg.org/${CODEBERG_USER}/Neoarch.git"
+          git push --force codeberg --all
+          git push --force codeberg --tags
