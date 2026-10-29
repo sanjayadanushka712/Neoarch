@@ -233,7 +233,7 @@ On Arch, system `pip` usually triggers `externally-managed-environment` — pref
   <img src="assets/icons/app/sponsor-ferreol.png" width="96" height="96" alt="Ferreol" style="border-radius:50%;border:1px solid #30363d" />
 </a>
 
-### ⭐ Our first sponsor — Ferreol
+### Our first sponsor — Ferreol
 
 **Thank you, Ferreol.** You were the very first person to back NeoArch, and your early support kept the project alive from day one — long before anyone else put a coin in the jar. Every release since has been built on top of that backing.
 
