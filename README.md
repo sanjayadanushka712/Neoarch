@@ -41,7 +41,7 @@ neo --help             # scriptable CLI; try: neo search cmatrix
 
 New to it? In a nutshell NeoArch lets you **search, install, and update packages from pacman, AUR, Flatpak, and npm in one place**, keep those packages clean (orphans, cache, `.pacnew` diffs), snapshot before risky operations, and **scan PKGBUILDs for dangerous code before you install from the AUR**. Full capability list under <kbd>App features</kbd>; the complete CLI lives under <kbd>CLI reference</kbd>, and dependencies/source builds are in [Install](#install) below.
 
-> **💡 Save your setup for life** — NeoArch bundles let you capture every package you love into a portable bundle. Fresh install? One click brings your entire setup back. Share bundles with friends or sync them across your machines. [Learn more → Bundles](https://github.com/neoarch712/Neoarch/wiki/Bundles)
+> ** Save your setup for life** — NeoArch bundles let you capture every package you love into a portable bundle. Fresh install? One click brings your entire setup back. Share bundles with friends or sync them across your machines. [Learn more → Bundles](https://github.com/neoarch712/Neoarch/wiki/Bundles)
 
 ---
 
