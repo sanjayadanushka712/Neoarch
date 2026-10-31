@@ -2,6 +2,7 @@ import pytest
 from PyQt6.QtWidgets import QApplication, QLabel
 
 from neoarch.frontend.components.about_tab import _ReleaseNotesTab
+from neoarch.resources.paths import APP_VERSION
 
 
 @pytest.fixture
@@ -12,8 +13,7 @@ def qapp():
 def test_release_notes_tab_uses_curated_changelog(qapp):
     tab = _ReleaseNotesTab()
     labels = [w.text() for w in tab.findChildren(QLabel)]
-    assert any("Upcoming release" in t for t in labels)
-    assert any("Version 3.4.5" in t for t in labels)
+    assert any(f"Version {APP_VERSION}" in t for t in labels)
     assert any("New Features" in t for t in labels)
     tab.deleteLater()
 

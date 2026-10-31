@@ -10,7 +10,7 @@ dialog shows after an update.
 
 ---
 
-## Unreleased
+## 3.5.0 — 2026-10-31
 
 ### New Features
 
@@ -115,6 +115,10 @@ dialog shows after an update.
   app dialogs. GitHub release notes are rendered with headings, bullets,
   bold text and links, and About → Release Notes now reads the curated
   changelog instead of git history, so installed builds see the notes too.
+
+- **About works in installed builds.** The Overview commit count falls back
+  to a cached GitHub lookup instead of showing zero, and the Release Notes
+  page lists releases from the shipped changelog when `.git` is absent.
 
 ## 3.4.5 — 2026-10-31
 
