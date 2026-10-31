@@ -88,6 +88,16 @@ dialog shows after an update.
   hide as space runs out and come back when the table widens. Download sizes
   that arrive as raw byte counts are formatted before painting too.
 
+- **Check for Updates** now only queries the sources enabled in the Updates
+  sidebar. Previously every source was checked regardless of its toggle, so
+  disabling pacman still ran `checkupdates` and briefly painted repo updates
+  before the filter removed them.
+
+- pipx update detection now falls back to `pip list --outdated
+  --format=json` inside each app's venv when pipx no longer ships `pipx list
+  --outdated`. It works with both pipx backends (pip and uv) and no longer
+  resolves the whole dependency tree just to read the latest version.
+
 ## 3.4.5 — 2026-10-31
 
 ### New Features

@@ -19,10 +19,12 @@ from neoarch.backend.package.loader import (
     _check_fwupd_updates,
     _parse_pipx_list,
     _parse_pipx_outdated,
-    _parse_pipx_dry_run,
+    _parse_pipx_outdated_json,
     _pipx_outdated_supported,
     _check_pipx_updates,
     _check_pipx_installed,
+    _enabled_update_sources,
+    load_updates,
 )
 
 
@@ -673,17 +675,27 @@ def test_parse_pipx_list_surfaces_pinned_flag():
     assert by_name["ruff"]["pinned"] is False
 
 
-def test_parse_pipx_dry_run():
-    assert _parse_pipx_dry_run(
-        "Would install black-24.3.0 coverage-7.4.1\n") == {
-            "black": "24.3.0", "coverage": "7.4.1"}
-    assert _parse_pipx_dry_run(
-        "Would install python-dateutil-2.9.0.post0\n") == {
-            "python-dateutil": "2.9.0.post0"}
-    assert _parse_pipx_dry_run("Requirement already satisfied: black in ... (24.1.0)") == {}
-    assert _parse_pipx_dry_run("Would install 24.3.0\n") == {}
-    assert _parse_pipx_dry_run(None) == {}
-    assert _parse_pipx_dry_run("") == {}
+def test_parse_pipx_outdated_json():
+    stdout = json.dumps([
+        {"name": "black", "version": "24.1.0", "latest_version": "24.3.0"},
+        {"name": "python_dateutil", "version": "2.8.0", "latest_version": "2.9.0"},
+        {"name": "uptodate", "version": "1.0"},
+    ])
+    assert _parse_pipx_outdated_json(stdout) == {
+        "black": "24.3.0", "python-dateutil": "2.9.0"}
+    assert _parse_pipx_outdated_json("[]") == {}
+    assert _parse_pipx_outdated_json("not json") == {}
+    assert _parse_pipx_outdated_json(None) == {}
+    assert _parse_pipx_outdated_json("") == {}
+
+
+def test_parse_pipx_outdated_json_ignores_uv_debug_prefix():
+    stdout = (
+        "DEBUG uv 0.13.6\n"
+        "DEBUG Searching for user configuration in: /home/user/.config/uv/uv.toml\n"
+        "[{\"name\":\"cowsay\",\"version\":\"6.0\",\"latest_version\":\"6.1\"}]\n"
+    )
+    assert _parse_pipx_outdated_json(stdout) == {"cowsay": "6.1"}
 
 
 def test_pipx_outdated_probe_falls_back_when_flag_removed(monkeypatch):
@@ -709,13 +721,15 @@ def test_pipx_outdated_probe_supports_flag(monkeypatch):
     assert _pipx_outdated_supported() is True
 
 
-def test_pipx_updates_fallback_dry_run(monkeypatch):
+def test_pipx_updates_fallback_uses_pip_outdated(monkeypatch):
     calls = []
 
     def fake_run_cmd(cmd, timeout=90, env=None):
         if cmd[:2] == ["pipx", "runpip"]:
             calls.append(list(cmd))
-            return FakeCompletedProcess(stdout="Would install black-24.3.0\n")
+            return FakeCompletedProcess(stdout=json.dumps([
+                {"name": "black", "version": "24.1.0", "latest_version": "24.3.0"},
+            ]))
         return FakeCompletedProcess(stdout=json.dumps(_PIPX_LIST_JSON))
 
     monkeypatch.setattr("neoarch.backend.package.loader.sys_utils.pipx_source_enabled",
@@ -732,12 +746,12 @@ def test_pipx_updates_fallback_dry_run(monkeypatch):
     assert result[0]["id"] == "black"
     assert result[0]["new_version"] == "24.3.0"
     assert result[0]["source"] == "pipx"
-    # Regression: `pipx runpip VENV install ...` (no stray leading `pip`,
+    # Regression: `pipx runpip VENV list ...` (no stray leading `pip`,
     # which pipx rejects with 'unknown command "pip"').
-    assert ["pipx", "runpip", "black", "install", "--upgrade", "--dry-run",
-            "black"] in calls
+    assert ["pipx", "runpip", "black", "list", "--outdated",
+            "--format=json"] in calls
     for cmd in calls:
-        assert cmd[3] == "install"
+        assert cmd[3] == "list"
 
 
 def test_pipx_fallback_skips_pinned(monkeypatch):
@@ -751,7 +765,9 @@ def test_pipx_fallback_skips_pinned(monkeypatch):
 
     def fake_run_cmd(cmd, timeout=90, env=None):
         if cmd[:2] == ["pipx", "runpip"]:
-            return FakeCompletedProcess(stdout=f"Would install {cmd[-1]}-9.9.9\n")
+            return FakeCompletedProcess(stdout=json.dumps([
+                {"name": cmd[2], "version": "1.0", "latest_version": "9.9.9"},
+            ]))
         return FakeCompletedProcess(stdout=json.dumps(payload))
 
     monkeypatch.setattr("neoarch.backend.package.loader.sys_utils.pipx_source_enabled",
@@ -765,3 +781,103 @@ def test_pipx_fallback_skips_pinned(monkeypatch):
     result = _check_pipx_updates()
     assert [p["id"] for p in result] == ["ruff"]
     assert result[0]["new_version"] == "9.9.9"
+
+
+def test_enabled_update_sources_reads_sidebar_states():
+    class Card:
+        def get_selected_sources(self):
+            return {"pacman": False, "AUR": True, "pipx": True}
+
+    class App:
+        source_card = Card()
+
+    enabled = _enabled_update_sources(App())
+    assert enabled("pacman") is False
+    assert enabled("AUR") is True
+    assert enabled("pipx") is True
+    # Rows absent from an older/other source card stay enabled.
+    assert enabled("Flatpak") is True
+
+
+def test_load_updates_skips_disabled_sources(monkeypatch):
+    import threading
+    import types
+
+    called = []
+    final = threading.Event()
+    emitted = []
+
+    class Card:
+        def get_selected_sources(self):
+            return {"pacman": False, "AUR": False, "Flatpak": False,
+                    "npm": False, "Firmware": False, "pipx": True}
+
+    class Signal:
+        def emit(self, packages, load_id, is_final):
+            emitted.append((packages, load_id, is_final))
+            if is_final:
+                final.set()
+
+    class Widget:
+        def setRowCount(self, *a):
+            pass
+
+        def setVisible(self, *a):
+            pass
+
+        def set_message(self, *a):
+            pass
+
+        def start_animation(self):
+            pass
+
+        def stop_animation(self):
+            pass
+
+    def forbid(name):
+        def _fail():
+            called.append(name)
+            raise AssertionError(f"{name} should not run")
+        return _fail
+
+    monkeypatch.setattr("neoarch.backend.package.loader._check_pacman_updates",
+                        forbid("pacman"))
+    monkeypatch.setattr("neoarch.backend.package.loader._check_aur_updates",
+                        forbid("AUR"))
+    monkeypatch.setattr("neoarch.backend.package.loader._check_flatpak_updates",
+                        forbid("Flatpak"))
+    monkeypatch.setattr("neoarch.backend.package.loader._check_npm_updates",
+                        forbid("npm"))
+    monkeypatch.setattr("neoarch.backend.package.loader._check_fwupd_updates",
+                        forbid("Firmware"))
+    monkeypatch.setattr("neoarch.backend.package.loader._sync_pacman_db",
+                        forbid("sync"))
+    monkeypatch.setattr("neoarch.backend.package.loader._attach_installed_dates",
+                        lambda rows: rows)
+    monkeypatch.setattr(
+        "neoarch.backend.package.loader._check_pipx_updates",
+        lambda: [{"name": "black", "version": "1.0", "new_version": "2.0",
+                  "id": "black", "source": "pipx"}])
+
+    app = types.SimpleNamespace(
+        source_card=Card(),
+        current_view="updates",
+        loading_context="updates",
+        cancel_update_load=False,
+        _updates_load_id=0,
+        _updates_loading=False,
+        _installing=False,
+        package_table=Widget(),
+        loading_widget=Widget(),
+        load_more_btn=Widget(),
+        all_packages=[],
+        current_page=0,
+        packages_ready=Signal(),
+        log=lambda *a, **k: None,
+        load_ignored_updates=lambda: [],
+    )
+
+    load_updates(app)
+    assert final.wait(5), "updates loader never finished"
+    assert called == []
+    assert [p["source"] for p in emitted[-1][0]] == ["pipx"]

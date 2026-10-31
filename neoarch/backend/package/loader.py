@@ -445,32 +445,38 @@ def _parse_pipx_outdated(stdout):
 _PIPX_OUTDATED_SUPPORTED = None
 
 
-def _parse_pipx_dry_run(stdout):
-    """Parse ``pip install --upgrade --dry-run`` output into ``name -> version``.
+def _parse_pipx_outdated_json(stdout):
+    """Parse ``pip list --outdated --format=json`` into ``name -> version``.
 
-    pip prints every package that *would* change on one line::
-
-        Would install black-24.3.0 coverage-7.4.1
-
-    Each space-separated token is ``name-version`` and distribution names may
-    contain hyphens, so the version is whatever follows the last hyphen.
-    Tokens without a name (bare versions) are ignored.
+    The JSON is normally the whole output, but the uv backend prefixes it
+    with debug lines (pipx forces verbose mode for ``runpip``), so the last
+    JSON array in the stream is used when a direct parse fails.
     """
-    outdated = {}
     text = (stdout or '').strip()
     if not text:
-        return outdated
-    tokens = []
-    for line in text.splitlines():
-        line = line.strip()
-        if not line.lower().startswith('would install'):
+        return {}
+    data = None
+    try:
+        data = json.loads(text)
+    except Exception:
+        for line in reversed(text.splitlines()):
+            line = line.strip()
+            if line.startswith('[') and line.endswith(']'):
+                try:
+                    data = json.loads(line)
+                except Exception:
+                    continue
+                break
+    if not isinstance(data, list):
+        return {}
+    outdated = {}
+    for row in data:
+        if not isinstance(row, dict):
             continue
-        tokens.extend(line[len('Would install'):].strip().split())
-    for tok in tokens:
-        name, _, ver = tok.rpartition('-')
-        if not name or not ver or name[:1].isdigit():
-            continue
-        outdated[name.lower().replace('_', '-')] = ver
+        name = (row.get('name') or '').strip()
+        latest = (row.get('latest_version') or '').strip()
+        if name and latest:
+            outdated[name.lower().replace('_', '-')] = latest
     return outdated
 
 
@@ -489,23 +495,25 @@ def _pipx_outdated_supported():
     return _PIPX_OUTDATED_SUPPORTED
 
 
-def _check_one_pipx_dry_run(venv, dist=None):
-    """Probe one pipx app for a newer version with a read-only dry run.
+def _check_one_pipx_outdated(venv, dist=None):
+    """Probe one pipx app for a newer version with ``pip list --outdated``.
 
     ``venv`` is the pipx venv name (what ``pipx runpip`` expects); ``dist`` is
-    the distribution to check on the index (defaults to the venv name).
+    the distribution to look up (defaults to the venv name). Using pip's JSON
+    listing works for both the pip and uv pipx backends and avoids resolving
+    the app's whole dependency tree just to read its latest version.
     """
     dist = dist or venv
     try:
         r = _run_cmd(
-            ["pipx", "runpip", venv, "install", "--upgrade", "--dry-run", dist],
+            ["pipx", "runpip", venv, "list", "--outdated", "--format=json"],
             timeout=120,
             env=sys_utils.c_locale_env())
     except Exception:
         return {}
     if not r:
         return {}
-    outdated = _parse_pipx_dry_run(r.stdout)
+    outdated = _parse_pipx_outdated_json(r.stdout)
     key = dist.lower().replace('_', '-')
     if key in outdated:
         return {venv: outdated[key]}
@@ -516,8 +524,8 @@ def _pipx_install_state():
     """Return installed pipx apps plus the ``name -> new version`` outdated map.
 
     pipx 1.15.0+ removed ``pipx list --outdated``, so when that flag is
-    unsupported each upgradeable app is probed with a read-only
-    ``pip install --upgrade --dry-run`` inside its own venv instead. Pinned
+    unsupported each upgradeable app is probed with
+    ``pip list --outdated --format=json`` inside its own venv instead. Pinned
     apps are skipped in both paths — pipx refuses to upgrade them.
     """
     installed = _run_cmd(["pipx", "list", "--json"], timeout=90)
@@ -532,7 +540,7 @@ def _pipx_install_state():
     latest = {}
     if upgradeable:
         with ThreadPoolExecutor(max_workers=min(8, len(upgradeable))) as ex:
-            futures = {ex.submit(_check_one_pipx_dry_run, p['id'], p.get('pkg')): p
+            futures = {ex.submit(_check_one_pipx_outdated, p['id'], p.get('pkg')): p
                        for p in upgradeable}
             for fut in as_completed(futures):
                 found = fut.result()
@@ -739,6 +747,26 @@ def _sync_pacman_db(app):
     return []
 
 
+def _enabled_update_sources(app):
+    """Return a predicate telling which update sources are switched on.
+
+    The Updates sidebar is the source of truth: a disabled row must not be
+    queried at all, otherwise its results flash on screen before the filter
+    hides them again. Missing rows (older/other views without a source card)
+    default to enabled so a background refresh still works.
+    """
+    states = {}
+    try:
+        states = app.source_card.get_selected_sources() or {}
+    except Exception:
+        states = {}
+
+    def enabled(name):
+        return bool(states.get(name, True))
+
+    return enabled
+
+
 def load_updates(app):
     try:
         app._updates_loading = True
@@ -797,22 +825,34 @@ def load_updates(app):
     except Exception:
         pass
 
+    # Read the source toggles on the UI thread before the worker starts.
+    source_enabled = _enabled_update_sources(app)
+
     def load_in_thread():
         try:
             with ThreadPoolExecutor(max_workers=6) as ex:
-                fut_pacman = ex.submit(_check_pacman_updates)
-                fut_aur = ex.submit(_check_aur_updates)
-                fut_flatpak = ex.submit(_check_flatpak_updates)
-                fut_npm = ex.submit(_check_npm_updates)
+                fut_pacman = (ex.submit(_check_pacman_updates)
+                              if source_enabled("pacman") else None)
+                fut_aur = (ex.submit(_check_aur_updates)
+                           if source_enabled("AUR") else None)
+                fut_flatpak = (ex.submit(_check_flatpak_updates)
+                               if source_enabled("Flatpak") else None)
+                fut_npm = (ex.submit(_check_npm_updates)
+                           if source_enabled("npm") else None)
                 fut_firmware = (ex.submit(_check_fwupd_updates)
-                                if sys_utils.firmware_source_enabled() else None)
+                                if source_enabled("Firmware")
+                                and sys_utils.firmware_source_enabled() else None)
                 fut_pipx = (ex.submit(_check_pipx_updates)
-                            if sys_utils.pipx_source_enabled()
+                            if source_enabled("pipx")
+                            and sys_utils.pipx_source_enabled()
                             and sys_utils.cmd_exists("pipx") else None)
                 # A rootless fresh sync (checkupdates) already refreshes the
                 # data; only sync the real database when that is unavailable.
+                # No pacman check means no database sync is needed either.
                 import shutil as _sh
-                use_rooted_sync = not (_sh.which("checkupdates") and _sh.which("fakeroot"))
+                use_rooted_sync = (
+                    source_enabled("pacman")
+                    and not (_sh.which("checkupdates") and _sh.which("fakeroot")))
                 fut_sync = ex.submit(_sync_pacman_db, app) if use_rooted_sync else None
 
                 # Wait for the database sync to finish first so the update
@@ -864,7 +904,8 @@ def load_updates(app):
                 # table shows data immediately instead of a long loading
                 # animation. AUR/Flatpak/npm/Firmware results follow in the
                 # final emit.
-                pacman_pkgs = _safe_result(fut_pacman, "pacman")
+                pacman_pkgs = (_safe_result(fut_pacman, "pacman")
+                               if fut_pacman is not None else [])
                 initial = finalize(list(pacman_pkgs))
                 if initial and not is_stale():
                     try:
@@ -880,7 +921,8 @@ def load_updates(app):
                 packages = list(pacman_pkgs)
                 for fut, label in ((fut_aur, "AUR"), (fut_flatpak, "Flatpak"),
                                    (fut_npm, "npm")):
-                    packages.extend(_safe_result(fut, label))
+                    if fut is not None:
+                        packages.extend(_safe_result(fut, label))
                 if fut_firmware is not None:
                     packages.extend(_safe_result(fut_firmware, "Firmware"))
                 if fut_pipx is not None:
