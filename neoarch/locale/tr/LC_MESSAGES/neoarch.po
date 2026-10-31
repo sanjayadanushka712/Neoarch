@@ -3440,3 +3440,12 @@ msgstr "Ayrıca kurulacak isteğe bağlı bağımlılıkları seçin"
 
 msgid "Packages to install"
 msgstr "Kurulacak paketler"
+
+msgid "Choose providers"
+msgstr "Sağlayıcıları seç"
+
+msgid "Some dependencies can be satisfied by more than one package. Pick one for each."
+msgstr "Bazı bağımlılıklar birden fazla paketle karşılanabilir. Her biri için bir tane seçin."
+
+msgid "Provider for {name}"
+msgstr "{name} için sağlayıcı"

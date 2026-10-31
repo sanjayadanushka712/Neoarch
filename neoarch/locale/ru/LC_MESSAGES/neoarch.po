@@ -3440,3 +3440,12 @@ msgstr "Выберите необязательные зависимости д�
 
 msgid "Packages to install"
 msgstr "Пакеты для установки"
+
+msgid "Choose providers"
+msgstr "Выбор поставщиков"
+
+msgid "Some dependencies can be satisfied by more than one package. Pick one for each."
+msgstr "Некоторые зависимости могут быть удовлетворены несколькими пакетами. Выберите один для каждой."
+
+msgid "Provider for {name}"
+msgstr "Поставщик для {name}"

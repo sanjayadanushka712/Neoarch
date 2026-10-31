@@ -3440,3 +3440,12 @@ msgstr "追加でインストールするオプションの依存関係を選択
 
 msgid "Packages to install"
 msgstr "インストールするパッケージ"
+
+msgid "Choose providers"
+msgstr "プロバイダーを選択"
+
+msgid "Some dependencies can be satisfied by more than one package. Pick one for each."
+msgstr "一部の依存関係は複数のパッケージで満たせます。それぞれ1つ選択してください。"
+
+msgid "Provider for {name}"
+msgstr "{name} のプロバイダー"

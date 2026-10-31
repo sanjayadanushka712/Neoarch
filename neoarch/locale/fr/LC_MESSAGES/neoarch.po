@@ -3440,3 +3440,12 @@ msgstr "Sélectionnez les dépendances facultatives à installer également"
 
 msgid "Packages to install"
 msgstr "Paquets à installer"
+
+msgid "Choose providers"
+msgstr "Choisir les fournisseurs"
+
+msgid "Some dependencies can be satisfied by more than one package. Pick one for each."
+msgstr "Certaines dépendances peuvent être satisfaites par plusieurs paquets. Choisissez-en un pour chacune."
+
+msgid "Provider for {name}"
+msgstr "Fournisseur pour {name}"

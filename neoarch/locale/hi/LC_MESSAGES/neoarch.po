@@ -3440,3 +3440,12 @@ msgstr "स्थापित करने के लिए वैकल्प�
 
 msgid "Packages to install"
 msgstr "स्थापित करने के लिए पैकेज"
+
+msgid "Choose providers"
+msgstr "प्रदाता चुनें"
+
+msgid "Some dependencies can be satisfied by more than one package. Pick one for each."
+msgstr "कुछ निर्भरताएँ एक से अधिक पैकेज द्वारा पूरी की जा सकती हैं। प्रत्येक के लिए एक चुनें।"
+
+msgid "Provider for {name}"
+msgstr "{name} के लिए प्रदाता"

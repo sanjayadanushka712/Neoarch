@@ -46,6 +46,11 @@ dialog shows after an update.
   Tick the ones you want and they join the transaction; nothing is ticked
   by default. Works for pacman and AUR packages.
 
+- **Provider chooser.** When a dependency can be satisfied by more than one
+  repository package (for example `ttf-font` for Firefox), NeoArch asks
+  which one to install before resolving the transaction, instead of letting
+  pacman silently pick the first. Works for pacman and AUR installs.
+
 ### Bug Fixes
 
 - Right-clicking a row now opens the same menu as the row's three-dot

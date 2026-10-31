@@ -3440,3 +3440,12 @@ msgstr "ද යෙදවීමට විකල්ප යැපුම් තෝ�
 
 msgid "Packages to install"
 msgstr "ස්ථාපනය කළ යුතු පැකේජ"
+
+msgid "Choose providers"
+msgstr "සැපයුම්කරුවන් තෝරන්න"
+
+msgid "Some dependencies can be satisfied by more than one package. Pick one for each."
+msgstr "සමහර යැපුම් එකකට වඩා පැකේජ මගින් සපුරාලිය හැක. එක් එකකට එකක් තෝරන්න."
+
+msgid "Provider for {name}"
+msgstr "{name} සඳහා සැපයුම්කරු"

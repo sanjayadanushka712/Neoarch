@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import glob
 import json
+import os
 import re
 import subprocess
+import tarfile
 import urllib.parse
 import urllib.request
 from typing import Dict, List
@@ -16,6 +19,9 @@ from neoarch.backend.sys_utils import c_locale_env
 
 AUR_RPC = "https://aur.archlinux.org/rpc/v5/info"
 FLATHUB = "flathub"
+SYNC_DIR = "/var/lib/pacman/sync"
+
+_providers_cache = None
 
 
 def _run(cmd: List[str], timeout: int = 60) -> subprocess.CompletedProcess:
@@ -92,6 +98,137 @@ def install_plan(packages: List[str], source: str = "pacman") -> Dict:
     if source == "Flatpak":
         return _flatpak_plan(names)
     return _empty()
+
+
+# ── providers ─────────────────────────────────────────────────────────────
+
+def _parse_desc(text: str) -> Dict[str, List[str]]:
+    """Parse a sync-database ``desc`` file into ``{FIELD: [values]}``."""
+    fields: Dict[str, List[str]] = {}
+    key = None
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("%") and stripped.endswith("%") and len(stripped) > 2:
+            key = stripped.strip("%")
+            fields[key] = []
+        elif key is not None and stripped:
+            fields[key].append(stripped)
+    return fields
+
+
+def _build_providers_map() -> Dict[str, List[Dict]]:
+    """Map every provided/virtual name to the repo packages that provide it.
+
+    Reads the already-synced ``*.db`` archives under /var/lib/pacman/sync,
+    so it never touches the network. Entries keep repository order, which is
+    also pacman's resolution priority.
+    """
+    mapping: Dict[str, List[Dict]] = {}
+    for db in sorted(glob.glob(os.path.join(SYNC_DIR, "*.db"))):
+        repo = os.path.basename(db)[:-3]
+        try:
+            with tarfile.open(db, "r:*") as tar:
+                for member in tar:
+                    if not member.name.endswith("/desc"):
+                        continue
+                    handle = tar.extractfile(member)
+                    if handle is None:
+                        continue
+                    fields = _parse_desc(
+                        handle.read().decode("utf-8", errors="replace"))
+                    names = fields.get("NAME") or []
+                    if not names:
+                        continue
+                    pkg = names[0]
+                    version = (fields.get("VERSION") or [""])[0]
+                    for provided in fields.get("PROVIDES") or []:
+                        base = re.split(r"[<>=]", provided, maxsplit=1)[0].strip()
+                        if not base:
+                            continue
+                        bucket = mapping.setdefault(base, [])
+                        if all(entry["name"] != pkg for entry in bucket):
+                            bucket.append(
+                                {"name": pkg, "version": version, "repo": repo})
+        except Exception:
+            continue
+    return mapping
+
+
+def providers_for(name: str) -> List[Dict]:
+    """Return the repo packages that provide ``name`` (cached per session)."""
+    global _providers_cache
+    if not name:
+        return []
+    if _providers_cache is None:
+        _providers_cache = _build_providers_map()
+    return list(_providers_cache.get(name, []))
+
+
+def _real_packages(names: List[str]) -> set:
+    """Names from ``names`` that exist as real packages in the sync repos."""
+    if not names:
+        return set()
+    result = _run(["pacman", "-Si"] + names)
+    if result.returncode not in (0, 1):
+        return set()
+    found = set()
+    for block in re.split(r"\n\s*\n", result.stdout):
+        name = _parse_pacman_fields(block).get("Name")
+        if name:
+            found.add(name)
+    return found
+
+
+def _dep_names(deps: List[str]) -> List[str]:
+    names = []
+    for dep in deps or []:
+        base = re.split(r"[<>=]", (dep or "").strip(), maxsplit=1)[0].strip()
+        if base:
+            names.append(base)
+    return names
+
+
+def provider_choices(packages: List[str], source: str = "pacman") -> List[Dict]:
+    """Find dependencies that several repo packages can satisfy.
+
+    Returns ``[{"requested": name, "options": [{name, version, repo}]}]``
+    for every dependency with more than one uninstalled provider. The caller
+    asks the user to pick one and re-resolves with that package added.
+    """
+    names = [p for p in (packages or []) if p]
+    if not names:
+        return []
+
+    installed = _installed_names()
+    deps: List[str] = []
+    if source == "pacman":
+        info = _run(["pacman", "-Si"] + names)
+        if info.returncode != 0:
+            return []
+        for block in re.split(r"\n\s*\n", info.stdout):
+            fields = _parse_pacman_fields(block)
+            deps.extend((fields.get("Depends On") or "").split())
+    elif source == "AUR":
+        for info in _aur_info(names):
+            deps.extend((info.get("Depends") or []) + (info.get("MakeDepends") or []))
+    else:
+        return []
+
+    candidates = [d for d in _dep_names(deps)
+                  if d and d not in installed and d not in names]
+    candidates = list(dict.fromkeys(candidates))
+    if not candidates:
+        return []
+
+    real = _real_packages(candidates)
+    choices: List[Dict] = []
+    for dep in candidates:
+        if dep in real:
+            continue
+        options = [p for p in providers_for(dep) if p["name"] not in installed]
+        if len(options) > 1:
+            choices.append({"requested": dep, "options": options})
+    return choices
 
 
 # ── pacman ────────────────────────────────────────────────────────────────

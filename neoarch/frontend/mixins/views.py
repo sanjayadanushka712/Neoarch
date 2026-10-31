@@ -3829,7 +3829,8 @@ class _ViewsMixin:
 
         Every source is resolved in its own way; when a plan cannot be built
         the install goes straight to the installer as before. Resolution runs
-        off the UI thread.
+        off the UI thread. If a dependency has several providers, the user
+        picks one before the transaction is resolved.
         """
         if not hasattr(self, "ui_call"):
             self._install_now(name, source)
@@ -3837,13 +3838,39 @@ class _ViewsMixin:
 
         def task():
             try:
+                from neoarch.backend.services.preflight import provider_choices
+                choices = provider_choices([name], source)
+            except Exception:
+                choices = []
+            if choices:
+                self.ui_call.emit(
+                    lambda: self._choose_providers(name, source, choices))
+                return
+            self._resolve_install_plan(name, source, [])
+
+        Thread(target=task, daemon=True).start()
+
+    def _choose_providers(self, name, source, choices):
+        from neoarch.frontend.components.provider_chooser_dialog import (
+            show_provider_choices)
+        picked = show_provider_choices(self, choices)
+        if picked is None:
+            self.log("Install cancelled.")
+            return
+        self._resolve_install_plan(name, source, picked)
+
+    def _resolve_install_plan(self, name, source, providers):
+        def task():
+            try:
                 from neoarch.backend.services.preflight import install_plan
-                plan = install_plan([name], source)
+                plan = install_plan([name] + list(providers), source)
             except Exception:
                 plan = {"ok": False}
             if not plan.get("ok"):
-                self.ui_call.emit(lambda: self._install_now(name, source))
+                self.ui_call.emit(
+                    lambda: self._install_now(name, source, providers))
                 return
+            plan["extra"] = list(providers)
             self.ui_call.emit(
                 lambda: self._confirm_install_plan(name, source, plan))
 
@@ -3856,7 +3883,8 @@ class _ViewsMixin:
         if selected is None:
             self.log("Install cancelled.")
             return
-        self._install_now(name, source, selected)
+        extra = list(plan.get("extra") or []) + list(selected or [])
+        self._install_now(name, source, extra)
 
     def _install_now(self, name, source, optional=None):
         if not name:

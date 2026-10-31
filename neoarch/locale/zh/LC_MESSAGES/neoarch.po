@@ -3440,3 +3440,12 @@ msgstr "选择要一并安装的可选依赖项"
 
 msgid "Packages to install"
 msgstr "要安装的软件包"
+
+msgid "Choose providers"
+msgstr "选择提供者"
+
+msgid "Some dependencies can be satisfied by more than one package. Pick one for each."
+msgstr "某些依赖项可由多个软件包提供。请为每一项选择一个。"
+
+msgid "Provider for {name}"
+msgstr "{name} 的提供者"
