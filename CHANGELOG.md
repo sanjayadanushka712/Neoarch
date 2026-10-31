@@ -26,6 +26,12 @@ dialog shows after an update.
   capped at the first 2000 entries. Double-clicking a file copies its path.
   Results are cached for the session.
 
+- **Per-package history.** Right-click an installed package and choose
+  **View History** to see every transaction that touched it — date, action
+  and the old → new version — in a dark dialog. It reads the same pacman log
+  as the History page and shows a friendly empty state for packages with no
+  recorded operations.
+
 ## 3.4.5 — 2026-10-31
 
 ### New Features

@@ -3410,3 +3410,12 @@ msgstr "Double-cliquez sur un fichier pour copier son chemin"
 
 msgid "Path copied"
 msgstr "Chemin copié"
+
+msgid "View History"
+msgstr "Voir l’historique"
+
+msgid "No transactions for this package yet."
+msgstr "Aucune transaction pour ce paquet pour l’instant."
+
+msgid "{count} transaction{s}"
+msgstr "{count} transaction{s}"

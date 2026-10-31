@@ -3410,3 +3410,12 @@ msgstr "Doppelklicken Sie auf eine Datei, um ihren Pfad zu kopieren"
 
 msgid "Path copied"
 msgstr "Pfad kopiert"
+
+msgid "View History"
+msgstr "Verlauf anzeigen"
+
+msgid "No transactions for this package yet."
+msgstr "Noch keine Transaktionen für dieses Paket."
+
+msgid "{count} transaction{s}"
+msgstr "{count} Transaktion{s}"

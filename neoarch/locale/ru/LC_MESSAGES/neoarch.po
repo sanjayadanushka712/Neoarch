@@ -3410,3 +3410,12 @@ msgstr "Дважды щёлкните файл, чтобы скопироват�
 
 msgid "Path copied"
 msgstr "Путь скопирован"
+
+msgid "View History"
+msgstr "Показать историю"
+
+msgid "No transactions for this package yet."
+msgstr "Для этого пакета пока нет операций."
+
+msgid "{count} transaction{s}"
+msgstr "{count} операц. {s}"

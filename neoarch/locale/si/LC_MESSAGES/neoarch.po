@@ -3410,3 +3410,12 @@ msgstr "මාර්ගය පිටපත් කිරීමට ගොනුව
 
 msgid "Path copied"
 msgstr "මාර්ගය පිටපත් විය"
+
+msgid "View History"
+msgstr "ඉතිහාසය බලන්න"
+
+msgid "No transactions for this package yet."
+msgstr "මෙම පැකේජය සඳහා තවම ගනුදෙනු නැත."
+
+msgid "{count} transaction{s}"
+msgstr "ගනුදෙනු {count}"

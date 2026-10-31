@@ -3410,3 +3410,12 @@ msgstr "ファイルをダブルクリックしてパスをコピー"
 
 msgid "Path copied"
 msgstr "パスをコピーしました"
+
+msgid "View History"
+msgstr "履歴を表示"
+
+msgid "No transactions for this package yet."
+msgstr "このパッケージの取引はまだありません。"
+
+msgid "{count} transaction{s}"
+msgstr "{count} 件の取引"

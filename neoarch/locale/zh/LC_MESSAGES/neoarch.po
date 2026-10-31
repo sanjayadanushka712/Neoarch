@@ -3410,3 +3410,12 @@ msgstr "双击文件以复制其路径"
 
 msgid "Path copied"
 msgstr "路径已复制"
+
+msgid "View History"
+msgstr "查看历史"
+
+msgid "No transactions for this package yet."
+msgstr "此软件包还没有任何操作记录。"
+
+msgid "{count} transaction{s}"
+msgstr "{count} 次操作"

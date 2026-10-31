@@ -1322,6 +1322,8 @@ class UpdatesTable(QTableView):
             if self._row_has_update(pkg):
                 act_update = menu.addAction(_("Update"))
                 act_update.triggered.connect(lambda: self.menu_action.emit("update", pkg))
+            act_history = menu.addAction(_("View History"))
+            act_history.triggered.connect(lambda: self.menu_action.emit("history", pkg))
             act_reinstall = menu.addAction(_("Reinstall"))
             act_reinstall.triggered.connect(lambda: self.menu_action.emit("reinstall", pkg))
             act_uninstall = menu.addAction(_("Uninstall"))

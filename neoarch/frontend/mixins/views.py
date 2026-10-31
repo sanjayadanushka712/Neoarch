@@ -3770,6 +3770,10 @@ class _ViewsMixin:
             self.log(f"Updating {name} ({source})")
             self.installation_progress.emit("start", True)
             update_service.update_packages(self, {source: [name]})
+        elif action == "history":
+            if not name:
+                return
+            self._package_menu_history(name)
         elif action == "reinstall":
             if not name:
                 return
@@ -3882,6 +3886,9 @@ class _ViewsMixin:
             QMenu::separator {{ height: 1px; background: {Colors.ACCENT_SOFT}; margin: 4px 8px; }}
         """)
 
+        history_act = menu.addAction(_("View History"))
+        history_act.triggered.connect(lambda: self._package_menu_history(name))
+
         reinstall_act = menu.addAction(_("Reinstall"))
         reinstall_act.triggered.connect(lambda: self._package_menu_reinstall(name))
 
@@ -3918,6 +3925,29 @@ class _ViewsMixin:
             return {"ignored": name in ignore, "held": name in hold}
         except Exception:
             return {"ignored": False, "held": False}
+
+    def _package_menu_history(self, name):
+        if not hasattr(self, "ui_call"):
+            return
+
+        def task():
+            try:
+                from neoarch.backend.services.history import package_history
+                entries = package_history(name)
+            except Exception:
+                entries = []
+            try:
+                self.ui_call.emit(
+                    lambda: self._show_package_history(name, entries))
+            except Exception:
+                pass
+
+        Thread(target=task, daemon=True).start()
+
+    def _show_package_history(self, name, entries):
+        from neoarch.frontend.components.package_history_dialog import (
+            show_package_history)
+        show_package_history(self, name, entries)
 
     def _package_menu_reinstall(self, name):
         if not self.confirm_reinstall(name):

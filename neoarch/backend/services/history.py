@@ -122,6 +122,27 @@ def read_history(path: str = PACMAN_LOG, limit: int = 200,
     return transactions
 
 
+def package_history(name: str, path: str = PACMAN_LOG,
+                    limit: int = 200) -> List[Dict]:
+    """Return the transactions that touched one package, newest first.
+
+    Each entry has the same shape as :func:`read_history` but only the
+    events for ``name`` remain in ``packages``.
+    """
+    name = (name or "").strip()
+    if not name:
+        return []
+    entries: List[Dict] = []
+    for transaction in read_history(path, limit=0):
+        events = [p for p in transaction["packages"] if p.get("name") == name]
+        if events:
+            entries.append({"timestamp": transaction["timestamp"],
+                            "packages": events})
+    if limit:
+        entries = entries[:limit]
+    return entries
+
+
 def history_stats(transactions: List[Dict]) -> Dict[str, int]:
     """Count transactions and package events by action."""
     stats = {"transactions": len(transactions), "install": 0, "upgrade": 0,

@@ -3410,3 +3410,12 @@ msgstr "Yolunu kopyalamak için bir dosyaya çift tıklayın"
 
 msgid "Path copied"
 msgstr "Yol kopyalandı"
+
+msgid "View History"
+msgstr "Geçmişi görüntüle"
+
+msgid "No transactions for this package yet."
+msgstr "Bu paket için henüz işlem yok."
+
+msgid "{count} transaction{s}"
+msgstr "{count} işlem"

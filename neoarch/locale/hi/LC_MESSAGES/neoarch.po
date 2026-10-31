@@ -3410,3 +3410,12 @@ msgstr "पथ कॉपी करने के लिए किसी फ़ा
 
 msgid "Path copied"
 msgstr "पथ कॉपी किया गया"
+
+msgid "View History"
+msgstr "इतिहास देखें"
+
+msgid "No transactions for this package yet."
+msgstr "इस पैकेज के लिए अभी कोई लेन-देन नहीं।"
+
+msgid "{count} transaction{s}"
+msgstr "{count} लेन-देन"

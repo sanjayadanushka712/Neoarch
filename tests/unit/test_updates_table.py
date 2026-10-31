@@ -484,6 +484,7 @@ def test_installed_row_menu_offers_reinstall(qapp):
     menu = table._build_row_menu(table.model.package_at(0))
     by_text = {a.text(): a for a in menu.actions()}
     assert "Reinstall" in by_text
+    assert "View History" in by_text
     by_text["Reinstall"].trigger()
 
     assert emitted == [("reinstall", "pkg-a")]

@@ -175,3 +175,22 @@ def test_history_tab_filters_by_action(qapp, monkeypatch, tmp_path):
     tab._set_action_filter(None)
     assert len(tab._visible_transactions()) == 2
     assert tab._filter_buttons[None].isChecked()
+
+
+def test_package_history_filters_one_package(tmp_path):
+    log = tmp_path / "pacman.log"
+    log.write_text(
+        "[2026-10-01T09:05:00+0000] [ALPM] transaction started\n"
+        "[2026-10-01T09:05:01+0000] [ALPM] installed bash (5.2-1)\n"
+        "[2026-10-01T09:05:02+0000] [ALPM] installed curl (8.0-1)\n"
+        "[2026-10-01T09:05:03+0000] [ALPM] transaction completed\n"
+        "[2026-10-31T14:22:00+0000] [ALPM] transaction started\n"
+        "[2026-10-31T14:22:01+0000] [ALPM] upgraded bash (5.2-1 -> 5.3-1)\n"
+        "[2026-10-31T14:22:02+0000] [ALPM] transaction completed\n"
+    )
+    entries = history.package_history("bash", path=str(log))
+    assert len(entries) == 2
+    assert [e["packages"][0]["action"] for e in entries] == ["upgrade", "install"]
+    assert entries[0]["packages"][0]["version"] == "5.3-1"
+    assert entries[0]["packages"][0]["old_version"] == "5.2-1"
+    assert history.package_history("", path=str(log)) == []
