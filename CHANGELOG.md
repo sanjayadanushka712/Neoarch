@@ -10,6 +10,28 @@ dialog shows after an update.
 
 ---
 
+## Unreleased
+
+### New Features
+
+- **History page.** A new sidebar entry lists every pacman transaction from
+  `/var/log/pacman.log`, newest first: installs, upgrades, downgrades,
+  reinstalls and removals. It uses the same table design as the Updates page
+  (frosted header, dense rows, hover band, stacked version changes) with a
+  Time, Package, Version and Date column, plus four overview cards and action
+  filter chips (all, installed, upgraded, downgraded, reinstalled, removed).
+  The top navbar search filters the list live. The log is read in a background
+  thread and only its tail is
+  parsed, so the page opens instantly; while it loads, the same badge and
+  indeterminate progress bar as the Updates page are shown.
+
+- **Dependencies in the package detail card.** Installed packages now show
+  their `Depends On`, `Optional Deps`, `Provides`, `Replaces` and
+  `Optional For` fields, read from `pacman -Qi`; repository packages are read
+  from `pacman -Si`. Empty rows stay hidden.
+
+---
+
 ## 3.4.4 — 2026-10-21
 
 ### Improvements

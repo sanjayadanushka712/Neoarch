@@ -3299,3 +3299,87 @@ msgstr "Quando fica offline ou volta a ficar online."
 
 msgid "Free Software"
 msgstr "Software livre"
+
+msgid "Depends On"
+msgstr "Depende de"
+
+msgid "Optional Deps"
+msgstr "Dependências opcionais"
+
+msgid "Provides"
+msgstr "Fornece"
+
+msgid "Replaces"
+msgstr "Substitui"
+
+msgid "Optional For"
+msgstr "Opcional para"
+
+msgid "History"
+msgstr "Histórico"
+
+msgid "Every install, upgrade and removal recorded by pacman"
+msgstr "Cada instalação, atualização e remoção registrada pelo pacman"
+
+msgid "Transactions"
+msgstr "Transações"
+
+msgid "Installs"
+msgstr "Instalações"
+
+msgid "Upgrades"
+msgstr "Atualizações"
+
+msgid "Removals"
+msgstr "Remoções"
+
+msgid "Search history"
+msgstr "Pesquisar histórico"
+
+msgid "No history yet."
+msgstr "Ainda não há histórico."
+
+msgid "No matching transactions."
+msgstr "Nenhuma transação correspondente."
+
+msgid "Upgraded"
+msgstr "Atualizado"
+
+msgid "Downgraded"
+msgstr "Rebaixado"
+
+msgid "Reinstalled"
+msgstr "Reinstalado"
+
+msgid "Removed"
+msgstr "Removido"
+
+msgid "Loading history…"
+msgstr "Carregando histórico…"
+
+msgid "Please wait, reading the pacman log"
+msgstr "Aguarde, lendo o registro do pacman"
+
+msgid "Time"
+msgstr "Hora"
+
+msgid "Date"
+msgstr "Data"
+
+msgid "Transactions will appear here after your next pacman operation"
+msgstr "As transações aparecerão aqui após a sua próxima operação do pacman"
+
+msgid "Try a different package name or action"
+msgstr "Tente outro nome de pacote ou ação"
+
+msgid "From the pacman log"
+msgstr "Do registro do pacman"
+
+msgid "Packages installed"
+msgstr "Pacotes instalados"
+
+msgid "Packages upgraded"
+msgstr "Pacotes atualizados"
+
+msgid "Packages removed"
+msgstr "Pacotes removidos"

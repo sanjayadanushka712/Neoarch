@@ -3299,3 +3299,87 @@ msgstr "Çevrimdışı olduğunuzda veya yeniden çevrimiçi olduğunuzda."
 
 msgid "Free Software"
 msgstr "Özgür Yazılım"
+
+msgid "Depends On"
+msgstr "Bağımlı olduğu"
+
+msgid "Optional Deps"
+msgstr "İsteğe bağlı bağımlılıklar"
+
+msgid "Provides"
+msgstr "Sağladığı"
+
+msgid "Replaces"
+msgstr "Değiştirdiği"
+
+msgid "Optional For"
+msgstr "İsteğe bağlı olduğu"
+
+msgid "History"
+msgstr "Geçmiş"
+
+msgid "Every install, upgrade and removal recorded by pacman"
+msgstr "pacman tarafından kaydedilen her kurulum, yükseltme ve kaldırma"
+
+msgid "Transactions"
+msgstr "İşlemler"
+
+msgid "Installs"
+msgstr "Kurulumlar"
+
+msgid "Upgrades"
+msgstr "Yükseltmeler"
+
+msgid "Removals"
+msgstr "Kaldırmalar"
+
+msgid "Search history"
+msgstr "Geçmişte ara"
+
+msgid "No history yet."
+msgstr "Henüz geçmiş yok."
+
+msgid "No matching transactions."
+msgstr "Eşleşen işlem yok."
+
+msgid "Upgraded"
+msgstr "Yükseltildi"
+
+msgid "Downgraded"
+msgstr "Sürüm düşürüldü"
+
+msgid "Reinstalled"
+msgstr "Yeniden kuruldu"
+
+msgid "Removed"
+msgstr "Kaldırıldı"
+
+msgid "Loading history…"
+msgstr "Geçmiş yükleniyor…"
+
+msgid "Please wait, reading the pacman log"
+msgstr "Lütfen bekleyin, pacman günlüğü okunuyor"
+
+msgid "Time"
+msgstr "Saat"
+
+msgid "Date"
+msgstr "Tarih"
+
+msgid "Transactions will appear here after your next pacman operation"
+msgstr "İşlemler bir sonraki pacman işleminizden sonra burada görünecek"
+
+msgid "Try a different package name or action"
+msgstr "Farklı bir paket adı veya işlem deneyin"
+
+msgid "From the pacman log"
+msgstr "pacman günlüğünden"
+
+msgid "Packages installed"
+msgstr "Kurulan paketler"
+
+msgid "Packages upgraded"
+msgstr "Yükseltilen paketler"
+
+msgid "Packages removed"
+msgstr "Kaldırılan paketler"

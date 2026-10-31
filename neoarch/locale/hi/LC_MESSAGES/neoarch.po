@@ -3299,3 +3299,87 @@ msgstr "जब आप ऑफ़लाइन हों या फिर ऑनल
 
 msgid "Free Software"
 msgstr "मुक्त सॉफ़्टवेयर"
+
+msgid "Depends On"
+msgstr "इन पर निर्भर"
+
+msgid "Optional Deps"
+msgstr "वैकल्पिक निर्भरताएँ"
+
+msgid "Provides"
+msgstr "प्रदान करता है"
+
+msgid "Replaces"
+msgstr "प्रतिस्थापित करता है"
+
+msgid "Optional For"
+msgstr "इसके लिए वैकल्पिक"
+
+msgid "History"
+msgstr "इतिहास"
+
+msgid "Every install, upgrade and removal recorded by pacman"
+msgstr "pacman द्वारा दर्ज हर इंस्टॉल, अपग्रेड और हटाना"
+
+msgid "Transactions"
+msgstr "लेन-देन"
+
+msgid "Installs"
+msgstr "इंस्टॉल"
+
+msgid "Upgrades"
+msgstr "अपग्रेड"
+
+msgid "Removals"
+msgstr "हटाने"
+
+msgid "Search history"
+msgstr "इतिहास खोजें"
+
+msgid "No history yet."
+msgstr "अभी तक कोई इतिहास नहीं।"
+
+msgid "No matching transactions."
+msgstr "कोई मेल खाता लेन-देन नहीं।"
+
+msgid "Upgraded"
+msgstr "अपग्रेड किया गया"
+
+msgid "Downgraded"
+msgstr "डाउनग्रेड किया गया"
+
+msgid "Reinstalled"
+msgstr "पुनः इंस्टॉल किया गया"
+
+msgid "Removed"
+msgstr "हटाया गया"
+
+msgid "Loading history…"
+msgstr "इतिहास लोड हो रहा है…"
+
+msgid "Please wait, reading the pacman log"
+msgstr "कृपया प्रतीक्षा करें, pacman लॉग पढ़ा जा रहा है"
+
+msgid "Time"
+msgstr "समय"
+
+msgid "Date"
+msgstr "तारीख"
+
+msgid "Transactions will appear here after your next pacman operation"
+msgstr "आपके अगले pacman संचालन के बाद लेन-देन यहाँ दिखाई देंगे"
+
+msgid "Try a different package name or action"
+msgstr "कोई दूसरा पैकेज नाम या क्रिया आज़माएँ"
+
+msgid "From the pacman log"
+msgstr "pacman लॉग से"
+
+msgid "Packages installed"
+msgstr "स्थापित पैकेज"
+
+msgid "Packages upgraded"
+msgstr "अपग्रेड किए गए पैकेज"
+
+msgid "Packages removed"
+msgstr "हटाए गए पैकेज"

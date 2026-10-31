@@ -84,6 +84,90 @@ def test_package_info_required_by(monkeypatch):
     assert info["required_by"] == ["firefox", "dolphin", "ark"]
 
 
+def test_package_info_parses_dependency_fields(monkeypatch):
+    from neoarch.backend.services import hygiene
+
+    sample = (
+        "Name            : firefox\n"
+        "Depends On      : gtk3 libdbus libx11\n"
+        "Optional Deps   : python: for scripting\n"
+        "                  tk: for GUI\n"
+        "Required By     : None\n"
+        "Optional For    : None\n"
+        "Provides        : web-browser\n"
+        "Replaces        : firefox-esr\n"
+        "Installed Size  : 273.34 MiB\n"
+    )
+    monkeypatch.setattr(hygiene, "_run", lambda cmd, timeout=30, env=None, **k: _fake_result(sample))
+    info = hygiene.package_info("firefox")
+    assert info["depends"] == ["gtk3", "libdbus", "libx11"]
+    assert info["optdepends"] == ["python: for scripting", "tk: for GUI"]
+    assert info["required_by"] == []
+    assert info["optional_for"] == []
+    assert info["provides"] == ["web-browser"]
+    assert info["replaces"] == ["firefox-esr"]
+
+
+def test_repo_info_parses_si(monkeypatch):
+    from neoarch.backend.services import hygiene
+
+    sample = (
+        "Repository      : extra\n"
+        "Name            : firefox\n"
+        "Version         : 128.0.1-1\n"
+        "Description     : Standalone web browser\n"
+        "Depends On      : gtk3 libdbus\n"
+        "Optional Deps   : python: for scripting\n"
+        "Required By     : None\n"
+        "Provides        : web-browser\n"
+        "Replaces        : None\n"
+        "Download Size   : 70.12 MiB\n"
+        "Installed Size  : 273.34 MiB\n"
+    )
+    captured = {}
+
+    def fake_run(cmd, timeout=30, env=None, **k):
+        captured["cmd"] = cmd
+        return _fake_result(sample)
+
+    monkeypatch.setattr(hygiene, "_run", fake_run)
+    info = hygiene.repo_info("firefox")
+    assert captured["cmd"] == ["pacman", "-Si", "firefox"]
+    assert info["repository"] == "extra"
+    assert info["version"] == "128.0.1-1"
+    assert info["depends"] == ["gtk3", "libdbus"]
+    assert info["optdepends"] == ["python: for scripting"]
+    assert info["provides"] == ["web-browser"]
+    assert info["replaces"] == []
+    assert info["download_size"] == int(70.12 * 1024 * 1024)
+
+
+def test_repo_info_uses_first_block(monkeypatch):
+    from neoarch.backend.services import hygiene
+
+    sample = (
+        "Repository      : core\nName            : foo\nVersion         : 1-1\n"
+        "\n"
+        "Repository      : extra\nName            : foo\nVersion         : 2-1\n"
+    )
+    monkeypatch.setattr(hygiene, "_run", lambda cmd, timeout=30, env=None, **k: _fake_result(sample))
+    info = hygiene.repo_info("foo")
+    assert info["repository"] == "core"
+    assert info["version"] == "1-1"
+
+
+def test_repo_info_missing(monkeypatch):
+    from neoarch.backend.services import hygiene
+
+    monkeypatch.setattr(
+        hygiene,
+        "_run",
+        lambda cmd, timeout=30, env=None, **k: _fake_result(
+            "error: package 'nope' was not found", returncode=1),
+    )
+    assert hygiene.repo_info("nope") == {}
+
+
 def test_package_info_missing(monkeypatch):
     from neoarch.backend.services import hygiene
 

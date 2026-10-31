@@ -1,4 +1,1 @@
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect x="3" y="3" width="18" height="18" rx="4" fill="#00ACC1"/>
-  <text x="12" y="17" font-family="sans-serif" font-weight="700" font-size="15" fill="#FFFFFF" text-anchor="middle">P</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M11 17a7 7 0 0 1 7-7h16v17H23v8H11V17Z" fill="none" stroke="#3B9DD8" stroke-width="4" stroke-linejoin="round"/><path d="M53 47a7 7 0 0 1-7 7H30V37h11v-8h12v18Z" fill="none" stroke="#F4C542" stroke-width="4" stroke-linejoin="round"/><path d="M25 27h14v10H25z" fill="none" stroke="#DDE7EF" stroke-width="3"/></svg>

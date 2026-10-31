@@ -263,3 +263,77 @@ def test_selection_signals_emit_without_touching_package_data(qapp):
     card.selection_clear_btn.click()
 
     assert seen == ["update", "clear"]
+
+
+def test_dependencies_section_lists_metadata(qapp):
+    card = PackageDetailCard()
+    card.show()
+    card.show_package({"name": "firefox", "version": "128", "source": "pacman",
+                       "installed": True, "has_update": False,
+                       "description": "Browser", "_view": ""})
+    assert card.deps_section.isVisible() is False
+
+    card.set_extra_info({
+        "depends": ["gtk3", "libdbus"],
+        "optdepends": ["python: for scripting", "tk: for GUI"],
+        "provides": ["web-browser"],
+        "replaces": ["firefox-esr"],
+        "optional_for": ["some-meta"],
+    })
+    assert card.deps_section.isVisible() is True
+    assert card.depends_label.text() == "gtk3, libdbus"
+    assert card.optdeps_label.text() == "python: for scripting\ntk: for GUI"
+    assert card.provides_label.text() == "web-browser"
+    assert card.replaces_label.text() == "firefox-esr"
+    assert card.optional_for_label.text() == "some-meta"
+
+
+def test_dependencies_section_hides_empty_rows(qapp):
+    card = PackageDetailCard()
+    card.show()
+    card.show_package({"name": "bash", "version": "5.2", "source": "pacman",
+                       "installed": True, "has_update": False,
+                       "description": "shell", "_view": ""})
+
+    card.set_extra_info({"depends": ["readline"], "provides": [], "optdepends": []})
+    assert card.deps_section.isVisible() is True
+    assert card.depends_row.isVisible() is True
+    assert card.provides_row.isVisible() is False
+    assert card.optdeps_row.isVisible() is False
+    assert card.replaces_row.isVisible() is False
+    assert card.optional_for_row.isVisible() is False
+
+
+def test_dependencies_reset_when_package_changes(qapp):
+    card = PackageDetailCard()
+    card.show()
+    card.show_package({"name": "bash", "version": "5.2", "source": "pacman",
+                       "installed": True, "has_update": False,
+                       "description": "shell", "_view": ""})
+    card.set_extra_info({"depends": ["readline"]})
+    assert card.deps_section.isVisible() is True
+
+    card.show_package({"name": "curl", "version": "8.0", "source": "pacman",
+                       "installed": False, "has_update": False,
+                       "description": "transfer tool", "_view": ""})
+    assert card.deps_section.isVisible() is False
+
+
+def test_dependencies_hidden_for_selection_and_clear(qapp):
+    card = PackageDetailCard()
+    card.show()
+    card.show_package({"name": "bash", "version": "5.2", "source": "pacman",
+                       "installed": True, "has_update": False,
+                       "description": "shell", "_view": ""})
+    card.set_extra_info({"depends": ["readline"]})
+
+    card.show_selection([{"name": "bash", "source": "pacman"},
+                         {"name": "curl", "source": "pacman"}])
+    assert card.deps_section.isVisible() is False
+
+    card.show_package({"name": "bash", "version": "5.2", "source": "pacman",
+                       "installed": True, "has_update": False,
+                       "description": "shell", "_view": ""})
+    card.set_extra_info({"depends": ["readline"]})
+    card.clear()
+    assert card.deps_section.isVisible() is False

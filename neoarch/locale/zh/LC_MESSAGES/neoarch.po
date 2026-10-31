@@ -3299,3 +3299,87 @@ msgstr "当您离线或重新上线时。"
 
 msgid "Free Software"
 msgstr "自由软件"
+
+msgid "Depends On"
+msgstr "依赖于"
+
+msgid "Optional Deps"
+msgstr "可选依赖"
+
+msgid "Provides"
+msgstr "提供"
+
+msgid "Replaces"
+msgstr "替代"
+
+msgid "Optional For"
+msgstr "可选用于"
+
+msgid "History"
+msgstr "历史记录"
+
+msgid "Every install, upgrade and removal recorded by pacman"
+msgstr "pacman 记录的每一次安装、升级和移除"
+
+msgid "Transactions"
+msgstr "事务"
+
+msgid "Installs"
+msgstr "安装"
+
+msgid "Upgrades"
+msgstr "升级"
+
+msgid "Removals"
+msgstr "移除"
+
+msgid "Search history"
+msgstr "搜索历史记录"
+
+msgid "No history yet."
+msgstr "暂无历史记录。"
+
+msgid "No matching transactions."
+msgstr "没有匹配的事务。"
+
+msgid "Upgraded"
+msgstr "已升级"
+
+msgid "Downgraded"
+msgstr "已降级"
+
+msgid "Reinstalled"
+msgstr "已重新安装"
+
+msgid "Removed"
+msgstr "已移除"
+
+msgid "Loading history…"
+msgstr "正在加载历史记录…"
+
+msgid "Please wait, reading the pacman log"
+msgstr "请稍候，正在读取 pacman 日志"
+
+msgid "Time"
+msgstr "时间"
+
+msgid "Date"
+msgstr "日期"
+
+msgid "Transactions will appear here after your next pacman operation"
+msgstr "下次 pacman 操作后，事务将显示在这里"
+
+msgid "Try a different package name or action"
+msgstr "请尝试其他软件包名称或操作"
+
+msgid "From the pacman log"
+msgstr "来自 pacman 日志"
+
+msgid "Packages installed"
+msgstr "已安装的软件包"
+
+msgid "Packages upgraded"
+msgstr "已升级的软件包"
+
+msgid "Packages removed"
+msgstr "已移除的软件包"

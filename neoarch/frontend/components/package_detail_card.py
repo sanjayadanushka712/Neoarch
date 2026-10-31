@@ -71,6 +71,27 @@ def _detail_row(label: str, value: str) -> QWidget:
     return row
 
 
+def _dep_row(label: str):
+    """A dependency block: a muted caption above a wrapped value."""
+    row = QWidget()
+    row.setStyleSheet("background: transparent;")
+    v = QVBoxLayout(row)
+    v.setContentsMargins(0, 4, 0, 4)
+    v.setSpacing(2)
+    cap = QLabel(label)
+    cap.setStyleSheet(
+        f"color: {Colors.TEXT_3}; font-size: {Fonts.SM}; font-weight: 600; "
+        f"background: transparent;"
+    )
+    v.addWidget(cap)
+    val = QLabel()
+    val.setStyleSheet(f"color: {Colors.TEXT_2}; font-size: {Fonts.MD}; background: transparent;")
+    val.setWordWrap(True)
+    val.setAlignment(Qt.AlignmentFlag.AlignTop)
+    v.addWidget(val)
+    return row, val
+
+
 def _make_sep() -> QFrame:
     sep = QFrame()
     sep.setFrameShape(QFrame.Shape.HLine)
@@ -312,6 +333,25 @@ class PackageDetailCard(QFrame):
         rl.addWidget(self.revdeps_widget)
         content.addWidget(self.revdeps_section)
 
+        # ── Dependencies ──
+        self.deps_section, deps_layout = _section_block(_("Dependencies"))
+        self.depends_row, self.depends_label = _dep_row(_("Depends On"))
+        self.optdeps_row, self.optdeps_label = _dep_row(_("Optional Deps"))
+        self.provides_row, self.provides_label = _dep_row(_("Provides"))
+        self.replaces_row, self.replaces_label = _dep_row(_("Replaces"))
+        self.optional_for_row, self.optional_for_label = _dep_row(_("Optional For"))
+        self._dep_rows = (
+            ("depends", self.depends_row, self.depends_label),
+            ("optdepends", self.optdeps_row, self.optdeps_label),
+            ("provides", self.provides_row, self.provides_label),
+            ("replaces", self.replaces_row, self.replaces_label),
+            ("optional_for", self.optional_for_row, self.optional_for_label),
+        )
+        for _key, row, _label in self._dep_rows:
+            deps_layout.addWidget(row)
+        content.addWidget(self.deps_section)
+        self.deps_section.setVisible(False)
+
         # ── Description ──
         self.desc_label = QLabel()
         self.desc_label.setStyleSheet(
@@ -546,6 +586,8 @@ class PackageDetailCard(QFrame):
             else:
                 self.revdeps_label.setText(_("Nothing depends on this package (it is not needed by anything installed)."))
 
+        self._apply_dependencies(pkg_data)
+
         self.launch_btn.setVisible(False)
         if view == "plugins":
             self.install_btn.setVisible(not installed)
@@ -688,6 +730,7 @@ class PackageDetailCard(QFrame):
 
         self.details_section.setVisible(False)
         self.revdeps_section.setVisible(False)
+        self.deps_section.setVisible(False)
         self.desc_section.setVisible(False)
         self.selection_section.setVisible(True)
 
@@ -740,30 +783,47 @@ class PackageDetailCard(QFrame):
         except Exception:
             pass
 
+    def _apply_dependencies(self, info: dict):
+        """Show dependency lists; hide the whole section when all are empty."""
+        any_row = False
+        for key, row, label in self._dep_rows:
+            values = info.get(key) or []
+            if isinstance(values, str):
+                values = [values]
+            label.setText("\n".join(values) if key == "optdepends" else ", ".join(values))
+            row.setVisible(bool(values))
+            any_row = any_row or bool(values)
+        self.deps_section.setVisible(any_row)
+
     def set_extra_info(self, info: dict):
-        """Populate async-loaded installed-only extras (reason, size, reverse deps)."""
+        """Populate async-loaded metadata (reason, size, dependencies)."""
         if not self._pkg_data:
             return
         source = (self._pkg_data.get("source") or "").lower()
         if source not in ("pacman", "aur"):
             return
+        installed = bool(self._pkg_data.get("installed"))
         install_reason = info.get("install_reason") or ""
         installed_size = info.get("installed_size")
-        required_by = info.get("required_by") or []
 
-        self.reason_row.setVisible(True)
-        self._set_row_text(self.reason_row, install_reason or "—")
+        if installed and install_reason:
+            self.reason_row.setVisible(True)
+            self._set_row_text(self.reason_row, install_reason)
 
         if installed_size:
             self.size_row.setVisible(True)
             self._set_row_text(self.size_row, _fmt_size(installed_size))
 
+        required_by = info.get("required_by") or []
         if required_by:
             self.revdeps_widget.setVisible(True)
             self.revdeps_label.setText(", ".join(required_by))
 
+        self._apply_dependencies(info)
+
     def clear(self):
         self._set_single_mode()
+        self.deps_section.setVisible(False)
         self._pkg_data = None
         self.name_label.clear()
         self.version_label.clear()

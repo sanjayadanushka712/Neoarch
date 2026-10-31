@@ -3299,3 +3299,87 @@ msgstr "ඔබ නොබැඳි වන විට හෝ නැවත සම්
 
 msgid "Free Software"
 msgstr "නිදහස් මෘදුකාංග"
+
+msgid "Depends On"
+msgstr "රඳා පවතින්නේ"
+
+msgid "Optional Deps"
+msgstr "විකල්ප යැපීම්"
+
+msgid "Provides"
+msgstr "සපයයි"
+
+msgid "Replaces"
+msgstr "ප්රතිස්ථාපනය කරයි"
+
+msgid "Optional For"
+msgstr "සඳහා විකල්ප"
+
+msgid "History"
+msgstr "ඉතිහාසය"
+
+msgid "Every install, upgrade and removal recorded by pacman"
+msgstr "pacman විසින් සටහන් කළ සෑම ස්ථාපනයක්, උත්ශ්‍රේණිකරණයක් සහ ඉවත් කිරීමක්"
+
+msgid "Transactions"
+msgstr "ගනුදෙනු"
+
+msgid "Installs"
+msgstr "ස්ථාපන"
+
+msgid "Upgrades"
+msgstr "උත්ශ්‍රේණිකරණ"
+
+msgid "Removals"
+msgstr "ඉවත් කිරීම්"
+
+msgid "Search history"
+msgstr "ඉතිහාසය සොයන්න"
+
+msgid "No history yet."
+msgstr "තවම ඉතිහාසයක් නැත."
+
+msgid "No matching transactions."
+msgstr "ගැලපෙන ගනුදෙනු නැත."
+
+msgid "Upgraded"
+msgstr "උත්ශ්‍රේණි කරන ලදි"
+
+msgid "Downgraded"
+msgstr "පහත හෙළන ලදි"
+
+msgid "Reinstalled"
+msgstr "නැවත ස්ථාපනය කරන ලදි"
+
+msgid "Removed"
+msgstr "ඉවත් කරන ලදි"
+
+msgid "Loading history…"
+msgstr "ඉතිහාසය පූරණය වෙමින්…"
+
+msgid "Please wait, reading the pacman log"
+msgstr "රැඳී සිටින්න, pacman ලොගය කියවමින්"
+
+msgid "Time"
+msgstr "වේලාව"
+
+msgid "Date"
+msgstr "දිනය"
+
+msgid "Transactions will appear here after your next pacman operation"
+msgstr "ඔබේ ඊළඟ pacman ක්‍රියාවෙන් පසු ගනුදෙනු මෙහි දිස්වනු ඇත"
+
+msgid "Try a different package name or action"
+msgstr "වෙනත් පැකේජ නාමයක් හෝ ක්‍රියාවක් උත්සාහ කරන්න"
+
+msgid "From the pacman log"
+msgstr "pacman ලොගයෙන්"
+
+msgid "Packages installed"
+msgstr "ස්ථාපිත පැකේජ"
+
+msgid "Packages upgraded"
+msgstr "උත්ශ්‍රේණි කළ පැකේජ"
+
+msgid "Packages removed"
+msgstr "ඉවත් කළ පැකේජ"

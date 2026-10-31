@@ -3299,3 +3299,87 @@ msgstr "Когда вы отключаетесь или снова подклю�
 
 msgid "Free Software"
 msgstr "Свободное ПО"
+
+msgid "Depends On"
+msgstr "Зависит от"
+
+msgid "Optional Deps"
+msgstr "Необязательные зависимости"
+
+msgid "Provides"
+msgstr "Предоставляет"
+
+msgid "Replaces"
+msgstr "Заменяет"
+
+msgid "Optional For"
+msgstr "Необязательно для"
+
+msgid "History"
+msgstr "История"
+
+msgid "Every install, upgrade and removal recorded by pacman"
+msgstr "Все установки, обновления и удаления, записанные pacman"
+
+msgid "Transactions"
+msgstr "Транзакции"
+
+msgid "Installs"
+msgstr "Установки"
+
+msgid "Upgrades"
+msgstr "Обновления"
+
+msgid "Removals"
+msgstr "Удаления"
+
+msgid "Search history"
+msgstr "Поиск по истории"
+
+msgid "No history yet."
+msgstr "Истории пока нет."
+
+msgid "No matching transactions."
+msgstr "Нет подходящих транзакций."
+
+msgid "Upgraded"
+msgstr "Обновлено"
+
+msgid "Downgraded"
+msgstr "Понижено"
+
+msgid "Reinstalled"
+msgstr "Переустановлено"
+
+msgid "Removed"
+msgstr "Удалено"
+
+msgid "Loading history…"
+msgstr "Загрузка истории…"
+
+msgid "Please wait, reading the pacman log"
+msgstr "Подождите, читается журнал pacman"
+
+msgid "Time"
+msgstr "Время"
+
+msgid "Date"
+msgstr "Дата"
+
+msgid "Transactions will appear here after your next pacman operation"
+msgstr "Транзакции появятся здесь после следующей операции pacman"
+
+msgid "Try a different package name or action"
+msgstr "Попробуйте другое имя пакета или действие"
+
+msgid "From the pacman log"
+msgstr "Из журнала pacman"
+
+msgid "Packages installed"
+msgstr "Установленные пакеты"
+
+msgid "Packages upgraded"
+msgstr "Обновлённые пакеты"
+
+msgid "Packages removed"
+msgstr "Удалённые пакеты"

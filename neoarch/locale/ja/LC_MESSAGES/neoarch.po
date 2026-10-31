@@ -3299,3 +3299,87 @@ msgstr "オフラインになったとき、または再びオンラインにな
 
 msgid "Free Software"
 msgstr "フリーソフトウェア"
+
+msgid "Depends On"
+msgstr "依存先"
+
+msgid "Optional Deps"
+msgstr "任意の依存"
+
+msgid "Provides"
+msgstr "提供"
+
+msgid "Replaces"
+msgstr "置換"
+
+msgid "Optional For"
+msgstr "任意対象"
+
+msgid "History"
+msgstr "履歴"
+
+msgid "Every install, upgrade and removal recorded by pacman"
+msgstr "pacman が記録したインストール、アップグレード、削除のすべて"
+
+msgid "Transactions"
+msgstr "トランザクション"
+
+msgid "Installs"
+msgstr "インストール"
+
+msgid "Upgrades"
+msgstr "アップグレード"
+
+msgid "Removals"
+msgstr "削除"
+
+msgid "Search history"
+msgstr "履歴を検索"
+
+msgid "No history yet."
+msgstr "履歴はまだありません。"
+
+msgid "No matching transactions."
+msgstr "一致するトランザクションはありません。"
+
+msgid "Upgraded"
+msgstr "アップグレード済み"
+
+msgid "Downgraded"
+msgstr "ダウングレード済み"
+
+msgid "Reinstalled"
+msgstr "再インストール済み"
+
+msgid "Removed"
+msgstr "削除済み"
+
+msgid "Loading history…"
+msgstr "履歴を読み込み中…"
+
+msgid "Please wait, reading the pacman log"
+msgstr "pacman ログを読み取っています。しばらくお待ちください"
+
+msgid "Time"
+msgstr "時刻"
+
+msgid "Date"
+msgstr "日付"
+
+msgid "Transactions will appear here after your next pacman operation"
+msgstr "次回の pacman 操作の後にトランザクションがここに表示されます"
+
+msgid "Try a different package name or action"
+msgstr "別のパッケージ名またはアクションを試してください"
+
+msgid "From the pacman log"
+msgstr "pacman ログから"
+
+msgid "Packages installed"
+msgstr "インストール済みパッケージ"
+
+msgid "Packages upgraded"
+msgstr "アップグレード済みパッケージ"
+
+msgid "Packages removed"
+msgstr "削除済みパッケージ"

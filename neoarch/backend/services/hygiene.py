@@ -408,32 +408,93 @@ def list_explicit_packages() -> set:
     return {line.split()[0] for line in result.stdout.splitlines() if line.split()}
 
 
+_PACMAN_LIST_FIELDS = {
+    "Depends On": "depends",
+    "Required By": "required_by",
+    "Optional For": "optional_for",
+    "Provides": "provides",
+    "Replaces": "replaces",
+}
+
+
+def _parse_pacman_fields(text: str) -> Dict[str, str]:
+    """Parse `pacman -Qi` / `pacman -Si` output into a field dict.
+
+    Continuation lines are indented and belong to the previous field, which
+    matters for multi-line values such as ``Optional Deps``.
+    """
+    fields: Dict[str, str] = {}
+    last = ""
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        if line[:1].isspace():
+            if last:
+                fields[last] += "\n" + line.strip()
+            continue
+        key, sep, value = line.partition(":")
+        if not sep:
+            continue
+        last = key.strip()
+        fields[last] = value.strip()
+    return fields
+
+
+def _pacman_metadata(fields: Dict[str, str]) -> Dict:
+    """Map parsed pacman fields onto the metadata keys the UI consumes."""
+    info: Dict = {}
+    if "Description" in fields:
+        info["description"] = fields["Description"]
+    if "Version" in fields:
+        info["version"] = fields["Version"]
+    if "Repository" in fields:
+        info["repository"] = fields["Repository"]
+    if "Install Reason" in fields:
+        info["install_reason"] = fields["Install Reason"]
+    for field, key in _PACMAN_LIST_FIELDS.items():
+        if field in fields:
+            info[key] = [
+                item for item in fields[field].replace("\n", " ").split()
+                if item and item != "None"
+            ]
+    if "Optional Deps" in fields:
+        info["optdepends"] = [
+            item.strip() for item in fields["Optional Deps"].splitlines()
+            if item.strip() and item.strip() != "None"
+        ]
+    if "Installed Size" in fields:
+        info["installed_size"] = _parse_size_text(fields["Installed Size"])
+    if "Download Size" in fields:
+        info["download_size"] = _parse_size_text(fields["Download Size"])
+    return info
+
+
 def package_info(name: str) -> Dict:
     """Detailed metadata for one installed package via `pacman -Qi`.
 
-    Returns a dict with install reason, required-by (reverse dependencies),
-    description, and installed size. Empty dict on failure or unknown pkg.
+    Returns a dict with install reason, dependency lists, description and
+    installed size. Empty dict on failure or unknown pkg.
     """
     result = _run(["pacman", "-Qi", name], timeout=30, env=c_locale_env())
     if result.returncode != 0:
         return {}
-    info: Dict = {}
-    for line in result.stdout.splitlines():
-        stripped = line.strip()
-        if ":" not in stripped:
-            continue
-        key, _, value = stripped.partition(":")
-        key = key.strip()
-        value = value.strip()
-        if key == "Description":
-            info["description"] = value
-        elif key == "Install Reason":
-            info["install_reason"] = value
-        elif key == "Required By":
-            info["required_by"] = [x for x in value.split() if x and x != "None"]
-        elif key == "Installed Size":
-            info["installed_size"] = _parse_size_text(value)
-    return info
+    return _pacman_metadata(_parse_pacman_fields(result.stdout))
+
+
+def repo_info(name: str) -> Dict:
+    """Detailed metadata for a repository package via `pacman -Si`.
+
+    `pacman -Si` prints one blank-line separated block per match; the first
+    block (the preferred repo) is used. Empty dict when the package is not
+    in any configured repository.
+    """
+    result = _run(["pacman", "-Si", name], timeout=30, env=c_locale_env())
+    if result.returncode != 0:
+        return {}
+    blocks = [b for b in re.split(r"\n\s*\n", result.stdout) if b.strip()]
+    if not blocks:
+        return {}
+    return _pacman_metadata(_parse_pacman_fields(blocks[0]))
 
 
 # ──────────────────────────────────────────────────────────────────────────

@@ -125,7 +125,7 @@ class _SearchMixin:
 
     def on_search_text_changed(self):
         try:
-            if getattr(self, 'current_view', '') in ("plugins", "git"):
+            if getattr(self, 'current_view', '') in ("plugins", "git", "history"):
                 self.perform_search()
                 return
         except Exception:
@@ -134,6 +134,14 @@ class _SearchMixin:
 
     def perform_search(self):
         query = self.search_input.text().strip()
+        # History view: filter the transaction table from the navbar search
+        if getattr(self, 'current_view', '') == "history":
+            try:
+                if getattr(self, 'history_view', None) is not None:
+                    self.history_view.set_search_text(query)
+            except Exception:
+                pass
+            return
         # Plugins view: always filter regardless of text length
         if getattr(self, 'current_view', '') == "plugins":
             try:

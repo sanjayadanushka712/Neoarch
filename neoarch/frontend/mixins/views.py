@@ -245,6 +245,7 @@ class _ViewsMixin:
             (_("Home"), "discover", os.path.join(_base, "discover.svg")),
             (_("Installed"), "installed", os.path.join(_base, "installed.svg")),
             (_("Updates"), "updates", os.path.join(_base, "updates.svg")),
+            (_("History"), "history", os.path.join(_base, "history.svg")),
         ]
 
         self.nav_buttons = {}
@@ -1993,6 +1994,8 @@ class _ViewsMixin:
                 self.git_view.setVisible(False)
             if hasattr(self, 'docker_view') and self.docker_view:
                 self.docker_view.setVisible(False)
+            if hasattr(self, 'history_view') and self.history_view:
+                self.history_view.setVisible(False)
             # plugins_tab_widget removed - plugins_view is handled above
             if hasattr(self, 'no_results_widget'):
                 self.no_results_widget.setVisible(False)
@@ -2035,6 +2038,7 @@ class _ViewsMixin:
             "appimage": (os.path.join(_BASE_DIR, "assets", "icons", "appimage.svg"), _("AppImages"), _("Manage AppImage applications")),
             "git": (os.path.join(_BASE_DIR, "assets", "icons", "git.svg"), _("Git Repositories"), _("Clone, build, update, and manage Git repositories")),
             "docker": (os.path.join(_BASE_DIR, "assets", "icons", "docker.svg"), _("Docker Containers"), _("Pull, run, and manage Docker containers")),
+            "history": (os.path.join(_BASE_DIR, "assets", "icons", "history.svg"), _("History"), _("Every install, upgrade and removal recorded by pacman")),
             "settings": (os.path.join(_BASE_DIR, "assets", "icons", "settings.svg"), _("Settings"), _("Configure NeoArch settings")),
             "about": (os.path.join(_BASE_DIR, "assets", "icons", "about.svg"), _("About"), _("About NeoArch")),
         }
@@ -2046,6 +2050,10 @@ class _ViewsMixin:
             title, subtitle = header_data
         self.header_label.setText(title)
         self.header_info.setText(subtitle)
+        try:
+            self.search_input.setPlaceholderText(_("Quick search…"))
+        except Exception:
+            pass
         # Update dynamic counts if on updates/installed
         if view_id == "updates":
             QTimer.singleShot(0, self.update_updates_header_counts)
@@ -2077,7 +2085,7 @@ class _ViewsMixin:
 
         # Show filters panel for all views except settings, bundles, git, and docker
         if hasattr(self, 'filters_panel'):
-            self.filters_panel.setVisible(view_id not in ("settings", "git", "docker", "appimage", "about", "user"))
+            self.filters_panel.setVisible(view_id not in ("settings", "git", "docker", "appimage", "history", "about", "user"))
 
         # Update greeting in navbar
         self._update_nav_greeting(getattr(self, '_cloud_auth', None).user if hasattr(self, '_cloud_auth') and self._cloud_auth else None)
@@ -2405,6 +2413,39 @@ class _ViewsMixin:
             self.appimage_view.setVisible(True)
 
             self.header_info.setText(_("Install and manage AppImage applications"))
+        elif view_id == "history":
+            self.large_search_box.setVisible(False)
+            self._hide_all_package_views()
+            self.load_more_btn.setVisible(False)
+            self.settings_container.setVisible(False)
+            self.sources_section.setVisible(False)
+            self.filters_section.setVisible(False)
+            if hasattr(self, 'packages_content_area'):
+                self.packages_content_area.setVisible(False)
+            if hasattr(self, 'toolbar_widget'):
+                self.toolbar_widget.setVisible(False)
+            try:
+                self.console_label.setVisible(False)
+                self.console.setVisible(False)
+                if hasattr(self, 'console_toggle_btn'):
+                    self.console_toggle_btn.setVisible(True)
+                    self.console_toggle_btn.setToolTip(_("Show Console"))
+            except Exception:
+                pass
+            if getattr(self, 'history_view', None) is None:
+                from neoarch.frontend.components.history_tab import HistoryTab
+                self.history_view = HistoryTab(self)
+                self.packages_panel_layout.insertWidget(6, self.history_view, 1)
+            self.history_view.setVisible(True)
+            self.history_view.refresh()
+            try:
+                self.search_input.setVisible(True)
+                self.search_input.setPlaceholderText(_("Search history"))
+            except Exception:
+                pass
+            self.history_view.set_search_text(self.search_input.text())
+            self.header_info.setText(
+                _("Every install, upgrade and removal recorded by pacman"))
         elif view_id == "git":
             self.large_search_box.setVisible(False)
             self._hide_all_package_views()
@@ -3439,6 +3480,7 @@ class _ViewsMixin:
                 '_view': 'discover',
             }
             self.package_detail_card.show_package(pkg_data)
+            self._enrich_detail(pkg_data)
         except Exception:
             self.package_detail_card.clear()
 
@@ -3467,6 +3509,7 @@ class _ViewsMixin:
                 '_view': 'plugins',
             }
             self.package_detail_card.show_package(pkg_data)
+            self._enrich_detail(pkg_data)
         except Exception:
             self.package_detail_card.clear()
 
@@ -3491,8 +3534,7 @@ class _ViewsMixin:
                     '_view': 'installed',
                 }
                 self.package_detail_card.show_package(pkg_data)
-                if pkg_data.get('source', '').lower() in ("pacman", "aur"):
-                    self._enrich_installed_detail(pkg_data['name'])
+                self._enrich_detail(pkg_data)
                 return
             pkg_data = {
                 'name': pkg.get('name') or pkg.get('id') or '',
@@ -3506,6 +3548,7 @@ class _ViewsMixin:
                 '_view': 'updates',
             }
             self.package_detail_card.show_package(pkg_data)
+            self._enrich_detail(pkg_data)
         except Exception:
             self.package_detail_card.clear()
 
@@ -3694,6 +3737,7 @@ class _ViewsMixin:
                 '_view': view,
             }
             self.package_detail_card.show_package(pkg_data)
+            self._enrich_detail(pkg_data)
         except Exception:
             self.package_detail_card.clear()
 
@@ -3999,21 +4043,38 @@ class _ViewsMixin:
                 '_view': self.current_view,
             }
             self.package_detail_card.show_package(pkg_data)
+            self._enrich_detail(pkg_data)
         except Exception:
             self.package_detail_card.clear()
 
-    def _enrich_installed_detail(self, name):
-        """Fetch install reason + reverse deps for an installed package off the UI thread."""
+    def _enrich_detail(self, pkg_data):
+        """Fetch dependency metadata for a package off the UI thread."""
+        try:
+            name = (pkg_data.get('name') or '').strip()
+            source = (pkg_data.get('source') or '').lower()
+            installed = bool(pkg_data.get('installed'))
+        except Exception:
+            return
+        if not name or source not in ("pacman", "aur"):
+            return
+        if not hasattr(self, "ui_call"):
+            return
 
         def _run():
             try:
-                from neoarch.backend.services.hygiene import package_info
-                info = package_info(name)
+                from neoarch.backend.services.hygiene import package_info, repo_info
+                info = package_info(name) if installed else repo_info(name)
             except Exception:
                 info = {}
-            self.ui_call.emit(lambda: self._apply_installed_detail(name, info))
+            try:
+                self.ui_call.emit(lambda: self._apply_installed_detail(name, info))
+            except Exception:
+                pass
 
         Thread(target=_run, daemon=True).start()
+
+    def _enrich_installed_detail(self, name):
+        self._enrich_detail({'name': name, 'source': 'pacman', 'installed': True})
 
     def _apply_installed_detail(self, name, info):
         try:
