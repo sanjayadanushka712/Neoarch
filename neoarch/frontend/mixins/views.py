@@ -401,6 +401,12 @@ class _ViewsMixin:
 
     def set_updates_count(self, count):
         """Update the updates count in nav and header."""
+        try:
+            tray = getattr(self, 'tray_icon', None)
+            if tray is not None:
+                tray.set_update_count(count)
+        except Exception:
+            pass
         # Update dashboard counter if visible
         try:
             if hasattr(self, 'large_search_box'):
@@ -5258,4 +5264,9 @@ class _ViewsMixin:
     def closeEvent(self, event):
         from neoarch.backend.session_auth import cleanup_session
         cleanup_session()
+        try:
+            if getattr(self, 'tray_icon', None) is not None:
+                self.tray_icon.hide()
+        except Exception:
+            pass
         super().closeEvent(event)

@@ -64,6 +64,12 @@ dialog shows after an update.
   Installs run through the normal elevated installer and the page refreshes
   once they finish.
 
+- **System tray icon.** NeoArch now lives in the system tray with a badge
+  showing how many updates are pending (capped at 99+). Clicking the icon
+  brings the window back, and its menu offers **Open NeoArch**, **Check for
+  Updates** and **Quit NeoArch**. The badge follows every updates refresh and
+  is hidden when the system is up to date.
+
 ### Bug Fixes
 
 - Right-clicking a row now opens the same menu as the row's three-dot

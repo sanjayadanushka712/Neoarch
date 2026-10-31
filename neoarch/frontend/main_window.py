@@ -134,6 +134,7 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
         self.cancel_discover_search = False
         # Nav badges (e.g., updates count)
         self.nav_badges = {}
+        self.tray_icon: Any = None
         # Attributes initialized in other methods
         self.settings_widgets = {}
         self.settings_content_layout: Any = None
@@ -156,6 +157,8 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
         # Initialize the default view (UI only, no data loading — deferred to auth flow)
         self.switch_view(self.current_view, load=False)
         
+        self._setup_tray()
+
         # Show welcome animation in console on first launch
         QTimer.singleShot(500, self.show_welcome_animation)
         # Initialize plugins shortly after UI is ready
@@ -179,6 +182,23 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
         # Clean up orphaned snapshot processes left over from a previously
         # interrupted session (they hold lock files and would freeze new runs)
         QTimer.singleShot(4000, self._cleanup_stale_snapshot_procs)
+
+    def _setup_tray(self):
+        """Create the system tray icon when the desktop supports one."""
+        try:
+            from neoarch.frontend.components.tray_icon import (
+                TrayIcon, tray_available)
+            if not tray_available():
+                return
+            self.tray_icon = TrayIcon(self, _get_brand_icon_path(), self)
+            self.tray_icon.show()
+            self.tray_icon.set_update_count(
+                len(getattr(self, 'updates_all', []) or []))
+        except Exception as e:
+            try:
+                self.log(f"Tray icon unavailable: {e}")
+            except Exception:
+                pass
 
     def _cleanup_stale_snapshot_procs(self):
         """Kill orphaned timeshift/snapper processes in the background."""

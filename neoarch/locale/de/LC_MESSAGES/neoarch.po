@@ -3521,3 +3521,12 @@ msgstr "Pakete installieren"
 
 msgid "Install {n} package(s) from the {group} group?"
 msgstr "{n} Paket(e) aus der Gruppe {group} installieren?"
+
+msgid "Open NeoArch"
+msgstr "NeoArch öffnen"
+
+msgid "Quit NeoArch"
+msgstr "NeoArch beenden"
+
+msgid "NeoArch — {n} update(s) available"
+msgstr "NeoArch — {n} Aktualisierung(en) verfügbar"
