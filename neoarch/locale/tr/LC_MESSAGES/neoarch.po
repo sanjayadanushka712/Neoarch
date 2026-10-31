@@ -3482,3 +3482,42 @@ msgstr "Yansı yenileme başarısız: {err}"
 
 msgid "reflector isn't installed. Install the 'reflector' package first."
 msgstr "reflector kurulu değil. Önce 'reflector' paketini kurun."
+
+msgid "Groups"
+msgstr "Gruplar"
+
+msgid "Package Groups"
+msgstr "Paket Grupları"
+
+msgid "Browse and install packages by group"
+msgstr "Paketlere gruplara göre göz atın ve kurun"
+
+msgid "Search groups"
+msgstr "Gruplarda ara"
+
+msgid "Filter groups…"
+msgstr "Grupları filtrele…"
+
+msgid "Select a group"
+msgstr "Bir grup seçin"
+
+msgid "Select all not installed"
+msgstr "Kurulu olmayanların tümünü seç"
+
+msgid "Repository"
+msgstr "Depo"
+
+msgid "{n} packages · {m} installed"
+msgstr "{n} paket · {m} kurulu"
+
+msgid "Install Selected ({n})"
+msgstr "Seçilenleri kur ({n})"
+
+msgid "Install Whole Group ({n})"
+msgstr "Tüm grubu kur ({n})"
+
+msgid "Install Packages"
+msgstr "Paketleri kur"
+
+msgid "Install {n} package(s) from the {group} group?"
+msgstr "{group} grubundan {n} paket kurulsun mu?"

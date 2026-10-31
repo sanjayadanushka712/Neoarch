@@ -3482,3 +3482,42 @@ msgstr "ミラーの更新に失敗しました: {err}"
 
 msgid "reflector isn't installed. Install the 'reflector' package first."
 msgstr "reflector がインストールされていません。先に 'reflector' パッケージをインストールしてください。"
+
+msgid "Groups"
+msgstr "グループ"
+
+msgid "Package Groups"
+msgstr "パッケージグループ"
+
+msgid "Browse and install packages by group"
+msgstr "グループごとにパッケージを閲覧・インストール"
+
+msgid "Search groups"
+msgstr "グループを検索"
+
+msgid "Filter groups…"
+msgstr "グループを絞り込む…"
+
+msgid "Select a group"
+msgstr "グループを選択"
+
+msgid "Select all not installed"
+msgstr "未インストールをすべて選択"
+
+msgid "Repository"
+msgstr "リポジトリ"
+
+msgid "{n} packages · {m} installed"
+msgstr "{n} 個のパッケージ · {m} 個インストール済み"
+
+msgid "Install Selected ({n})"
+msgstr "選択項目をインストール ({n})"
+
+msgid "Install Whole Group ({n})"
+msgstr "グループ全体をインストール ({n})"
+
+msgid "Install Packages"
+msgstr "パッケージをインストール"
+
+msgid "Install {n} package(s) from the {group} group?"
+msgstr "グループ {group} から {n} 個のパッケージをインストールしますか?"

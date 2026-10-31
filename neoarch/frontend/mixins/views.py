@@ -244,6 +244,7 @@ class _ViewsMixin:
         nav_items = [
             (_("Home"), "discover", os.path.join(_base, "discover.svg")),
             (_("Installed"), "installed", os.path.join(_base, "installed.svg")),
+            (_("Groups"), "groups", os.path.join(_base, "groups.svg")),
             (_("Updates"), "updates", os.path.join(_base, "updates.svg")),
             (_("History"), "history", os.path.join(_base, "history.svg")),
         ]
@@ -1996,6 +1997,8 @@ class _ViewsMixin:
                 self.docker_view.setVisible(False)
             if hasattr(self, 'history_view') and self.history_view:
                 self.history_view.setVisible(False)
+            if hasattr(self, 'groups_view') and self.groups_view:
+                self.groups_view.setVisible(False)
             # plugins_tab_widget removed - plugins_view is handled above
             if hasattr(self, 'no_results_widget'):
                 self.no_results_widget.setVisible(False)
@@ -2032,6 +2035,7 @@ class _ViewsMixin:
         headers = {
             "updates": (os.path.join(_BASE_DIR, "assets", "icons", "ui", "update12.svg"), _("Software Updates"), ""),
             "installed": (os.path.join(_BASE_DIR, "assets", "icons", "ui", "installed.svg"), _("Installed Packages"), ""),
+            "groups": (os.path.join(_BASE_DIR, "assets", "icons", "groups.svg"), _("Package Groups"), _("Browse and install packages by group")),
             "discover": (os.path.join(_BASE_DIR, "assets", "icons", "ui", "search.svg"), _("Home"), _("Dashboard and package discovery")),
             "plugins": (os.path.join(_BASE_DIR, "assets", "icons", "plugins.svg"), _("Sources & Plugins"), _("Manage package sources and extensions")),
             "bundles": (os.path.join(_BASE_DIR, "assets", "icons", "local-builds.svg"), _("Bundles"), _("Create, import, export, and install bundles of packages")),
@@ -2070,7 +2074,7 @@ class _ViewsMixin:
         # contained views (plugins/git) keep the prior clear-on-switch.
         try:
             self.search_input.blockSignals(True)
-            if view_id in ("discover", "updates", "installed"):
+            if view_id in ("discover", "updates", "installed", "groups"):
                 self.search_input.setText(
                     self._view_search_queries.get(view_id, ""))
             else:
@@ -2085,7 +2089,7 @@ class _ViewsMixin:
 
         # Show filters panel for all views except settings, bundles, git, and docker
         if hasattr(self, 'filters_panel'):
-            self.filters_panel.setVisible(view_id not in ("settings", "git", "docker", "appimage", "history", "about", "user"))
+            self.filters_panel.setVisible(view_id not in ("settings", "git", "docker", "appimage", "history", "groups", "about", "user"))
 
         # Update greeting in navbar
         self._update_nav_greeting(getattr(self, '_cloud_auth', None).user if hasattr(self, '_cloud_auth') and self._cloud_auth else None)
@@ -2446,6 +2450,38 @@ class _ViewsMixin:
             self.history_view.set_search_text(self.search_input.text())
             self.header_info.setText(
                 _("Every install, upgrade and removal recorded by pacman"))
+        elif view_id == "groups":
+            self.large_search_box.setVisible(False)
+            self._hide_all_package_views()
+            self.load_more_btn.setVisible(False)
+            self.settings_container.setVisible(False)
+            self.sources_section.setVisible(False)
+            self.filters_section.setVisible(False)
+            if hasattr(self, 'packages_content_area'):
+                self.packages_content_area.setVisible(False)
+            if hasattr(self, 'toolbar_widget'):
+                self.toolbar_widget.setVisible(False)
+            try:
+                self.console_label.setVisible(False)
+                self.console.setVisible(False)
+                if hasattr(self, 'console_toggle_btn'):
+                    self.console_toggle_btn.setVisible(True)
+                    self.console_toggle_btn.setToolTip(_("Show Console"))
+            except Exception:
+                pass
+            if getattr(self, 'groups_view', None) is None:
+                from neoarch.frontend.components.groups_tab import GroupsTab
+                self.groups_view = GroupsTab(self)
+                self.packages_panel_layout.insertWidget(6, self.groups_view, 1)
+            self.groups_view.setVisible(True)
+            try:
+                self.search_input.setVisible(True)
+                self.search_input.setPlaceholderText(_("Search groups"))
+            except Exception:
+                pass
+            self.groups_view.set_search_text(self.search_input.text())
+            self.header_info.setText(
+                _("Browse and install packages by group"))
         elif view_id == "git":
             self.large_search_box.setVisible(False)
             self._hide_all_package_views()

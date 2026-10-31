@@ -3482,3 +3482,42 @@ msgstr "मिरर ताज़ा करना विफल: {err}"
 
 msgid "reflector isn't installed. Install the 'reflector' package first."
 msgstr "reflector इंस्टॉल नहीं है। पहले 'reflector' पैकेज इंस्टॉल करें।"
+
+msgid "Groups"
+msgstr "समूह"
+
+msgid "Package Groups"
+msgstr "पैकेज समूह"
+
+msgid "Browse and install packages by group"
+msgstr "समूह के अनुसार पैकेज ब्राउज़ करें और इंस्टॉल करें"
+
+msgid "Search groups"
+msgstr "समूह खोजें"
+
+msgid "Filter groups…"
+msgstr "समूह फ़िल्टर करें…"
+
+msgid "Select a group"
+msgstr "एक समूह चुनें"
+
+msgid "Select all not installed"
+msgstr "सभी अनइंस्टॉल्ड चुनें"
+
+msgid "Repository"
+msgstr "रिपॉज़िटरी"
+
+msgid "{n} packages · {m} installed"
+msgstr "{n} पैकेज · {m} इंस्टॉल्ड"
+
+msgid "Install Selected ({n})"
+msgstr "चयनित इंस्टॉल करें ({n})"
+
+msgid "Install Whole Group ({n})"
+msgstr "पूरा समूह इंस्टॉल करें ({n})"
+
+msgid "Install Packages"
+msgstr "पैकेज इंस्टॉल करें"
+
+msgid "Install {n} package(s) from the {group} group?"
+msgstr "{group} समूह से {n} पैकेज इंस्टॉल करें?"

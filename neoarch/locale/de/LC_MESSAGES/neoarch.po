@@ -3482,3 +3482,42 @@ msgstr "Mirror-Aktualisierung fehlgeschlagen: {err}"
 
 msgid "reflector isn't installed. Install the 'reflector' package first."
 msgstr "reflector ist nicht installiert. Installiere zuerst das Paket 'reflector'."
+
+msgid "Groups"
+msgstr "Gruppen"
+
+msgid "Package Groups"
+msgstr "Paketgruppen"
+
+msgid "Browse and install packages by group"
+msgstr "Pakete nach Gruppen durchsuchen und installieren"
+
+msgid "Search groups"
+msgstr "Gruppen durchsuchen"
+
+msgid "Filter groups…"
+msgstr "Gruppen filtern…"
+
+msgid "Select a group"
+msgstr "Wähle eine Gruppe"
+
+msgid "Select all not installed"
+msgstr "Alle nicht installierten auswählen"
+
+msgid "Repository"
+msgstr "Repository"
+
+msgid "{n} packages · {m} installed"
+msgstr "{n} Pakete · {m} installiert"
+
+msgid "Install Selected ({n})"
+msgstr "Ausgewählte installieren ({n})"
+
+msgid "Install Whole Group ({n})"
+msgstr "Ganze Gruppe installieren ({n})"
+
+msgid "Install Packages"
+msgstr "Pakete installieren"
+
+msgid "Install {n} package(s) from the {group} group?"
+msgstr "{n} Paket(e) aus der Gruppe {group} installieren?"

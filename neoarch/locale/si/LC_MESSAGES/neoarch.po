@@ -3482,3 +3482,42 @@ msgstr "මිරර් නැවුම් කිරීම අසාර්ථක
 
 msgid "reflector isn't installed. Install the 'reflector' package first."
 msgstr "reflector ස්ථාපිත නැත. පළමුව 'reflector' පැකේජය ස්ථාපනය කරන්න."
+
+msgid "Groups"
+msgstr "කණ්ඩායම්"
+
+msgid "Package Groups"
+msgstr "පැකේජ කණ්ඩායම්"
+
+msgid "Browse and install packages by group"
+msgstr "කණ්ඩායම අනුව පැකේජ බ්‍රවුස් කර ස්ථාපනය කරන්න"
+
+msgid "Search groups"
+msgstr "කණ්ඩායම් සොයන්න"
+
+msgid "Filter groups…"
+msgstr "කණ්ඩායම් පෙරහන් කරන්න…"
+
+msgid "Select a group"
+msgstr "කණ්ඩායමක් තෝරන්න"
+
+msgid "Select all not installed"
+msgstr "ස්ථාපිත නොවූ සියල්ල තෝරන්න"
+
+msgid "Repository"
+msgstr "රිපොසිටරි"
+
+msgid "{n} packages · {m} installed"
+msgstr "පැකේජ {n} · ස්ථාපිත {m}"
+
+msgid "Install Selected ({n})"
+msgstr "තෝරාගත් ඒවා ස්ථාපනය කරන්න ({n})"
+
+msgid "Install Whole Group ({n})"
+msgstr "සම්පූර්ණ කණ්ඩායම ස්ථාපනය කරන්න ({n})"
+
+msgid "Install Packages"
+msgstr "පැකේජ ස්ථාපනය කරන්න"
+
+msgid "Install {n} package(s) from the {group} group?"
+msgstr "{group} කණ්ඩායමෙන් පැකේජ {n} ස්ථාපනය කරන්නද?"

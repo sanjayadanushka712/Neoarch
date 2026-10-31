@@ -3482,3 +3482,42 @@ msgstr "Не удалось обновить зеркала: {err}"
 
 msgid "reflector isn't installed. Install the 'reflector' package first."
 msgstr "reflector не установлен. Сначала установите пакет 'reflector'."
+
+msgid "Groups"
+msgstr "Группы"
+
+msgid "Package Groups"
+msgstr "Группы пакетов"
+
+msgid "Browse and install packages by group"
+msgstr "Просматривайте и устанавливайте пакеты по группам"
+
+msgid "Search groups"
+msgstr "Поиск групп"
+
+msgid "Filter groups…"
+msgstr "Фильтр групп…"
+
+msgid "Select a group"
+msgstr "Выберите группу"
+
+msgid "Select all not installed"
+msgstr "Выбрать все неустановленные"
+
+msgid "Repository"
+msgstr "Репозиторий"
+
+msgid "{n} packages · {m} installed"
+msgstr "{n} пакетов · {m} установлено"
+
+msgid "Install Selected ({n})"
+msgstr "Установить выбранные ({n})"
+
+msgid "Install Whole Group ({n})"
+msgstr "Установить всю группу ({n})"
+
+msgid "Install Packages"
+msgstr "Установить пакеты"
+
+msgid "Install {n} package(s) from the {group} group?"
+msgstr "Установить пакетов ({n}) из группы {group}?"

@@ -57,6 +57,13 @@ dialog shows after an update.
   refresh runs elevated through NeoArch's askpass flow and reports how many
   servers were written.
 
+- **Package groups.** A new Groups page lists every pacman package group,
+  read from the synced databases, with a filter box and the package count
+  for each. Selecting a group shows its packages, versions, repositories
+  and install state; tick individual packages or install the whole group.
+  Installs run through the normal elevated installer and the page refreshes
+  once they finish.
+
 ### Bug Fixes
 
 - Right-clicking a row now opens the same menu as the row's three-dot
