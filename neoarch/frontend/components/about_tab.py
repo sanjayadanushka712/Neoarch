@@ -738,62 +738,62 @@ class _ReleaseNotesTab(QWidget):
         vl.addLayout(title_row)
         cl.addWidget(ver_card)
 
-        recent = _git_recent_log(20)
-        if recent:
-            features = [r for r in recent if any(k in r["message"].lower()
-                        for k in ["add", "feat", "new", "redesign", "create"])]
-            fixes = [r for r in recent if any(k in r["message"].lower()
-                     for k in ["fix", "bug", "patch", "crash"])]
-            improvements = [r for r in recent if any(k in r["message"].lower()
-                           for k in ["improve", "update", "refactor",
-                                     "upgrade", "clean", "reorganize"])]
-            if not features:
-                features = recent[:5]
-            if not fixes:
-                fixes = recent[:3]
+        from neoarch.backend.services.release_notes import (
+            parse_changelog, whats_new)
+        from neoarch.frontend.components.whats_new_dialog import _rich
 
-            for icon, title, items in [
-                (_ICON_SPARKLES, _("New Features"), features[:8]),
-                (_ICON_WRENCH, _("Bug Fixes"), fixes[:6]),
-                (_ICON_ARROW_UP_CIRCLE, _("Improvements"), improvements[:6]),
-            ]:
+        icons = {
+            "New Features": _ICON_SPARKLES,
+            "Bug Fixes": _ICON_WRENCH,
+            "Improvements": _ICON_ARROW_UP_CIRCLE,
+        }
+        for block in whats_new(parse_changelog(), "", limit=8):
+            card = _card()
+            ccl = QVBoxLayout(card)
+            ccl.setContentsMargins(20, 18, 20, 20)
+            ccl.setSpacing(12)
+
+            head = QHBoxLayout()
+            version = block.get("version", "")
+            if version.lower() == "unreleased":
+                title = _("Upcoming release")
+            else:
+                title = _("Version {version}").format(version=version)
+            head.addWidget(_card_title(title))
+            head.addStretch()
+            date = block.get("date", "")
+            if date:
+                date_lbl = QLabel(date)
+                date_lbl.setStyleSheet(
+                    f"font-size: {Fonts.SM}; color: {Colors.TEXT_3};"
+                    " background: transparent; border: none;")
+                head.addWidget(date_lbl)
+            ccl.addLayout(head)
+
+            sections = block.get("sections", {})
+            for label in ("New Features", "Bug Fixes", "Improvements"):
+                items = sections.get(label)
                 if not items:
                     continue
-                card = _card()
-                ccl = QVBoxLayout(card)
-                ccl.setContentsMargins(20, 18, 20, 20)
-                ccl.setSpacing(12)
-                ccl.addLayout(_icon_title_row(icon, title))
+                ccl.addLayout(_icon_title_row(icons[label], _(label)))
                 for item in items:
                     row = QHBoxLayout()
-                    row.setSpacing(12)
-                    hash_lbl = QLabel(item["hash"])
-                    hash_lbl.setStyleSheet(
-                        f"color: {Colors.ACCENT}; font-size: {Fonts.SM};"
-                        f" font-family: {Fonts.MONO};"
+                    row.setSpacing(9)
+                    dot = QLabel("•")
+                    dot.setFixedWidth(10)
+                    dot.setStyleSheet(
+                        f"color: {Colors.ACCENT}; font-size: {Fonts.BASE};"
                         " background: transparent; border: none;")
-                    hash_lbl.setFixedWidth(55)
-                    row.addWidget(hash_lbl)
-                    msg = QLabel(item["message"])
-                    msg.setWordWrap(True)
-                    msg.setStyleSheet(
-                        f"font-size: {Fonts.BASE}; color: {Colors.TEXT};"
+                    row.addWidget(dot, 0, Qt.AlignmentFlag.AlignTop)
+                    text = QLabel(_rich(item))
+                    text.setTextFormat(Qt.TextFormat.RichText)
+                    text.setWordWrap(True)
+                    text.setStyleSheet(
+                        f"font-size: {Fonts.BASE}; color: {Colors.TEXT_2};"
                         " background: transparent; border: none;")
-                    row.addWidget(msg, 1)
-                    date_lbl = QLabel(item["date"])
-                    date_lbl.setStyleSheet(
-                        f"font-size: {Fonts.XS}; color: {Colors.TEXT_3};"
-                        " background: transparent; border: none;")
-                    row.addWidget(date_lbl)
+                    row.addWidget(text, 1)
                     ccl.addLayout(row)
-                    ccl.addWidget(_sep())
-                # remove trailing separator
-                last = ccl.takeAt(ccl.count() - 1)
-                if last:
-                    w = last.widget()
-                    if w:
-                        w.deleteLater()
-                cl.addWidget(card)
+            cl.addWidget(card)
 
         # Tags
         tags = _git_tags()

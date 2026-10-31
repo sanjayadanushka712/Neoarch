@@ -98,6 +98,14 @@ dialog shows after an update.
   --outdated`. It works with both pipx backends (pip and uv) and no longer
   resolves the whole dependency tree just to read the latest version.
 
+### Improvements
+
+- **What's New now matches the rest of NeoArch.** The release-notes dialog
+  uses the same frameless shell, title bar, cards and buttons as the other
+  app dialogs. GitHub release notes are rendered with headings, bullets,
+  bold text and links, and About → Release Notes now reads the curated
+  changelog instead of git history, so installed builds see the notes too.
+
 ## 3.4.5 — 2026-10-31
 
 ### New Features
