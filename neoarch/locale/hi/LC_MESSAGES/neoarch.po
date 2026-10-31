@@ -3437,3 +3437,6 @@ msgstr "वैकल्पिक निर्भरताएँ"
 
 msgid "Select optional dependencies to install as well"
 msgstr "स्थापित करने के लिए वैकल्पिक निर्भरताएँ चुनें"
+
+msgid "Packages to install"
+msgstr "स्थापित करने के लिए पैकेज"

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
-    QCheckBox, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea,
-    QWidget, QPushButton, QFrame,
+    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea, QWidget,
+    QPushButton, QFrame,
 )
 
 from neoarch.frontend.tokens import Colors, Fonts
@@ -13,6 +13,7 @@ from neoarch.frontend.components.dark_dialogs import (
     _DIALOG_STYLE, _DialogTitleBar, _apply_dialog_flags,
     _BTN_PRIMARY, _BTN_SECONDARY,
 )
+from neoarch.frontend.components.toggle_switch import ToggleSwitch
 from neoarch.backend.services.i18n import _
 
 
@@ -29,11 +30,21 @@ def _fmt_size(size) -> str:
     return f"{size:.1f} GiB"
 
 
+def _caption(text: str) -> QLabel:
+    label = QLabel(text)
+    label.setStyleSheet(
+        f"color: {Colors.TEXT_2}; font-size: {Fonts.SM}; font-weight: 600;"
+        " background: transparent; border: none;")
+    return label
+
+
 def _stat(label: str, value: str, color: str) -> QWidget:
     box = QWidget()
+    box.setObjectName("statCard")
+    box.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
     box.setStyleSheet(
-        f"background: rgba(255,255,255,0.04);"
-        f" border: 1px solid {Colors.BORDER}; border-radius: 10px;")
+        "#statCard { background: rgba(255,255,255,0.04);"
+        f" border: 1px solid {Colors.BORDER}; border-radius: 10px; }}")
     v = QVBoxLayout(box)
     v.setContentsMargins(14, 10, 14, 10)
     v.setSpacing(2)
@@ -52,19 +63,47 @@ def _stat(label: str, value: str, color: str) -> QWidget:
     return box
 
 
+def _card() -> tuple:
+    """Scrollable card that holds a list of rows."""
+    scroll = QScrollArea()
+    scroll.setWidgetResizable(True)
+    scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+    scroll.setFrameShape(QFrame.Shape.NoFrame)
+    scroll.setStyleSheet(
+        "QScrollArea { background: transparent; border: none; }"
+        "QScrollBar:vertical { background: transparent; width: 8px;"
+        " margin: 4px 0; }"
+        f"QScrollBar::handle:vertical {{ background: {Colors.BORDER};"
+        " border-radius: 4px; min-height: 24px; }"
+        "QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical"
+        " { height: 0; }")
+
+    card = QWidget()
+    card.setObjectName("listCard")
+    card.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+    card.setStyleSheet(
+        f"#listCard {{ background: {Colors.SURFACE_2};"
+        f" border: 1px solid {Colors.BORDER}; border-radius: 10px; }}")
+    rows = QVBoxLayout(card)
+    rows.setContentsMargins(6, 6, 6, 6)
+    rows.setSpacing(0)
+    scroll.setWidget(card)
+    return scroll, rows
+
+
 class InstallPreflightDialog(QDialog):
-    """Summarises the resolved pacman transaction before installing."""
+    """Summarises the resolved transaction before installing."""
 
     def __init__(self, parent, plan: dict):
         super().__init__(parent)
         self.setWindowTitle(_("Install Summary"))
-        self.setMinimumWidth(560)
+        self.setMinimumWidth(620)
         self.setStyleSheet(_DIALOG_STYLE)
         _apply_dialog_flags(self)
 
         packages = plan.get("packages") or []
         optional = plan.get("optional") or []
-        self._checks = []
+        self._toggles = []
 
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
@@ -73,8 +112,8 @@ class InstallPreflightDialog(QDialog):
 
         content = QWidget()
         layout = QVBoxLayout(content)
-        layout.setContentsMargins(24, 4, 24, 18)
-        layout.setSpacing(12)
+        layout.setContentsMargins(26, 6, 26, 20)
+        layout.setSpacing(14)
 
         subtitle = QLabel(
             _("{count} package{s} will be installed").format(
@@ -85,7 +124,7 @@ class InstallPreflightDialog(QDialog):
         layout.addWidget(subtitle)
 
         stats = QHBoxLayout()
-        stats.setSpacing(8)
+        stats.setSpacing(10)
         stats.addWidget(_stat(_("Download size"),
                               _fmt_size(plan.get("total_download")),
                               Colors.ACCENT), 1)
@@ -94,30 +133,25 @@ class InstallPreflightDialog(QDialog):
                               Colors.TEAL), 1)
         layout.addLayout(stats)
 
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll.setFrameShape(QFrame.Shape.NoFrame)
-        scroll.setStyleSheet(
-            f"QScrollArea {{ background: {Colors.SURFACE_2};"
-            f" border: 1px solid {Colors.BORDER}; border-radius: 10px; }}")
-        scroll.setMaximumHeight(260)
-
-        inner = QWidget()
-        inner.setStyleSheet("background: transparent;")
-        rows = QVBoxLayout(inner)
-        rows.setContentsMargins(4, 4, 4, 4)
-        rows.setSpacing(0)
+        layout.addWidget(_caption(_("Packages to install")))
+        scroll, rows = _card()
+        scroll.setMaximumHeight(240)
         for pkg in packages:
             rows.addWidget(self._row(pkg))
         rows.addStretch(1)
-        scroll.setWidget(inner)
         layout.addWidget(scroll)
 
         if optional:
             layout.addWidget(self._optional_section(optional))
 
+        divider = QFrame()
+        divider.setFixedHeight(1)
+        divider.setStyleSheet(
+            "background: rgba(255,255,255,0.08); border: none;")
+        layout.addWidget(divider)
+
         btn_row = QHBoxLayout()
+        btn_row.setSpacing(8)
         btn_row.addStretch()
         cancel = QPushButton(_("Cancel"))
         cancel.setStyleSheet(_BTN_SECONDARY)
@@ -139,68 +173,83 @@ class InstallPreflightDialog(QDialog):
         outer.setContentsMargins(0, 0, 0, 0)
         outer.setSpacing(6)
 
-        title = QLabel(_("Optional dependencies"))
-        title.setStyleSheet(
-            f"color: {Colors.TEXT}; font-size: {Fonts.BASE}; font-weight: 600;"
-            " background: transparent; border: none;")
-        outer.addWidget(title)
-
+        header = QHBoxLayout()
+        header.setSpacing(8)
+        header.addWidget(_caption(_("Optional dependencies")))
+        header.addStretch()
         hint = QLabel(_("Select optional dependencies to install as well"))
         hint.setStyleSheet(
             f"color: {Colors.TEXT_3}; font-size: {Fonts.SM};"
             " background: transparent; border: none;")
-        outer.addWidget(hint)
+        header.addWidget(hint)
+        outer.addLayout(header)
 
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll.setFrameShape(QFrame.Shape.NoFrame)
-        scroll.setStyleSheet(
-            f"QScrollArea {{ background: {Colors.SURFACE_2};"
-            f" border: 1px solid {Colors.BORDER}; border-radius: 10px; }}")
-        scroll.setMaximumHeight(150)
-
-        inner = QWidget()
-        inner.setStyleSheet("background: transparent;")
-        rows = QVBoxLayout(inner)
-        rows.setContentsMargins(10, 6, 10, 6)
-        rows.setSpacing(2)
-        for dep in optional:
-            name = dep.get("name", "")
-            desc = dep.get("description", "")
-            text = f"{name} — {desc}" if desc else name
-            check = QCheckBox(text)
-            check.setProperty("dep_name", name)
-            check.setToolTip(desc or name)
-            check.setStyleSheet(
-                f"QCheckBox {{ color: {Colors.TEXT_2};"
-                f" font-size: {Fonts.SM}; background: transparent;"
-                " border: none; spacing: 8px; }"
-                f"QCheckBox:hover {{ color: {Colors.TEXT}; }}"
-                f"QCheckBox::indicator {{ width: 16px; height: 16px;"
-                f" border: 1px solid {Colors.BORDER}; border-radius: 4px;"
-                f" background: {Colors.SURFACE}; }}"
-                f"QCheckBox::indicator:checked {{ background: {Colors.ACCENT};"
-                f" border-color: {Colors.ACCENT}; }}")
-            self._checks.append(check)
-            rows.addWidget(check)
+        scroll, rows = _card()
+        scroll.setMaximumHeight(172)
+        for i, dep in enumerate(optional):
+            rows.addWidget(self._optional_row(dep, last=i == len(optional) - 1))
         rows.addStretch(1)
-        scroll.setWidget(inner)
         outer.addWidget(scroll)
         return box
 
+    def _optional_row(self, dep: dict, last: bool = False) -> QWidget:
+        name = dep.get("name", "")
+        desc = dep.get("description", "")
+
+        row = QWidget()
+        row.setObjectName("depRow")
+        row.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        border = "" if last else " border-bottom: 1px solid rgba(255,255,255,0.06);"
+        row.setStyleSheet(
+            f"#depRow {{ background: transparent; border: none;{border}"
+            " border-radius: 6px; }"
+            f"#depRow:hover {{ background: rgba(255,255,255,0.04); }}")
+
+        hl = QHBoxLayout(row)
+        hl.setContentsMargins(12, 7, 10, 7)
+        hl.setSpacing(14)
+        hl.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+
+        texts = QVBoxLayout()
+        texts.setSpacing(1)
+        title = QLabel(name)
+        title.setStyleSheet(
+            f"color: {Colors.TEXT}; font-size: {Fonts.BASE};"
+            f" font-weight: {Fonts.MEDIUM};"
+            " background: transparent; border: none;")
+        texts.addWidget(title)
+        if desc:
+            sub = QLabel(desc)
+            sub.setWordWrap(True)
+            sub.setStyleSheet(
+                f"color: {Colors.TEXT_3}; font-size: {Fonts.SM};"
+                " background: transparent; border: none;")
+            texts.addWidget(sub)
+        hl.addLayout(texts, 1)
+
+        toggle = ToggleSwitch(row, name)
+        toggle.setProperty("dep_name", name)
+        toggle.setToolTip(desc or name)
+        self._toggles.append(toggle)
+        hl.addWidget(toggle, 0, Qt.AlignmentFlag.AlignVCenter)
+        return row
+
     def selected_optional(self) -> list:
-        """Names of optional dependencies the user ticked."""
-        return [c.property("dep_name") for c in self._checks if c.isChecked()]
+        """Names of optional dependencies the user enabled."""
+        return [t.property("dep_name") for t in self._toggles if t.isChecked()]
 
     @staticmethod
     def _row(pkg: dict) -> QWidget:
         row = QWidget()
+        row.setObjectName("pkgRow")
+        row.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         row.setStyleSheet(
-            "background: transparent;"
-            " border-bottom: 1px solid rgba(255,255,255,0.06);")
+            "#pkgRow { background: transparent; border: none;"
+            " border-bottom: 1px solid rgba(255,255,255,0.06);"
+            " border-radius: 6px; }"
+            "#pkgRow:hover { background: rgba(255,255,255,0.04); }")
         hl = QHBoxLayout(row)
-        hl.setContentsMargins(10, 7, 10, 7)
+        hl.setContentsMargins(12, 8, 12, 8)
         hl.setSpacing(8)
 
         name = QLabel(pkg.get("name", ""))

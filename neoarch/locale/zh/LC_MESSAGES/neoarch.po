@@ -3437,3 +3437,6 @@ msgstr "可选依赖项"
 
 msgid "Select optional dependencies to install as well"
 msgstr "选择要一并安装的可选依赖项"
+
+msgid "Packages to install"
+msgstr "要安装的软件包"

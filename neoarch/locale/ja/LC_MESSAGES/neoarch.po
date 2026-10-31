@@ -3437,3 +3437,6 @@ msgstr "オプションの依存関係"
 
 msgid "Select optional dependencies to install as well"
 msgstr "追加でインストールするオプションの依存関係を選択"
+
+msgid "Packages to install"
+msgstr "インストールするパッケージ"

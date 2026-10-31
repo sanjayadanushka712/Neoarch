@@ -3437,3 +3437,6 @@ msgstr "විකල්ප යැපුම්"
 
 msgid "Select optional dependencies to install as well"
 msgstr "ද යෙදවීමට විකල්ප යැපුම් තෝරන්න"
+
+msgid "Packages to install"
+msgstr "ස්ථාපනය කළ යුතු පැකේජ"

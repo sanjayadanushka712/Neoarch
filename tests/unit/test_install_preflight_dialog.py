@@ -1,5 +1,7 @@
 import pytest
-from PyQt6.QtWidgets import QApplication, QCheckBox, QLabel
+from PyQt6.QtWidgets import QApplication, QLabel
+
+from neoarch.frontend.components.toggle_switch import ToggleSwitch
 
 from neoarch.frontend.components.install_preflight_dialog import (
     InstallPreflightDialog, _fmt_size,
@@ -53,13 +55,13 @@ def test_dialog_offers_optional_dependencies(qapp):
         {"name": "strace", "description": "for debugging"},
     ]
     dlg = InstallPreflightDialog(None, plan)
-    checks = dlg.findChildren(QCheckBox)
-    assert [c.property("dep_name") for c in checks] == ["python", "strace"]
+    toggles = dlg.findChildren(ToggleSwitch)
+    assert [t.property("dep_name") for t in toggles] == ["python", "strace"]
     assert dlg.selected_optional() == []
-    checks[1].setChecked(True)
+    toggles[1].setChecked(True)
     assert dlg.selected_optional() == ["strace"]
 
 
 def test_dialog_hides_optional_section_when_empty(qapp):
     dlg = InstallPreflightDialog(None, PLAN)
-    assert dlg.findChildren(QCheckBox) == []
+    assert dlg.findChildren(ToggleSwitch) == []

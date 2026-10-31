@@ -3437,3 +3437,6 @@ msgstr "Dépendances facultatives"
 
 msgid "Select optional dependencies to install as well"
 msgstr "Sélectionnez les dépendances facultatives à installer également"
+
+msgid "Packages to install"
+msgstr "Paquets à installer"

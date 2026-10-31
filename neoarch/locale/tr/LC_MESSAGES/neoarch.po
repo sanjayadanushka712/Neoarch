@@ -3437,3 +3437,6 @@ msgstr "İsteğe bağlı bağımlılıklar"
 
 msgid "Select optional dependencies to install as well"
 msgstr "Ayrıca kurulacak isteğe bağlı bağımlılıkları seçin"
+
+msgid "Packages to install"
+msgstr "Kurulacak paketler"
