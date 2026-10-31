@@ -39,13 +39,7 @@ neoarch                # launch the desktop app (also in your app menu)
 neo --help             # scriptable CLI; try: neo search cmatrix
 ```
 
-New to it? In a nutshell NeoArch lets you **search, install, and update
-packages from pacman, AUR, Flatpak, and npm in one place**, keep those
-packages clean (orphans, cache, `.pacnew` diffs), snapshot before risky
-operations, and **scan PKGBUILDs for dangerous code before you install from
-the AUR**. Full capability list under <kbd>App features</kbd>;
-the complete CLI lives under <kbd>CLI reference</kbd>,
-and dependencies/source builds are in [Install](#install) below.
+New to it? In a nutshell NeoArch lets you **search, install, and update packages from pacman, AUR, Flatpak, and npm in one place**, keep those packages clean (orphans, cache, `.pacnew` diffs), snapshot before risky operations, and **scan PKGBUILDs for dangerous code before you install from the AUR**. Full capability list under <kbd>App features</kbd>; the complete CLI lives under <kbd>CLI reference</kbd>, and dependencies/source builds are in [Install](#install) below.
 
 > **💡 Save your setup for life** — NeoArch bundles let you capture every package you love into a portable bundle. Fresh install? One click brings your entire setup back. Share bundles with friends or sync them across your machines. [Learn more → Bundles](https://github.com/sanjayadanushka712/Neoarch/wiki/Bundles)
 
@@ -83,12 +77,12 @@ and dependencies/source builds are in [Install](#install) below.
 
 | | | |
 | :---: | :---: | :---: |
-| <img width="100%" alt="1" src="https://github.com/user-attachments/assets/76e910aa-5d23-4668-b0fc-afce8e9af7e2" style="border-radius:10px;border:1px solid #30363d"/> | <img width="100%" alt="2" src="https://github.com/user-attachments/assets/026e87b5-3268-44c6-97a9-722b47290d69" style="border-radius:10px;border:1px solid #30363d"/> | <img width="100%" alt="4" src="https://github.com/user-attachments/assets/588ff48a-4601-4ace-aa17-e1a777a815df" style="border-radius:10px;border:1px solid #30363d"/> |
+| <img width="100%" alt="1" src="https://github.com/user-attachments/assets/76e910aa-5d23-4668-b0fc-afce8e9af7e2" style="border-radius:10px;border:1px solid #30363d"/> | <img width="100%" alt="2" src="https://github.com/user-attachments/assets/026e87b5-3268-44c6-97a9-722b47290d69" style="border-radius:10px;border:1px solid #30363d"/> | <img width="100%" alt="4" src="https://github.com/user-attachments/assets/588ff48a-4601-4ace-aa17-e1a778a815df" style="border-radius:10px;border:1px solid #30363d"/> |
 
 
 ### Under the hood
 
-Python 3.8+ · PyQt6 (Signals &amp; Slots, QThread workers) · subprocess-bounded `pacman` calls · AUR RPC live search (rate-limited) · Flatpak user remotes · npm globals · Supabase Auth with cached session tokens · `SUDO_ASKPASS`/pexpect credential caching · config at `~/.config/neoarch` · ignored updates at `~/.config/neoarch/ignored_updates.json`.
+Python 3.8+ · PyQt6 (Signals &amp; Slots, QThread workers) · subprocess-bounded `pacman` calls · AUR RPC live search (rate-limited) · Flatpak user remotes · npm globals · Supabase Auth with cached session tokens · `sudo`/`pkexec` credential caching · config at `~/.config/neoarch` · ignored updates at `~/.config/neoarch/ignored_updates.json`.
 
 </details>
 
@@ -243,12 +237,9 @@ On Arch, system `pip` usually triggers `externally-managed-environment` — pref
   <img src="assets/icons/app/sponsor-ferreol.png" width="96" height="96" alt="Ferreol" style="border-radius:50%;border:1px solid #30363d" />
 </a>
 
-### ⭐ Our first sponsor — Ferreol
+### Our first sponsor — Ferreol
 
-**Thank you, Ferreol.** You were the very first person to back NeoArch, and
-your early support kept the project alive from day one — long before anyone
-else put a coin in the jar. Every release since has been built on top of
-that backing.
+**Thank you, Ferreol.** You were the very first person to back NeoArch, and your early support kept the project alive from day one — long before anyone else put a coin in the jar. Every release since has been built on top of that backing.
 
 Find Ferreol on [GitHub](https://github.com/ferreol-fr) — the same profile
 the app's About → Community tab links to. If you would like to join him and
