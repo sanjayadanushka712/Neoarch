@@ -3431,3 +3431,9 @@ msgstr "බාගැනීම් ප්‍රමාණය"
 
 msgid "Installed size"
 msgstr "ස්ථාපිත ප්‍රමාණය"
+
+msgid "Optional dependencies"
+msgstr "විකල්ප යැපුම්"
+
+msgid "Select optional dependencies to install as well"
+msgstr "ද යෙදවීමට විකල්ප යැපුම් තෝරන්න"

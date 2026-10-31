@@ -3504,3 +3504,9 @@ msgstr "Tamaño de descarga"
 
 msgid "Installed size"
 msgstr "Tamaño instalado"
+
+msgid "Optional dependencies"
+msgstr "Dependencias opcionales"
+
+msgid "Select optional dependencies to install as well"
+msgstr "Selecciona dependencias opcionales para instalar también"

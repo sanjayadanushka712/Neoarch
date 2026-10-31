@@ -3431,3 +3431,9 @@ msgstr "İndirme boyutu"
 
 msgid "Installed size"
 msgstr "Kurulu boyut"
+
+msgid "Optional dependencies"
+msgstr "İsteğe bağlı bağımlılıklar"
+
+msgid "Select optional dependencies to install as well"
+msgstr "Ayrıca kurulacak isteğe bağlı bağımlılıkları seçin"

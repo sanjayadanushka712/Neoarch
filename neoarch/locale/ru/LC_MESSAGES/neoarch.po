@@ -3431,3 +3431,9 @@ msgstr "Размер загрузки"
 
 msgid "Installed size"
 msgstr "Установленный размер"
+
+msgid "Optional dependencies"
+msgstr "Необязательные зависимости"
+
+msgid "Select optional dependencies to install as well"
+msgstr "Выберите необязательные зависимости для установки"

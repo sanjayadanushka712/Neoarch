@@ -40,6 +40,12 @@ dialog shows after an update.
   install; Flatpak covers the app and its runtime. Nothing runs until the
   summary is accepted.
 
+- **Optional dependencies.** The install summary now lists the package's
+  optional dependencies that are not installed yet, each with the reason
+  given by the package (for example `strace: attach to a running process`).
+  Tick the ones you want and they join the transaction; nothing is ticked
+  by default. Works for pacman and AUR packages.
+
 ### Bug Fixes
 
 - Right-clicking a row now opens the same menu as the row's three-dot

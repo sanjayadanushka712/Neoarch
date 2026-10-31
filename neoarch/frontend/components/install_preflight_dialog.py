@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea, QWidget,
-    QPushButton, QFrame,
+    QCheckBox, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea,
+    QWidget, QPushButton, QFrame,
 )
 
 from neoarch.frontend.tokens import Colors, Fonts
@@ -63,6 +63,8 @@ class InstallPreflightDialog(QDialog):
         _apply_dialog_flags(self)
 
         packages = plan.get("packages") or []
+        optional = plan.get("optional") or []
+        self._checks = []
 
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
@@ -112,6 +114,9 @@ class InstallPreflightDialog(QDialog):
         scroll.setWidget(inner)
         layout.addWidget(scroll)
 
+        if optional:
+            layout.addWidget(self._optional_section(optional))
+
         btn_row = QHBoxLayout()
         btn_row.addStretch()
         cancel = QPushButton(_("Cancel"))
@@ -126,6 +131,67 @@ class InstallPreflightDialog(QDialog):
 
         root.addWidget(content)
         install.setFocus()
+
+    def _optional_section(self, optional: list) -> QWidget:
+        box = QWidget()
+        box.setStyleSheet("background: transparent;")
+        outer = QVBoxLayout(box)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(6)
+
+        title = QLabel(_("Optional dependencies"))
+        title.setStyleSheet(
+            f"color: {Colors.TEXT}; font-size: {Fonts.BASE}; font-weight: 600;"
+            " background: transparent; border: none;")
+        outer.addWidget(title)
+
+        hint = QLabel(_("Select optional dependencies to install as well"))
+        hint.setStyleSheet(
+            f"color: {Colors.TEXT_3}; font-size: {Fonts.SM};"
+            " background: transparent; border: none;")
+        outer.addWidget(hint)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setStyleSheet(
+            f"QScrollArea {{ background: {Colors.SURFACE_2};"
+            f" border: 1px solid {Colors.BORDER}; border-radius: 10px; }}")
+        scroll.setMaximumHeight(150)
+
+        inner = QWidget()
+        inner.setStyleSheet("background: transparent;")
+        rows = QVBoxLayout(inner)
+        rows.setContentsMargins(10, 6, 10, 6)
+        rows.setSpacing(2)
+        for dep in optional:
+            name = dep.get("name", "")
+            desc = dep.get("description", "")
+            text = f"{name} — {desc}" if desc else name
+            check = QCheckBox(text)
+            check.setProperty("dep_name", name)
+            check.setToolTip(desc or name)
+            check.setStyleSheet(
+                f"QCheckBox {{ color: {Colors.TEXT_2};"
+                f" font-size: {Fonts.SM}; background: transparent;"
+                " border: none; spacing: 8px; }"
+                f"QCheckBox:hover {{ color: {Colors.TEXT}; }}"
+                f"QCheckBox::indicator {{ width: 16px; height: 16px;"
+                f" border: 1px solid {Colors.BORDER}; border-radius: 4px;"
+                f" background: {Colors.SURFACE}; }}"
+                f"QCheckBox::indicator:checked {{ background: {Colors.ACCENT};"
+                f" border-color: {Colors.ACCENT}; }}")
+            self._checks.append(check)
+            rows.addWidget(check)
+        rows.addStretch(1)
+        scroll.setWidget(inner)
+        outer.addWidget(scroll)
+        return box
+
+    def selected_optional(self) -> list:
+        """Names of optional dependencies the user ticked."""
+        return [c.property("dep_name") for c in self._checks if c.isChecked()]
 
     @staticmethod
     def _row(pkg: dict) -> QWidget:
@@ -164,6 +230,13 @@ class InstallPreflightDialog(QDialog):
         return row
 
 
-def show_install_plan(parent, plan: dict) -> bool:
-    """Show the summary; True when the user accepts the install."""
-    return InstallPreflightDialog(parent, plan).exec() == QDialog.DialogCode.Accepted
+def show_install_plan(parent, plan: dict):
+    """Show the summary.
+
+    Returns the list of selected optional dependencies when the user accepts
+    the install, or ``None`` when the dialog is cancelled.
+    """
+    dlg = InstallPreflightDialog(parent, plan)
+    if dlg.exec() != QDialog.DialogCode.Accepted:
+        return None
+    return dlg.selected_optional()

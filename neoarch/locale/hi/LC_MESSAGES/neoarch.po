@@ -3431,3 +3431,9 @@ msgstr "डाउनलोड आकार"
 
 msgid "Installed size"
 msgstr "इंस्टॉल आकार"
+
+msgid "Optional dependencies"
+msgstr "वैकल्पिक निर्भरताएँ"
+
+msgid "Select optional dependencies to install as well"
+msgstr "स्थापित करने के लिए वैकल्पिक निर्भरताएँ चुनें"

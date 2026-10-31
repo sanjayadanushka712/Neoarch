@@ -27,28 +27,58 @@ def _run(cmd: List[str], timeout: int = 60) -> subprocess.CompletedProcess:
 
 
 def _empty() -> Dict:
-    return {"ok": False, "packages": [], "total_download": 0,
-            "total_installed": 0}
+    return {"ok": False, "packages": [], "optional": [],
+            "total_download": 0, "total_installed": 0}
 
 
-def _plan(entries: List[Dict]) -> Dict:
+def _plan(entries: List[Dict], optional: List[Dict] = None) -> Dict:
     return {
         "ok": True,
         "packages": entries,
+        "optional": optional or [],
         "total_download": sum(e.get("download_size", 0) for e in entries),
         "total_installed": sum(e.get("installed_size", 0) for e in entries),
     }
 
 
+def _split_optional(dep: str):
+    """Split an ``Optional Deps``/``OptDepends`` entry into name + reason.
+
+    Entries look like ``python: for scripting [installed]`` or
+    ``libfoo>=2``. Version constraints and the installed marker are dropped.
+    """
+    text = (dep or "").strip()
+    if not text or text.lower() == "none":
+        return "", ""
+    name, sep, desc = text.partition(":")
+    if not sep:
+        name, sep, desc = text.partition(": ")
+    name = re.split(r"[<>=]", name.strip(), maxsplit=1)[0].strip()
+    desc = desc.strip()
+    if desc.endswith("[installed]"):
+        desc = desc[: -len("[installed]")].strip()
+    return name, desc
+
+
+def _add_optional(deps: List[Dict], seen: set, skip: set, dep: str):
+    name, desc = _split_optional(dep)
+    if not name or name in skip or name in seen:
+        return
+    seen.add(name)
+    deps.append({"name": name, "description": desc})
+
+
 def install_plan(packages: List[str], source: str = "pacman") -> Dict:
     """Resolve what installing ``packages`` from ``source`` would fetch.
 
-    Returns ``{"ok", "packages", "total_download", "total_installed"}``
-    where each package carries ``name``, ``version``, ``repo``,
-    ``download_size`` and ``installed_size`` in bytes. ``ok`` is False when
-    the source cannot be resolved, so the caller falls back to a plain
-    install. AUR rows list direct dependencies only; Flatpak rows cover the
-    app and its runtime; npm rows come from a dry-run of the global install.
+    Returns ``{"ok", "packages", "optional", "total_download",
+    "total_installed"}`` where each package carries ``name``, ``version``,
+    ``repo``, ``download_size`` and ``installed_size`` in bytes, and
+    ``optional`` lists uninstalled optional dependencies the user may add to
+    the transaction. ``ok`` is False when the source cannot be resolved, so
+    the caller falls back to a plain install. AUR rows list direct
+    dependencies only; Flatpak rows cover the app and its runtime; npm rows
+    come from a dry-run of the global install.
     """
     names = [p for p in (packages or []) if p]
     if not names:
@@ -92,17 +122,22 @@ def _pacman_plan(names: List[str]) -> Dict:
     if not entries:
         return _empty()
 
+    optional: List[Dict] = []
     info = _run(["pacman", "-Si"] + [e["name"] for e in entries])
     if info.returncode == 0:
         sizes = {}
+        installed = _installed_names()
+        skip = set(seen) | set(installed)
         for block in re.split(r"\n\s*\n", info.stdout):
             fields = _parse_pacman_fields(block)
             name = fields.get("Name")
             if name:
                 sizes[name] = _parse_size_text(fields.get("Installed Size", ""))
+            for dep in (fields.get("Optional Deps") or "").splitlines():
+                _add_optional(optional, skip, installed, dep)
         for entry in entries:
             entry["installed_size"] = sizes.get(entry["name"], 0)
-    return _plan(entries)
+    return _plan(entries, optional)
 
 
 # ── AUR ───────────────────────────────────────────────────────────────────
@@ -145,6 +180,9 @@ def _aur_plan(names: List[str]) -> Dict:
         })
 
     installed = _installed_names()
+    optional: List[Dict] = []
+    opt_seen: set = set()
+    skip = set(installed) | set(known)
     for info in infos:
         for dep in (info.get("Depends") or []) + (info.get("MakeDepends") or []):
             base = re.split(r"[<>=]", dep, maxsplit=1)[0].strip()
@@ -158,7 +196,9 @@ def _aur_plan(names: List[str]) -> Dict:
                 "download_size": 0,
                 "installed_size": 0,
             })
-    return _plan(entries)
+        for dep in info.get("OptDepends") or []:
+            _add_optional(optional, opt_seen, skip, dep)
+    return _plan(entries, optional)
 
 
 # ── npm ───────────────────────────────────────────────────────────────────

@@ -136,3 +136,44 @@ def test_flatpak_plan_skips_installed_runtime(monkeypatch):
     monkeypatch.setattr(preflight, "_run", run)
     plan = preflight.install_plan(["app"], source="Flatpak")
     assert [p["name"] for p in plan["packages"]] == ["app"]
+
+
+SI_WITH_OPTIONAL = (
+    "Name            : htop\n"
+    "Version         : 3.5.3-1\n"
+    "Installed Size  : 9820.16 KiB\n"
+    "Optional Deps   : python: for scripting [installed]\n"
+    "                  strace: for debugging\n"
+    "                  libcap>=2.0: capabilities\n"
+)
+
+
+def test_pacman_plan_lists_optional_dependencies(monkeypatch):
+    monkeypatch.setattr(preflight, "_run", _fake_run(
+        "htop|3.5.3-1|extra|184319\n", si_out=SI_WITH_OPTIONAL))
+    monkeypatch.setattr(preflight, "_installed_names", lambda: {"python"})
+    plan = preflight.install_plan(["htop"])
+    assert plan["optional"] == [
+        {"name": "strace", "description": "for debugging"},
+        {"name": "libcap", "description": "capabilities"},
+    ]
+
+
+def test_aur_plan_lists_optional_dependencies(monkeypatch):
+    monkeypatch.setattr(preflight, "_aur_info", lambda names: [
+        {"Name": "yay-bin", "Version": "12.4.1-1",
+         "Depends": [], "MakeDepends": [],
+         "OptDepends": ["git: for cloning", "foo>=2: extra tools"]}])
+    monkeypatch.setattr(preflight, "_installed_names", lambda: {"git"})
+    plan = preflight.install_plan(["yay-bin"], source="AUR")
+    assert plan["optional"] == [
+        {"name": "foo", "description": "extra tools"},
+    ]
+
+
+def test_split_optional_handles_markers_and_constraints():
+    assert preflight._split_optional("python: for scripting [installed]") == (
+        "python", "for scripting")
+    assert preflight._split_optional("libfoo>=2.0") == ("libfoo", "")
+    assert preflight._split_optional("None") == ("", "")
+    assert preflight._split_optional("") == ("", "")

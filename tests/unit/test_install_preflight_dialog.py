@@ -1,5 +1,5 @@
 import pytest
-from PyQt6.QtWidgets import QApplication, QLabel
+from PyQt6.QtWidgets import QApplication, QCheckBox, QLabel
 
 from neoarch.frontend.components.install_preflight_dialog import (
     InstallPreflightDialog, _fmt_size,
@@ -44,3 +44,22 @@ def test_format_size():
     assert _fmt_size(0) == "—"
     assert _fmt_size(512) == "512 B"
     assert _fmt_size(2048) == "2.0 KiB"
+
+
+def test_dialog_offers_optional_dependencies(qapp):
+    plan = dict(PLAN)
+    plan["optional"] = [
+        {"name": "python", "description": "for scripting"},
+        {"name": "strace", "description": "for debugging"},
+    ]
+    dlg = InstallPreflightDialog(None, plan)
+    checks = dlg.findChildren(QCheckBox)
+    assert [c.property("dep_name") for c in checks] == ["python", "strace"]
+    assert dlg.selected_optional() == []
+    checks[1].setChecked(True)
+    assert dlg.selected_optional() == ["strace"]
+
+
+def test_dialog_hides_optional_section_when_empty(qapp):
+    dlg = InstallPreflightDialog(None, PLAN)
+    assert dlg.findChildren(QCheckBox) == []

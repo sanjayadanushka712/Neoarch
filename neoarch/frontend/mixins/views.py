@@ -3852,21 +3852,26 @@ class _ViewsMixin:
     def _confirm_install_plan(self, name, source, plan):
         from neoarch.frontend.components.install_preflight_dialog import (
             show_install_plan)
-        if not show_install_plan(self, plan):
+        selected = show_install_plan(self, plan)
+        if selected is None:
             self.log("Install cancelled.")
             return
-        self._install_now(name, source)
+        self._install_now(name, source, selected)
 
-    def _install_now(self, name, source):
+    def _install_now(self, name, source, optional=None):
         if not name:
             return
         if not self.ensure_session_auth():
             self.log("Install cancelled: authentication required.")
             return
-        self.log(f"Installing {name} ({source})")
+        names = [name]
+        for dep in optional or []:
+            if dep and dep != name and dep not in names:
+                names.append(dep)
+        self.log(f"Installing {', '.join(names)} ({source})")
         self.installation_progress.emit("start", False)
         from neoarch.backend.package import installer as install_service
-        install_service.install_packages(self, {source: [name]})
+        install_service.install_packages(self, {source: names})
 
     def _open_package_page(self, pkg):
         name = (pkg.get('name') or '').strip()
