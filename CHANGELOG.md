@@ -70,6 +70,12 @@ dialog shows after an update.
   Updates** and **Quit NeoArch**. The badge follows every updates refresh and
   is hidden when the system is up to date.
 
+- **Screenshot carousel.** The detail card of a Flatpak app now shows its
+  Flathub screenshots in a carousel with previous/next buttons, captions and
+  a slide counter. Images are fetched off the UI thread and cached for the
+  session; the section stays hidden for packages without screenshots or when
+  the app is offline.
+
 ### Bug Fixes
 
 - Right-clicking a row now opens the same menu as the row's three-dot

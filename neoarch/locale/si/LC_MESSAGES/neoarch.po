@@ -3530,3 +3530,12 @@ msgstr "NeoArch අත්හරින්න"
 
 msgid "NeoArch — {n} update(s) available"
 msgstr "NeoArch — යාවත්කාලීන {n} ක් ලබා ගත හැක"
+
+msgid "Screenshots"
+msgstr "තිර රුව"
+
+msgid "Loading screenshots…"
+msgstr "තිර රුව පූරණය වෙමින්…"
+
+msgid "No screenshots available."
+msgstr "තිර රුවක් නොමැත."

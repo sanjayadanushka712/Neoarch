@@ -3530,3 +3530,12 @@ msgstr "NeoArch beenden"
 
 msgid "NeoArch — {n} update(s) available"
 msgstr "NeoArch — {n} Aktualisierung(en) verfügbar"
+
+msgid "Screenshots"
+msgstr "Screenshots"
+
+msgid "Loading screenshots…"
+msgstr "Screenshots werden geladen…"
+
+msgid "No screenshots available."
+msgstr "Keine Screenshots verfügbar."

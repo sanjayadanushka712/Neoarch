@@ -3603,3 +3603,12 @@ msgstr "Salir de NeoArch"
 
 msgid "NeoArch — {n} update(s) available"
 msgstr "NeoArch — {n} actualización(es) disponible(s)"
+
+msgid "Screenshots"
+msgstr "Capturas de pantalla"
+
+msgid "Loading screenshots…"
+msgstr "Cargando capturas de pantalla…"
+
+msgid "No screenshots available."
+msgstr "No hay capturas de pantalla disponibles."

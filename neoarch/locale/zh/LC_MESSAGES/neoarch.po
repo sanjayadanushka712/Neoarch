@@ -3530,3 +3530,12 @@ msgstr "退出 NeoArch"
 
 msgid "NeoArch — {n} update(s) available"
 msgstr "NeoArch — 有 {n} 个更新可用"
+
+msgid "Screenshots"
+msgstr "截图"
+
+msgid "Loading screenshots…"
+msgstr "正在加载截图…"
+
+msgid "No screenshots available."
+msgstr "暂无截图。"

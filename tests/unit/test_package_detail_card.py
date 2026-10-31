@@ -1,4 +1,5 @@
 import pytest
+from PyQt6.QtGui import QColor, QPixmap
 from PyQt6.QtWidgets import QApplication
 
 from neoarch.frontend.components.package_detail_card import PackageDetailCard
@@ -386,3 +387,37 @@ def test_files_section_limits_and_hides_empty(qapp):
 
     card.set_extra_info({"files": []})
     assert card.files_section.isVisible() is False
+
+
+def test_flatpak_package_loads_screenshots(qapp, monkeypatch):
+    card = PackageDetailCard()
+    card.show()
+    loaded = []
+    monkeypatch.setattr(card.screenshots_carousel, "load",
+                        lambda app_id: loaded.append(app_id))
+    card.show_package({"name": "org.gnome.Calculator",
+                       "version": "51.1", "source": "Flatpak",
+                       "installed": False, "has_update": False,
+                       "description": "Calculator", "_view": "discover"})
+    assert loaded == ["org.gnome.Calculator"]
+    assert card.screenshots_section.isVisible() is False
+
+    pixmap = QPixmap(20, 20)
+    pixmap.fill(QColor("red"))
+    card.screenshots_carousel.set_slides(
+        card.screenshots_carousel._request_id,
+        [{"caption": "Main", "pixmap": pixmap}])
+    assert card.screenshots_section.isVisible() is True
+    card.deleteLater()
+
+
+def test_non_flatpak_package_hides_screenshots(qapp):
+    card = PackageDetailCard()
+    card.show()
+    card.show_package({"name": "bash", "version": "5.2",
+                       "source": "pacman", "installed": True,
+                       "has_update": False, "description": "shell",
+                       "_view": "installed"})
+    assert card.screenshots_section.isVisible() is False
+    assert card.screenshots_carousel.count == 0
+    card.deleteLater()

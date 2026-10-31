@@ -3530,3 +3530,12 @@ msgstr "NeoArch'tan Çık"
 
 msgid "NeoArch — {n} update(s) available"
 msgstr "NeoArch — {n} güncelleme mevcut"
+
+msgid "Screenshots"
+msgstr "Ekran görüntüleri"
+
+msgid "Loading screenshots…"
+msgstr "Ekran görüntüleri yükleniyor…"
+
+msgid "No screenshots available."
+msgstr "Kullanılabilir ekran görüntüsü yok."

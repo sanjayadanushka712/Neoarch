@@ -3530,3 +3530,12 @@ msgstr "NeoArch छोड़ें"
 
 msgid "NeoArch — {n} update(s) available"
 msgstr "NeoArch — {n} अपडेट उपलब्ध"
+
+msgid "Screenshots"
+msgstr "स्क्रीनशॉट"
+
+msgid "Loading screenshots…"
+msgstr "स्क्रीनशॉट लोड हो रहे हैं…"
+
+msgid "No screenshots available."
+msgstr "कोई स्क्रीनशॉट उपलब्ध नहीं है।"

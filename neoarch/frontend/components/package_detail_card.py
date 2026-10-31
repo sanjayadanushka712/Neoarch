@@ -11,6 +11,8 @@ from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor, QFont, QPainter, QBrush
 
 from neoarch.frontend.tokens import Colors, Fonts, SourceColors
+from neoarch.frontend.components.screenshot_carousel import (
+    ScreenshotCarousel)
 from neoarch.backend.services.i18n import _
 
 
@@ -315,6 +317,15 @@ class PackageDetailCard(QFrame):
         dl.addWidget(self.size_row)
         content.addWidget(self.details_section)
 
+        # ── Screenshots ──
+        self.screenshots_section, scr = _section_block(_("Screenshots"))
+        self.screenshots_carousel = ScreenshotCarousel()
+        self.screenshots_carousel.loaded.connect(
+            lambda n: self.screenshots_section.setVisible(n > 0))
+        scr.addWidget(self.screenshots_carousel)
+        content.addWidget(self.screenshots_section)
+        self.screenshots_section.setVisible(False)
+
         # ── Reverse dependencies ──
         self.revdeps_widget = QWidget()
         self.revdeps_widget.setStyleSheet("background: transparent;")
@@ -574,6 +585,10 @@ class PackageDetailCard(QFrame):
 
         self.files_section.setVisible(False)
         self.files_list.clear()
+        self.screenshots_section.setVisible(False)
+        self.screenshots_carousel.clear()
+        if source.lower() == "flatpak":
+            self.screenshots_carousel.load(name)
 
         self.avatar._letter = name[0].upper() if name else "?"
         self.avatar._color = sc
@@ -789,6 +804,8 @@ class PackageDetailCard(QFrame):
         self.deps_section.setVisible(False)
         self.files_section.setVisible(False)
         self.desc_section.setVisible(False)
+        self.screenshots_section.setVisible(False)
+        self.screenshots_carousel.clear()
         self.selection_section.setVisible(True)
 
         self.install_btn.setVisible(False)
@@ -928,6 +945,8 @@ class PackageDetailCard(QFrame):
         self.deps_section.setVisible(False)
         self.files_section.setVisible(False)
         self.files_list.clear()
+        self.screenshots_section.setVisible(False)
+        self.screenshots_carousel.clear()
         self._pkg_data = None
         self.name_label.clear()
         self.version_label.clear()
