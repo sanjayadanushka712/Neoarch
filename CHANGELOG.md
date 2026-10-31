@@ -10,6 +10,19 @@ dialog shows after an update.
 
 ---
 
+## 3.5.1 — 2026-10-31
+
+### Bug Fixes
+
+- The Discover page's **Install Selected** button in the navbar and the
+  selection panel now use the install summary flow. Multi-source selections
+  are resolved together and show per-package sizes and optional dependencies
+  before anything runs, matching the detail card and three-dot menu.
+
+- The installed `neoarch` launcher now follows its `/usr/bin` symlink back to
+  `/opt/neoarch/Neoarch` before starting. Installing from the AUR no longer
+  fails with `No module named neoarch` when run from a different directory.
+
 ## 3.5.0 — 2026-10-31
 
 ### New Features
