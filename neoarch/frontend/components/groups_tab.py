@@ -10,13 +10,14 @@ import threading
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import (
-    QAbstractItemView, QCheckBox, QFrame, QHBoxLayout, QHeaderView,
+    QAbstractItemView, QFrame, QHBoxLayout, QHeaderView,
     QLabel, QLineEdit, QListWidget, QListWidgetItem, QPushButton,
     QSplitter, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
 )
 
 from neoarch.backend.services.groups import group_packages, list_groups
 from neoarch.backend.services.i18n import _
+from neoarch.frontend.components.toggle_switch import ToggleSwitch
 from neoarch.frontend.styles import Styles
 from neoarch.frontend.tokens import Colors, Fonts, QSS, Radii
 
@@ -108,17 +109,48 @@ class GroupsTab(QWidget):
         controls = QHBoxLayout()
         controls.setContentsMargins(0, 4, 0, 0)
         controls.setSpacing(10)
-        self.select_all = QCheckBox(_("Select all not installed"))
-        self.select_all.stateChanged.connect(self._toggle_select_all)
+        select_label = QLabel(_("Select all not installed"))
+        select_label.setStyleSheet(
+            f"color: {Colors.TEXT_2}; font-size: {Fonts.BASE};"
+            " background: transparent; border: none;")
+        controls.addWidget(select_label)
+        self.select_all = ToggleSwitch(name="select-all-groups")
+        self.select_all.toggled.connect(self._toggle_select_all)
         controls.addWidget(self.select_all)
         controls.addStretch(1)
         self.install_all_btn = QPushButton()
-        self.install_all_btn.setStyleSheet(Styles.btn_outline())
+        self.install_all_btn.setMinimumHeight(36)
+        self.install_all_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: transparent;
+                color: {Colors.TEXT};
+                border: 1px solid rgba(255, 255, 255, 0.12);
+                border-radius: 10px;
+                padding: 8px 16px;
+                font-size: {Fonts.BASE};
+                font-weight: 500;
+            }}
+            QPushButton:hover {{
+                background-color: rgba(255, 255, 255, 0.06);
+                border-color: rgba(255, 255, 255, 0.2);
+            }}
+            QPushButton:pressed {{
+                background-color: rgba(255, 255, 255, 0.10);
+            }}
+            QPushButton:disabled {{
+                color: {Colors.TEXT_3};
+                border-color: rgba(255, 255, 255, 0.06);
+            }}
+        """)
         self.install_all_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.install_all_btn.clicked.connect(self._install_whole_group)
         controls.addWidget(self.install_all_btn)
         self.install_btn = QPushButton()
-        self.install_btn.setStyleSheet(Styles.btn_primary())
+        self.install_btn.setMinimumHeight(36)
+        self.install_btn.setStyleSheet(
+            Styles.btn_white(padding="8px 18px", size=Fonts.BASE,
+                             radius=Radii.XL)
+            + Styles.btn_white_disabled())
         self.install_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.install_btn.clicked.connect(self._install_selected)
         controls.addWidget(self.install_btn)
@@ -268,7 +300,7 @@ class GroupsTab(QWidget):
             self.table.setItem(row, 4, status)
         self.table.blockSignals(False)
         self.select_all.blockSignals(True)
-        self.select_all.setChecked(False)
+        self.select_all.setChecked(False, animate=False)
         self.select_all.blockSignals(False)
 
     # ── filtering / selection ─────────────────────────────────────
@@ -300,8 +332,7 @@ class GroupsTab(QWidget):
                 self._fill_table()
                 self._update_buttons()
 
-    def _toggle_select_all(self, state):
-        checked = state == Qt.CheckState.Checked.value
+    def _toggle_select_all(self, checked):
         self.table.blockSignals(True)
         for row in range(self.table.rowCount()):
             item = self.table.item(row, 0)
