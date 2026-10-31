@@ -152,8 +152,30 @@ def classify_update(current, new):
     return "Maintenance"
 
 
+def _fmt_size(value):
+    """Human-readable size from a byte count or an already formatted string.
+
+    Rows receive sizes from several sources: some are formatted strings
+    (``"12.3 MiB"``), others raw byte counts from repository metadata. The
+    delegate must never hand a number to QFontMetrics, which expects text.
+    """
+    if value is None or value == "":
+        return ""
+    if isinstance(value, (int, float)):
+        n = float(value)
+        for unit in ("B", "KiB", "MiB", "GiB", "TiB"):
+            if n < 1024 or unit == "TiB":
+                if unit == "B":
+                    return f"{int(n)} B"
+                return f"{n:.1f} {unit}"
+            n /= 1024
+    return str(value)
+
+
 def _parse_size(text):
-    """Parse a human size string (e.g. '12.3 MiB') into bytes."""
+    """Parse a human size string (e.g. '12.3 MiB') or bytes into bytes."""
+    if isinstance(text, (int, float)):
+        return int(text)
     m = re.search(r"([\d.]+)\s*([KMGT]?)i?B", str(text), re.IGNORECASE)
     if not m:
         return 0
@@ -1641,7 +1663,7 @@ class UpdatesRowDelegate(QStyledItemDelegate):
                          new_el)
 
     def _paint_size(self, painter, rect, pkg):
-        size = pkg.get("download_size")
+        size = _fmt_size(pkg.get("download_size"))
         if not size:
             return
         fm = QFontMetrics(self._ver_font)

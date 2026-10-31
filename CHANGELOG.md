@@ -46,6 +46,11 @@ dialog shows after an update.
   button on every page (Updates, Installed, Discover, Plugins, Bundles),
   instead of the legacy menu or nothing at all.
 
+- Discover rows no longer render garbled text after a click. Download sizes
+  can arrive as raw byte counts, and the table passed them straight to the
+  text renderer; they are now formatted first, so the Size column paints
+  correctly.
+
 ## 3.4.5 — 2026-10-31
 
 ### New Features

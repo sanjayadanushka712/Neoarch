@@ -517,3 +517,30 @@ def test_right_click_outside_rows_is_ignored(qapp):
     table.mousePressEvent(ev)
 
     assert calls == []
+
+
+def test_size_column_accepts_raw_byte_counts(qapp):
+    from PyQt6.QtCore import QRect
+    from PyQt6.QtGui import QPainter, QPixmap
+    from PyQt6.QtWidgets import QStyleOptionViewItem
+    from neoarch.frontend.components.updates_table import _fmt_size, _parse_size
+
+    assert _fmt_size(123456) == "120.6 KiB"
+    assert _fmt_size("12.3 MiB") == "12.3 MiB"
+    assert _parse_size(123456) == 123456
+
+    table = UpdatesTable(_FakeApp())
+    table.set_enrich(False)
+    table.set_discover_mode(True)
+    table.set_packages([{
+        "name": "pkg", "id": "pkg", "version": "1.0", "new_version": "1.0",
+        "source": "pacman", "description": "d", "status": "Available",
+        "download_size": 123456,
+    }])
+    pm = QPixmap(400, 60)
+    pm.fill()
+    painter = QPainter(pm)
+    opt = QStyleOptionViewItem()
+    opt.rect = QRect(0, 0, 100, 52)
+    table.itemDelegate().paint(painter, opt, table.model.index(0, 3))
+    painter.end()
