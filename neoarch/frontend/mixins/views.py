@@ -4088,8 +4088,14 @@ class _ViewsMixin:
 
         def _run():
             try:
-                from neoarch.backend.services.hygiene import package_info, repo_info
+                from neoarch.backend.services.hygiene import (
+                    package_info, repo_info, package_files)
                 info = package_info(name) if installed else repo_info(name)
+                if installed:
+                    try:
+                        info["files"] = package_files(name)
+                    except Exception:
+                        pass
             except Exception:
                 info = {}
             try:

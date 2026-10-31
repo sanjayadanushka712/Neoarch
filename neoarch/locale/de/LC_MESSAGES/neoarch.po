@@ -3392,3 +3392,21 @@ msgstr "Neuinstallation bestätigen"
 
 msgid "Reinstall '{name}'?\n\nThe package will be downloaded and installed again. This cannot be undone."
 msgstr "„{name}“ neu installieren?\n\nDas Paket wird erneut heruntergeladen und installiert. Dies kann nicht rückgängig gemacht werden."
+
+msgid "Files"
+msgstr "Dateien"
+
+msgid "Filter files…"
+msgstr "Dateien filtern…"
+
+msgid "{count} file{s}"
+msgstr "{count} Datei{s}"
+
+msgid "{shown} of {total} files"
+msgstr "{shown} von {total} Dateien"
+
+msgid "Double-click a file to copy its path"
+msgstr "Doppelklicken Sie auf eine Datei, um ihren Pfad zu kopieren"
+
+msgid "Path copied"
+msgstr "Pfad kopiert"

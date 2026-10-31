@@ -20,6 +20,12 @@ dialog shows after an update.
   and asks for confirmation first. Works for pacman, AUR and Flatpak
   packages.
 
+- **Package file list.** The detail card of an installed package now shows
+  the files it owns, read from `pacman -Qlq`. A filter box narrows the list
+  as you type, the header shows the file count, and very large packages are
+  capped at the first 2000 entries. Double-clicking a file copies its path.
+  Results are cached for the session.
+
 ## 3.4.5 — 2026-10-31
 
 ### New Features

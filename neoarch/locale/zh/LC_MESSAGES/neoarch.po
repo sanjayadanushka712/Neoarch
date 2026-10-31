@@ -3392,3 +3392,21 @@ msgstr "确认重新安装"
 
 msgid "Reinstall '{name}'?\n\nThe package will be downloaded and installed again. This cannot be undone."
 msgstr "重新安装“{name}”？\n\n软件包将重新下载并安装。此操作无法撤销。"
+
+msgid "Files"
+msgstr "文件"
+
+msgid "Filter files…"
+msgstr "筛选文件…"
+
+msgid "{count} file{s}"
+msgstr "{count} 个文件"
+
+msgid "{shown} of {total} files"
+msgstr "{total} 个文件中的 {shown} 个"
+
+msgid "Double-click a file to copy its path"
+msgstr "双击文件以复制其路径"
+
+msgid "Path copied"
+msgstr "路径已复制"

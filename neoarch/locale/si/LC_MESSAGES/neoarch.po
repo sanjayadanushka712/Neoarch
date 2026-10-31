@@ -3392,3 +3392,21 @@ msgstr "නැවත ස්ථාපනය තහවුරු කරන්න"
 
 msgid "Reinstall '{name}'?\n\nThe package will be downloaded and installed again. This cannot be undone."
 msgstr "'{name}' නැවත ස්ථාපනය කරන්නද?\n\nපැකේජය නැවත බාගත කර ස්ථාපනය කරනු ඇත. මෙය අහෝසි කළ නොහැක."
+
+msgid "Files"
+msgstr "ගොනු"
+
+msgid "Filter files…"
+msgstr "ගොනු පෙරහන් කරන්න…"
+
+msgid "{count} file{s}"
+msgstr "ගොනු {count}"
+
+msgid "{shown} of {total} files"
+msgstr "ගොනු {total} න් {shown}"
+
+msgid "Double-click a file to copy its path"
+msgstr "මාර්ගය පිටපත් කිරීමට ගොනුවක් දෙවරක් ක්ලික් කරන්න"
+
+msgid "Path copied"
+msgstr "මාර්ගය පිටපත් විය"

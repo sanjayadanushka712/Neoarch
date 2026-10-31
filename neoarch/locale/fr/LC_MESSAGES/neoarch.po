@@ -3392,3 +3392,21 @@ msgstr "Confirmer la réinstallation"
 
 msgid "Reinstall '{name}'?\n\nThe package will be downloaded and installed again. This cannot be undone."
 msgstr "Réinstaller « {name} » ?\n\nLe paquet sera téléchargé et installé à nouveau. Cette action est irréversible."
+
+msgid "Files"
+msgstr "Fichiers"
+
+msgid "Filter files…"
+msgstr "Filtrer les fichiers…"
+
+msgid "{count} file{s}"
+msgstr "{count} fichier{s}"
+
+msgid "{shown} of {total} files"
+msgstr "{shown} sur {total} fichiers"
+
+msgid "Double-click a file to copy its path"
+msgstr "Double-cliquez sur un fichier pour copier son chemin"
+
+msgid "Path copied"
+msgstr "Chemin copié"

@@ -3392,3 +3392,21 @@ msgstr "Подтвердите переустановку"
 
 msgid "Reinstall '{name}'?\n\nThe package will be downloaded and installed again. This cannot be undone."
 msgstr "Переустановить «{name}»?\n\nПакет будет снова загружен и установлен. Это действие нельзя отменить."
+
+msgid "Files"
+msgstr "Файлы"
+
+msgid "Filter files…"
+msgstr "Фильтр файлов…"
+
+msgid "{count} file{s}"
+msgstr "{count} файл{s}"
+
+msgid "{shown} of {total} files"
+msgstr "{shown} из {total} файлов"
+
+msgid "Double-click a file to copy its path"
+msgstr "Дважды щёлкните файл, чтобы скопировать путь"
+
+msgid "Path copied"
+msgstr "Путь скопирован"

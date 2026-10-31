@@ -337,3 +337,52 @@ def test_dependencies_hidden_for_selection_and_clear(qapp):
     card.set_extra_info({"depends": ["readline"]})
     card.clear()
     assert card.deps_section.isVisible() is False
+
+
+def test_files_section_populates_filters_and_resets(qapp):
+    card = PackageDetailCard()
+    card.show()
+    card.show_package({"name": "bash", "version": "5.2", "source": "pacman",
+                       "installed": True, "has_update": False,
+                       "description": "shell", "_view": ""})
+    assert card.files_section.isVisible() is False
+
+    card.set_extra_info({"files": ["/usr/bin/bash", "/usr/bin/bashbug",
+                                   "/usr/share/doc/bash/README"]})
+    assert card.files_section.isVisible() is True
+    assert card.files_list.count() == 3
+    assert card.files_count_label.text() == "3 files"
+
+    card.files_filter.setText("bashbug")
+    visible = [card.files_list.item(i) for i in range(card.files_list.count())
+               if not card.files_list.item(i).isHidden()]
+    assert [i.text() for i in visible] == ["/usr/bin/bashbug"]
+
+    card.files_filter.clear()
+    assert all(not card.files_list.item(i).isHidden()
+               for i in range(card.files_list.count()))
+
+    card.files_list.itemDoubleClicked.emit(card.files_list.item(0))
+    assert QApplication.clipboard().text() == "/usr/bin/bash"
+    assert card.files_count_label.text() == "Path copied"
+
+    card.show_package({"name": "curl", "version": "8.0", "source": "pacman",
+                       "installed": True, "has_update": False,
+                       "description": "transfer tool", "_view": ""})
+    assert card.files_section.isVisible() is False
+    assert card.files_list.count() == 0
+
+
+def test_files_section_limits_and_hides_empty(qapp):
+    card = PackageDetailCard()
+    card.show()
+    card.show_package({"name": "big", "version": "1", "source": "pacman",
+                       "installed": True, "has_update": False,
+                       "description": "big", "_view": ""})
+
+    card.set_extra_info({"files": [f"/usr/share/big/{i}" for i in range(2500)]})
+    assert card.files_list.count() == card._FILES_LIMIT
+    assert card.files_count_label.text() == "2000 of 2500 files"
+
+    card.set_extra_info({"files": []})
+    assert card.files_section.isVisible() is False

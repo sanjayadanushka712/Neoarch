@@ -3392,3 +3392,21 @@ msgstr "再インストールの確認"
 
 msgid "Reinstall '{name}'?\n\nThe package will be downloaded and installed again. This cannot be undone."
 msgstr "「{name}」を再インストールしますか？\n\nパッケージは再度ダウンロードされ、インストールされます。この操作は元に戻せません。"
+
+msgid "Files"
+msgstr "ファイル"
+
+msgid "Filter files…"
+msgstr "ファイルを絞り込む…"
+
+msgid "{count} file{s}"
+msgstr "{count} 個のファイル"
+
+msgid "{shown} of {total} files"
+msgstr "{total} 件中 {shown} 件のファイル"
+
+msgid "Double-click a file to copy its path"
+msgstr "ファイルをダブルクリックしてパスをコピー"
+
+msgid "Path copied"
+msgstr "パスをコピーしました"

@@ -3392,3 +3392,21 @@ msgstr "पुनः इंस्टॉल की पुष्टि करे�
 
 msgid "Reinstall '{name}'?\n\nThe package will be downloaded and installed again. This cannot be undone."
 msgstr "'{name}' को पुनः इंस्टॉल करें?\n\nपैकेज फिर से डाउनलोड और इंस्टॉल किया जाएगा। इसे पूर्ववत नहीं किया जा सकता।"
+
+msgid "Files"
+msgstr "फ़ाइलें"
+
+msgid "Filter files…"
+msgstr "फ़ाइलें फ़िल्टर करें…"
+
+msgid "{count} file{s}"
+msgstr "{count} फ़ाइल{s}"
+
+msgid "{shown} of {total} files"
+msgstr "{total} में से {shown} फ़ाइलें"
+
+msgid "Double-click a file to copy its path"
+msgstr "पथ कॉपी करने के लिए किसी फ़ाइल पर डबल-क्लिक करें"
+
+msgid "Path copied"
+msgstr "पथ कॉपी किया गया"

@@ -3392,3 +3392,21 @@ msgstr "Yeniden yüklemeyi onayla"
 
 msgid "Reinstall '{name}'?\n\nThe package will be downloaded and installed again. This cannot be undone."
 msgstr "'{name}' yeniden yüklensin mi?\n\nPaket yeniden indirilip kurulacak. Bu işlem geri alınamaz."
+
+msgid "Files"
+msgstr "Dosyalar"
+
+msgid "Filter files…"
+msgstr "Dosyaları filtrele…"
+
+msgid "{count} file{s}"
+msgstr "{count} dosya"
+
+msgid "{shown} of {total} files"
+msgstr "{total} dosyadan {shown}"
+
+msgid "Double-click a file to copy its path"
+msgstr "Yolunu kopyalamak için bir dosyaya çift tıklayın"
+
+msgid "Path copied"
+msgstr "Yol kopyalandı"

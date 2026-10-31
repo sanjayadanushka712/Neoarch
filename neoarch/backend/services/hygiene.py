@@ -22,7 +22,7 @@ __all__ = [
     "list_pacnew", "diff_pacnew", "accept_pacnew", "delete_pacnew",
     "merge_pacnew",
     "list_installed_sizes",
-    "list_explicit_packages", "package_info",
+    "list_explicit_packages", "package_info", "package_files",
     "fetch_news", "news_cache", "news_cache_age",
     "mark_news_seen", "news_seen", "news_seen_status", "news_unseen_count",
     "list_corrupted_packages", "remove_corrupted_packages",
@@ -495,6 +495,36 @@ def repo_info(name: str) -> Dict:
     if not blocks:
         return {}
     return _pacman_metadata(_parse_pacman_fields(blocks[0]))
+
+
+_FILES_CACHE: Dict[str, List[str]] = {}
+_FILES_CACHE_MAX = 200
+
+
+def package_files(name: str) -> List[str]:
+    """List the files owned by an installed package via `pacman -Qlq`.
+
+    Directory entries (trailing slash) are dropped so only files are
+    returned. Results are cached for the session, keeping the cache bounded
+    to the most recently used packages.
+    """
+    name = (name or "").strip()
+    if not name:
+        return []
+    cached = _FILES_CACHE.get(name)
+    if cached is not None:
+        return list(cached)
+    result = _run(["pacman", "-Qlq", name], timeout=30, env=c_locale_env())
+    if result.returncode != 0:
+        return []
+    paths = [
+        line.strip() for line in result.stdout.splitlines()
+        if line.strip() and not line.strip().endswith("/")
+    ]
+    if len(_FILES_CACHE) >= _FILES_CACHE_MAX:
+        _FILES_CACHE.pop(next(iter(_FILES_CACHE)), None)
+    _FILES_CACHE[name] = paths
+    return list(paths)
 
 
 # ──────────────────────────────────────────────────────────────────────────

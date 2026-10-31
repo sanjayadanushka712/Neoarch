@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from PyQt6.QtWidgets import (
     QFrame, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QGraphicsDropShadowEffect, QWidget, QScrollArea,
+    QGraphicsDropShadowEffect, QWidget, QScrollArea, QListWidget,
+    QListWidgetItem, QLineEdit, QApplication,
 )
-from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor, QFont, QPainter, QBrush
 
 from neoarch.frontend.tokens import Colors, Fonts, SourceColors
@@ -352,6 +353,58 @@ class PackageDetailCard(QFrame):
         content.addWidget(self.deps_section)
         self.deps_section.setVisible(False)
 
+        # ── Files ──
+        self.files_section, fl = _section_block(_("Files"))
+
+        files_head = QWidget()
+        files_head.setStyleSheet("background: transparent;")
+        fh = QHBoxLayout(files_head)
+        fh.setContentsMargins(0, 0, 0, 0)
+        fh.setSpacing(8)
+
+        self.files_count_label = QLabel()
+        self.files_count_label.setStyleSheet(
+            f"color: {Colors.TEXT_3}; font-size: {Fonts.SM}; background: transparent;"
+        )
+        fh.addWidget(self.files_count_label, 1)
+
+        self.files_filter = QLineEdit()
+        self.files_filter.setPlaceholderText(_("Filter files…"))
+        self.files_filter.setClearButtonEnabled(True)
+        self.files_filter.setFixedHeight(26)
+        self.files_filter.setStyleSheet(
+            f"QLineEdit {{ background: rgba(255,255,255,0.04);"
+            f" border: 1px solid {Colors.BORDER}; border-radius: 6px;"
+            f" padding: 0 8px; color: {Colors.TEXT}; font-size: {Fonts.SM}; }}"
+            f"QLineEdit:focus {{ border-color: {Colors.ACCENT}; }}"
+        )
+        self.files_filter.textChanged.connect(self._filter_files)
+        fh.addWidget(self.files_filter, 2)
+        fl.addWidget(files_head)
+        fl.addSpacing(6)
+
+        self.files_list = QListWidget()
+        self.files_list.setFixedHeight(150)
+        self.files_list.setSelectionMode(QListWidget.SelectionMode.NoSelection)
+        self.files_list.setUniformItemSizes(True)
+        self.files_list.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.files_list.setStyleSheet(
+            f"QListWidget {{ background: rgba(255,255,255,0.03);"
+            f" border: 1px solid {Colors.BORDER}; border-radius: 8px;"
+            f" padding: 4px; color: {Colors.TEXT_2};"
+            f" font-size: {Fonts.SM}; outline: none; }}"
+            f"QListWidget::item {{ padding: 3px 6px; border-radius: 4px; }}"
+            f"QListWidget::item:hover {{ background: rgba(255,255,255,0.05); }}"
+        )
+        self.files_list.setToolTip(_("Double-click a file to copy its path"))
+        self.files_list.itemDoubleClicked.connect(self._copy_file_path)
+        fl.addWidget(self.files_list)
+
+        self._files_count_text = ""
+        content.addWidget(self.files_section)
+        self.files_section.setVisible(False)
+
         # ── Description ──
         self.desc_label = QLabel()
         self.desc_label.setStyleSheet(
@@ -518,6 +571,9 @@ class PackageDetailCard(QFrame):
         is_aur = source.upper() == "AUR"
 
         sc = self._source_color(source)
+
+        self.files_section.setVisible(False)
+        self.files_list.clear()
 
         self.avatar._letter = name[0].upper() if name else "?"
         self.avatar._color = sc
@@ -731,6 +787,7 @@ class PackageDetailCard(QFrame):
         self.details_section.setVisible(False)
         self.revdeps_section.setVisible(False)
         self.deps_section.setVisible(False)
+        self.files_section.setVisible(False)
         self.desc_section.setVisible(False)
         self.selection_section.setVisible(True)
 
@@ -795,6 +852,48 @@ class PackageDetailCard(QFrame):
             any_row = any_row or bool(values)
         self.deps_section.setVisible(any_row)
 
+    _FILES_LIMIT = 2000
+
+    def set_files(self, paths):
+        """Fill the Files list; the section hides itself when empty."""
+        paths = [p for p in (paths or []) if p]
+        self.files_list.clear()
+        for path in paths[:self._FILES_LIMIT]:
+            item = QListWidgetItem(path)
+            item.setToolTip(path)
+            self.files_list.addItem(item)
+        total = len(paths)
+        if not total:
+            self.files_section.setVisible(False)
+            return
+        if total > self._FILES_LIMIT:
+            self._files_count_text = _("{shown} of {total} files").format(
+                shown=self._FILES_LIMIT, total=total)
+        else:
+            self._files_count_text = _("{count} file{s}").format(
+                count=total, s="" if total == 1 else "s")
+        self.files_count_label.setText(self._files_count_text)
+        self.files_filter.clear()
+        self.files_section.setVisible(True)
+
+    def _copy_file_path(self, item):
+        """Double-clicking a file copies its path to the clipboard."""
+        if item is None:
+            return
+        QApplication.clipboard().setText(item.text())
+        self.files_count_label.setText(_("Path copied"))
+        QTimer.singleShot(1200, self._restore_files_count)
+
+    def _restore_files_count(self):
+        if self.files_count_label.text() == _("Path copied"):
+            self.files_count_label.setText(self._files_count_text)
+
+    def _filter_files(self, text):
+        needle = (text or "").strip().lower()
+        for i in range(self.files_list.count()):
+            item = self.files_list.item(i)
+            item.setHidden(bool(needle) and needle not in item.text().lower())
+
     def set_extra_info(self, info: dict):
         """Populate async-loaded metadata (reason, size, dependencies)."""
         if not self._pkg_data:
@@ -821,9 +920,14 @@ class PackageDetailCard(QFrame):
 
         self._apply_dependencies(info)
 
+        if installed:
+            self.set_files(info.get("files") or [])
+
     def clear(self):
         self._set_single_mode()
         self.deps_section.setVisible(False)
+        self.files_section.setVisible(False)
+        self.files_list.clear()
         self._pkg_data = None
         self.name_label.clear()
         self.version_label.clear()
