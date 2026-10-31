@@ -117,14 +117,39 @@ def test_row_check_delegate_installed(qapp):
     tab.deleteLater()
 
 
-def test_select_all_toggles_available_rows(qapp):
+def test_header_select_all_toggles_available_rows(qapp):
     _app, tab = _make_tab(qapp)
-    tab.select_all.setChecked(True)
+    tab._toggle_select_all(True)
     assert tab.install_btn.text() == "Install Selected (1)"
+    assert tab.header._checked is True
     tab.group_list.setCurrentRow(1)
     qapp.processEvents()
-    tab.select_all.setChecked(True)
+    tab._toggle_select_all(True)
     assert tab.install_btn.text() == "Install Selected (2)"
+    assert tab.header._checked is True
+    tab.deleteLater()
+
+
+def test_header_shows_partial_selection(qapp):
+    _app, tab = _make_tab(qapp)
+    tab.group_list.setCurrentRow(1)
+    qapp.processEvents()
+    tab._on_cell_clicked(0, 0)
+    assert tab.header._checked is False
+    assert tab.header._indeterminate is True
+    tab._on_cell_clicked(1, 0)
+    assert tab.header._checked is True
+    assert tab.header._indeterminate is False
+    tab._on_cell_clicked(0, 0)
+    assert tab.header._checked is False
+    assert tab.header._indeterminate is True
+    tab.deleteLater()
+
+
+def test_select_all_control_lives_in_the_table_header(qapp):
+    _app, tab = _make_tab(qapp)
+    assert not hasattr(tab, "select_all")
+    assert tab.table.horizontalHeader() is tab.header
     tab.deleteLater()
 
 

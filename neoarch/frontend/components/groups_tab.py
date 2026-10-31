@@ -18,7 +18,6 @@ from PyQt6.QtWidgets import (
 
 from neoarch.backend.services.groups import group_packages, list_groups
 from neoarch.backend.services.i18n import _
-from neoarch.frontend.components.toggle_switch import ToggleSwitch
 from neoarch.frontend.components.updates_table import _UpdatesHeader
 from neoarch.frontend.styles import Styles
 from neoarch.frontend.tokens import Colors, Fonts, QSS, Radii
@@ -139,14 +138,6 @@ class GroupsTab(QWidget):
         controls = QHBoxLayout()
         controls.setContentsMargins(0, 4, 0, 0)
         controls.setSpacing(10)
-        select_label = QLabel(_("Select all not installed"))
-        select_label.setStyleSheet(
-            f"color: {Colors.TEXT_2}; font-size: {Fonts.BASE};"
-            " background: transparent; border: none;")
-        controls.addWidget(select_label)
-        self.select_all = ToggleSwitch(name="select-all-groups")
-        self.select_all.toggled.connect(self._toggle_select_all)
-        controls.addWidget(self.select_all)
         controls.addStretch(1)
         self.install_all_btn = QPushButton()
         self.install_all_btn.setMinimumHeight(36)
@@ -189,6 +180,11 @@ class GroupsTab(QWidget):
         self.table = QTableWidget(0, 5)
         self.table.setHorizontalHeaderLabels(
             ["", _("Package"), _("Version"), _("Repository"), _("Status")])
+        self.header = _UpdatesHeader(self.table)
+        self.header.set_header_labels(
+            ["", _("Package"), _("Version"), _("Repository"), _("Status")])
+        self.header.select_all_changed.connect(self._toggle_select_all)
+        self.table.setHorizontalHeader(self.header)
         self.table.verticalHeader().setVisible(False)
         self.table.setShowGrid(False)
         self.table.setAlternatingRowColors(False)
@@ -324,9 +320,7 @@ class GroupsTab(QWidget):
                 Colors.GREEN if entry["installed"] else Colors.TEXT_3))
             self.table.setItem(row, 4, status)
         self.table.blockSignals(False)
-        self.select_all.blockSignals(True)
-        self.select_all.setChecked(False, animate=False)
-        self.select_all.blockSignals(False)
+        self._sync_select_all_header()
 
     # ── filtering / selection ─────────────────────────────────────
 
@@ -364,7 +358,17 @@ class GroupsTab(QWidget):
         else:
             self._checked = set()
         self.table.viewport().update()
+        self._sync_select_all_header()
         self._update_buttons()
+
+    def _sync_select_all_header(self):
+        available = [entry for entry in self._entries
+                     if not entry["installed"]]
+        total = len(available)
+        selected = sum(1 for entry in available
+                       if entry["name"] in self._checked)
+        self.header.set_select_all_state(
+            total > 0 and selected == total, 0 < selected < total)
 
     def _on_cell_clicked(self, row, column):
         if column != 0:
@@ -379,6 +383,7 @@ class GroupsTab(QWidget):
         else:
             self._checked.add(name)
         self.table.viewport().update()
+        self._sync_select_all_header()
         self._update_buttons()
 
     def _checked_names(self):
