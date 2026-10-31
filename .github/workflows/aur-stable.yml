@@ -2,13 +2,14 @@ name: AUR - neoarch (stable)
 
 on:
   push:
-    tags: ['v*']
+    tags: ['[0-9]*']
 
 permissions:
   contents: read
 
 jobs:
   aur-publish:
+    if: ${{ !contains(github.ref_name, '-') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -16,7 +17,8 @@ jobs:
       - name: Get version from tag
         id: version
         run: |
-          TAG="${GITHUB_REF#refs/tags/v}"
+          TAG="${GITHUB_REF#refs/tags/}"
+          TAG="${TAG#v}"
           VERSION="${TAG%-*}"
           PKGREL="${TAG##*-}"
           if [[ "$PKGREL" == "$VERSION" ]]; then PKGREL=1; fi

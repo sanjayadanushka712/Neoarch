@@ -8,11 +8,17 @@ Welcome to NeoArch! This guide will help you get started with using NeoArch for 
 
 ### Quick Install
 ```bash
-# Install from AUR (recommended)
-yay -S neoarch-git
+# Stable release (recommended)
+yay -S neoarch
 # or
-paru -S neoarch-git
+paru -S neoarch
+
+# Beta channel for unreleased dev builds
+yay -S neoarch-git
 ```
+
+Use `neoarch` for stable releases. `neoarch-git` tracks the `dev` branch and
+is meant for beta testing; the two packages conflict, so install only one.
 
 ### Manual Installation
 See the [README.md](../../README.md) for detailed installation instructions.

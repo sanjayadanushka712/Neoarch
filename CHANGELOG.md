@@ -100,6 +100,11 @@ dialog shows after an update.
 
 ### Improvements
 
+- **Stable and beta AUR channels.** Install `neoarch` for stable releases.
+  `neoarch-git` is now the beta channel for testing unreleased `dev` builds;
+  use it only if you want to try changes before they reach a stable release.
+  The two packages conflict, so switch with your AUR helper.
+
 - **What's New now matches the rest of NeoArch.** The release-notes dialog
   uses the same frameless shell, title bar, cards and buttons as the other
   app dialogs. GitHub release notes are rendered with headings, bullets,

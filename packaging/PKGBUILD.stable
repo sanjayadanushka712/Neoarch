@@ -2,7 +2,7 @@
 pkgname=neoarch
 pkgver=__VERSION__
 pkgrel=__PKGREL__
-pkgdesc="NeoArch Package Manager for Arch Linux (stable release, use 'neoarch-git' for latest dev builds)"
+pkgdesc="NeoArch Package Manager for Arch Linux (stable release; use 'neoarch-git' for beta builds)"
 arch=('any')
 url="https://github.com/neoarch712/Neoarch"
 license=('GPL-3.0-or-later')
@@ -15,7 +15,7 @@ optdepends=('flatpak: Flatpak installs and updates'
 provides=('neoarch')
 conflicts=('neoarch-git')
 install=neoarch.install
-source=("$url/archive/refs/tags/v$pkgver.tar.gz")
+source=("$url/archive/refs/tags/$pkgver.tar.gz")
 sha256sums=('SKIP')
 
 package() {

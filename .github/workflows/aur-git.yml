@@ -40,7 +40,7 @@ jobs:
           printf 'pkgbase = neoarch-git\n' > packaging/.SRCINFO
           printf '\tpkgver = %s\n' "$VERSION" >> packaging/.SRCINFO
           printf '\tpkgrel = 1\n' >> packaging/.SRCINFO
-          printf '\tpkgdesc = NeoArch Package Manager for Arch Linux (Lynx Edition — development build, use '\''neoarch'\'' for stable)\n' >> packaging/.SRCINFO
+          printf '\tpkgdesc = NeoArch Package Manager for Arch Linux (beta channel for dev builds; use '\''neoarch'\'' for stable)\n' >> packaging/.SRCINFO
           printf '\turl = https://github.com/neoarch712/Neoarch\n' >> packaging/.SRCINFO
           printf '\tinstall = neoarch-git.install\n' >> packaging/.SRCINFO
           printf '\tarch = any\n' >> packaging/.SRCINFO

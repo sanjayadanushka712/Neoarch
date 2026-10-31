@@ -206,8 +206,12 @@ Output adapts to terminal width (tables on wide, compact lists on small), and co
 
 ```bash
 yay -S neoarch        # stable release — or: paru -S neoarch
-yay -S neoarch-git    # latest development build (adds neo/neoarch-cli to PATH)
+yay -S neoarch-git    # beta channel: unreleased dev builds
 ```
+
+Use `neoarch` for stable releases. `neoarch-git` tracks the `dev` branch and
+is meant for beta testing; it gets new changes before they reach a stable
+release. The two packages conflict, so install only one.
 
 Launch the app from your application menu or run `neoarch`; the CLI runs as `neo` (same as `neoarch-cli`). The AUR packages install the runtime dependencies for you.
 
