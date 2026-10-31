@@ -7,21 +7,50 @@ selection or the whole group through the normal installer pipeline.
 
 import threading
 
-from PyQt6.QtCore import Qt, QTimer, pyqtSignal
+from PyQt6.QtCore import QRectF, Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import (
-    QAbstractItemView, QFrame, QHBoxLayout, QHeaderView,
+    QAbstractItemView, QApplication, QFrame, QHBoxLayout, QHeaderView,
     QLabel, QLineEdit, QListWidget, QListWidgetItem, QPushButton,
-    QSplitter, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
+    QSplitter, QStyle, QStyleOptionViewItem, QStyledItemDelegate,
+    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
 )
 
 from neoarch.backend.services.groups import group_packages, list_groups
 from neoarch.backend.services.i18n import _
 from neoarch.frontend.components.toggle_switch import ToggleSwitch
+from neoarch.frontend.components.updates_table import _UpdatesHeader
 from neoarch.frontend.styles import Styles
 from neoarch.frontend.tokens import Colors, Fonts, QSS, Radii
 
 __all__ = ["GroupsTab"]
+
+
+class _GroupCheckDelegate(QStyledItemDelegate):
+    """Paint row checkboxes exactly like the Updates/Discover tables."""
+
+    def __init__(self, tab, parent=None):
+        super().__init__(parent)
+        self._tab = tab
+
+    def paint(self, painter, option, index):
+        opt = QStyleOptionViewItem(option)
+        self.initStyleOption(opt, index)
+        opt.text = ""
+        style = opt.widget.style() if opt.widget else QApplication.style()
+        style.drawControl(QStyle.ControlElement.CE_ItemViewItem, opt,
+                          painter, opt.widget)
+
+        entry = index.data(Qt.ItemDataRole.UserRole) or {}
+        if not entry or entry.get("installed"):
+            return
+        checked = entry.get("name") in self._tab._checked
+        size = 18
+        rect = QRectF(
+            option.rect.left() + (option.rect.width() - size) / 2,
+            option.rect.top() + (option.rect.height() - size) / 2,
+            size, size)
+        _UpdatesHeader._draw_check(painter, rect, checked, False)
 
 
 class GroupsTab(QWidget):
@@ -34,6 +63,7 @@ class GroupsTab(QWidget):
         self.main_app = main_app
         self._groups = []
         self._entries = []
+        self._checked = set()
         self._current_group = ""
         self._search_text = ""
         self._loading = False
@@ -179,13 +209,10 @@ class GroupsTab(QWidget):
         self.table.setColumnWidth(2, 110)
         self.table.setColumnWidth(3, 100)
         self.table.setColumnWidth(4, 110)
-        self.table.setStyleSheet(
-            f"QTableWidget::indicator {{ width: 16px; height: 16px;"
-            f" border-radius: 4px; border: 1.5px solid {Colors.TEXT_3};"
-            f" background: {Colors.INPUT_BG}; }}"
-            f"QTableWidget::indicator:checked {{ background: {Colors.ACCENT};"
-            f" border-color: {Colors.ACCENT}; }}")
-        self.table.itemChanged.connect(self._update_buttons)
+        self.table.verticalHeader().setDefaultSectionSize(40)
+        self.table.setItemDelegateForColumn(
+            0, _GroupCheckDelegate(self, self.table))
+        self.table.cellClicked.connect(self._on_cell_clicked)
         right_layout.addWidget(self.table, 1)
         splitter.addWidget(right)
 
@@ -273,16 +300,14 @@ class GroupsTab(QWidget):
         self._update_buttons()
 
     def _fill_table(self):
+        self._checked = set()
         self.table.blockSignals(True)
         self.table.setRowCount(0)
         self.table.setRowCount(len(self._entries))
         for row, entry in enumerate(self._entries):
             check = QTableWidgetItem()
             check.setFlags(Qt.ItemFlag.ItemIsEnabled)
-            if not entry["installed"]:
-                check.setFlags(
-                    check.flags() | Qt.ItemFlag.ItemIsUserCheckable)
-                check.setCheckState(Qt.CheckState.Unchecked)
+            check.setData(Qt.ItemDataRole.UserRole, entry)
             self.table.setItem(row, 0, check)
 
             name_item = QTableWidgetItem(entry["name"])
@@ -333,31 +358,33 @@ class GroupsTab(QWidget):
                 self._update_buttons()
 
     def _toggle_select_all(self, checked):
-        self.table.blockSignals(True)
-        for row in range(self.table.rowCount()):
-            item = self.table.item(row, 0)
-            if item is None:
-                continue
-            if item.flags() & Qt.ItemFlag.ItemIsUserCheckable:
-                item.setCheckState(
-                    Qt.CheckState.Checked if checked
-                    else Qt.CheckState.Unchecked)
-        self.table.blockSignals(False)
+        if checked:
+            self._checked = {entry["name"] for entry in self._entries
+                             if not entry["installed"]}
+        else:
+            self._checked = set()
+        self.table.viewport().update()
+        self._update_buttons()
+
+    def _on_cell_clicked(self, row, column):
+        if column != 0:
+            return
+        item = self.table.item(row, 0)
+        entry = item.data(Qt.ItemDataRole.UserRole) if item else None
+        if not entry or entry.get("installed"):
+            return
+        name = entry.get("name")
+        if name in self._checked:
+            self._checked.discard(name)
+        else:
+            self._checked.add(name)
+        self.table.viewport().update()
         self._update_buttons()
 
     def _checked_names(self):
-        names = []
-        for row in range(self.table.rowCount()):
-            item = self.table.item(row, 0)
-            if item is None:
-                continue
-            if (item.flags() & Qt.ItemFlag.ItemIsUserCheckable
-                    and item.checkState() == Qt.CheckState.Checked):
-                entry = self.table.item(row, 1).data(
-                    Qt.ItemDataRole.UserRole) or {}
-                if entry.get("name") and not entry.get("installed"):
-                    names.append(entry["name"])
-        return names
+        return [entry["name"] for entry in self._entries
+                if entry["name"] in self._checked
+                and not entry["installed"]]
 
     def _update_buttons(self, *_args):
         selected = len(self._checked_names())

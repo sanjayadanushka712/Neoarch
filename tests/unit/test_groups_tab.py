@@ -94,19 +94,26 @@ def test_lists_groups_and_selects_first(qapp):
     tab.deleteLater()
 
 
-def test_checking_rows_updates_buttons(qapp):
+def test_clicking_a_row_updates_buttons(qapp):
     _app, tab = _make_tab(qapp)
-    check = tab.table.item(1, 0)
-    check.setCheckState(check.checkState().Checked)
+    tab._on_cell_clicked(1, 0)
     assert tab.install_btn.text() == "Install Selected (1)"
     assert tab.install_btn.isEnabled()
+    tab._on_cell_clicked(1, 0)
+    assert tab.install_btn.text() == "Install Selected (0)"
     tab.deleteLater()
 
 
-def test_installed_rows_are_not_checkable(qapp):
+def test_installed_rows_cannot_be_selected(qapp):
     _app, tab = _make_tab(qapp)
-    installed = tab.table.item(0, 0)
-    assert not (installed.flags() & installed.flags().ItemIsUserCheckable)
+    tab._on_cell_clicked(0, 0)
+    assert tab._checked == set()
+    tab.deleteLater()
+
+
+def test_row_check_delegate_installed(qapp):
+    _app, tab = _make_tab(qapp)
+    assert tab.table.itemDelegateForColumn(0) is not None
     tab.deleteLater()
 
 
@@ -140,8 +147,7 @@ def test_install_selected_confirms_and_calls_installer(
     monkeypatch.setattr(
         installer, "install_packages",
         lambda app, payload: calls.update(payload=payload))
-    tab.table.item(1, 0).setCheckState(
-        tab.table.item(1, 0).checkState().Checked)
+    tab._on_cell_clicked(1, 0)
     tab._install_selected()
     assert calls["payload"] == {"pacman": ["neovim"]}
     tab.deleteLater()
