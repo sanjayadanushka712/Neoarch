@@ -70,8 +70,8 @@ def _process_pty_buf(buf, parse_output_line, worker, final=False):
     return buf
 
 
-def install_packages(app, packages_by_source: dict):
-    """Install packages from multiple sources.
+def install_packages(app, packages_by_source: dict, reinstall: bool = False):
+    """Install (or reinstall) packages from multiple sources.
 
     Handles pacman, AUR, Flatpak, and npm sources with appropriate
     privilege elevation for each. Runs in a background thread.
@@ -79,9 +79,12 @@ def install_packages(app, packages_by_source: dict):
     Args:
         app: Main window instance (provides signals and UI state).
         packages_by_source: Dict mapping source names to package name lists.
+        reinstall: Reinstall already-installed packages instead of a plain
+            install (only Flatpak needs an explicit flag; pacman, AUR helpers
+            and npm all reinstall on a normal install).
     """
     def install():
-        app._last_operation = "install"
+        app._last_operation = "reinstall" if reinstall else "install"
         app.install_cancel_event = Event()
         app.installation_progress.emit("start", True)
         app.log_signal.emit("Installation thread started")
@@ -168,10 +171,13 @@ def install_packages(app, packages_by_source: dict):
                         app.ensure_flathub_user_remote()
                     except Exception:
                         pass
+                    flags = ["--reinstall"] if reinstall else []
                     if force_sudo:
-                        cmd = ["flatpak", "install", "-y", "--noninteractive", "flathub"] + packages
+                        cmd = (["flatpak", "install", "-y", "--noninteractive"]
+                               + flags + ["flathub"] + packages)
                     else:
-                        cmd = ["flatpak", "--user", "install", "-y", "--noninteractive", "flathub"] + packages
+                        cmd = (["flatpak", "--user", "install", "-y", "--noninteractive"]
+                               + flags + ["flathub"] + packages)
                 elif source == 'npm':
                     if not force_sudo and sys_utils.npm_user_mode_enabled():
                         try:

@@ -3383,3 +3383,12 @@ msgstr "अपग्रेड किए गए पैकेज"
 
 msgid "Packages removed"
 msgstr "हटाए गए पैकेज"
+
+msgid "Reinstall"
+msgstr "पुनः इंस्टॉल करें"
+
+msgid "Confirm Reinstall"
+msgstr "पुनः इंस्टॉल की पुष्टि करें"
+
+msgid "Reinstall '{name}'?\n\nThe package will be downloaded and installed again. This cannot be undone."
+msgstr "'{name}' को पुनः इंस्टॉल करें?\n\nपैकेज फिर से डाउनलोड और इंस्टॉल किया जाएगा। इसे पूर्ववत नहीं किया जा सकता।"

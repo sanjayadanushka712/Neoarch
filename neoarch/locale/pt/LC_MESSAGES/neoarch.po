@@ -3383,3 +3383,12 @@ msgstr "Pacotes atualizados"
 
 msgid "Packages removed"
 msgstr "Pacotes removidos"
+
+msgid "Reinstall"
+msgstr "Reinstalar"
+
+msgid "Confirm Reinstall"
+msgstr "Confirmar reinstalação"
+
+msgid "Reinstall '{name}'?\n\nThe package will be downloaded and installed again. This cannot be undone."
+msgstr "Reinstalar «{name}»?\n\nO pacote será baixado e instalado novamente. Esta ação não pode ser desfeita."

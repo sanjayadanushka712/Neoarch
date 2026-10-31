@@ -3383,3 +3383,12 @@ msgstr "Yükseltilen paketler"
 
 msgid "Packages removed"
 msgstr "Kaldırılan paketler"
+
+msgid "Reinstall"
+msgstr "Yeniden yükle"
+
+msgid "Confirm Reinstall"
+msgstr "Yeniden yüklemeyi onayla"
+
+msgid "Reinstall '{name}'?\n\nThe package will be downloaded and installed again. This cannot be undone."
+msgstr "'{name}' yeniden yüklensin mi?\n\nPaket yeniden indirilip kurulacak. Bu işlem geri alınamaz."

@@ -3383,3 +3383,12 @@ msgstr "උත්ශ්‍රේණි කළ පැකේජ"
 
 msgid "Packages removed"
 msgstr "ඉවත් කළ පැකේජ"
+
+msgid "Reinstall"
+msgstr "නැවත ස්ථාපනය කරන්න"
+
+msgid "Confirm Reinstall"
+msgstr "නැවත ස්ථාපනය තහවුරු කරන්න"
+
+msgid "Reinstall '{name}'?\n\nThe package will be downloaded and installed again. This cannot be undone."
+msgstr "'{name}' නැවත ස්ථාපනය කරන්නද?\n\nපැකේජය නැවත බාගත කර ස්ථාපනය කරනු ඇත. මෙය අහෝසි කළ නොහැක."

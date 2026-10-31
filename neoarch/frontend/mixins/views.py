@@ -3770,6 +3770,19 @@ class _ViewsMixin:
             self.log(f"Updating {name} ({source})")
             self.installation_progress.emit("start", True)
             update_service.update_packages(self, {source: [name]})
+        elif action == "reinstall":
+            if not name:
+                return
+            if not self.confirm_reinstall(name):
+                self.log("Reinstall cancelled.")
+                return
+            if not self.ensure_session_auth():
+                self.log("Reinstall cancelled: authentication required.")
+                return
+            self.log(f"Reinstalling {name} ({source})")
+            self.installation_progress.emit("start", False)
+            from neoarch.backend.package import installer as install_service
+            install_service.install_packages(self, {source: [name]}, reinstall=True)
         elif action == "uninstall":
             if getattr(self, 'current_view', '') == "plugins" and hasattr(self, 'plugins_manager'):
                 pid = pkg.get('id') or pkg.get('name')
@@ -3869,6 +3882,9 @@ class _ViewsMixin:
             QMenu::separator {{ height: 1px; background: {Colors.ACCENT_SOFT}; margin: 4px 8px; }}
         """)
 
+        reinstall_act = menu.addAction(_("Reinstall"))
+        reinstall_act.triggered.connect(lambda: self._package_menu_reinstall(name))
+
         downgrade_act = menu.addAction(_("Downgrade..."))
         downgrade_act.triggered.connect(lambda: self._package_menu_downgrade(name))
 
@@ -3902,6 +3918,16 @@ class _ViewsMixin:
             return {"ignored": name in ignore, "held": name in hold}
         except Exception:
             return {"ignored": False, "held": False}
+
+    def _package_menu_reinstall(self, name):
+        if not self.confirm_reinstall(name):
+            return
+        if not self.ensure_session_auth():
+            self.log("Reinstall cancelled: authentication required.")
+            return
+        self.log(f"Reinstalling {name} (pacman)")
+        from neoarch.backend.package import installer as install_service
+        install_service.install_packages(self, {"pacman": [name]}, reinstall=True)
 
     def _package_menu_downgrade(self, name):
         from neoarch.backend.services import downgrade

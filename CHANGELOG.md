@@ -10,6 +10,16 @@ dialog shows after an update.
 
 ---
 
+## Unreleased
+
+### New Features
+
+- **Reinstall action.** Installed packages in the package list now offer
+  **Reinstall** in their context menu. It re-downloads and installs the same
+  version again — handy after a damaged install or a broken configuration —
+  and asks for confirmation first. Works for pacman, AUR and Flatpak
+  packages.
+
 ## 3.4.5 — 2026-10-31
 
 ### New Features

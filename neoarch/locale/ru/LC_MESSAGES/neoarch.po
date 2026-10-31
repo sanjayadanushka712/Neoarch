@@ -3383,3 +3383,12 @@ msgstr "Обновлённые пакеты"
 
 msgid "Packages removed"
 msgstr "Удалённые пакеты"
+
+msgid "Reinstall"
+msgstr "Переустановить"
+
+msgid "Confirm Reinstall"
+msgstr "Подтвердите переустановку"
+
+msgid "Reinstall '{name}'?\n\nThe package will be downloaded and installed again. This cannot be undone."
+msgstr "Переустановить «{name}»?\n\nПакет будет снова загружен и установлен. Это действие нельзя отменить."

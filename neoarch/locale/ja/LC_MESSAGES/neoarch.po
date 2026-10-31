@@ -3383,3 +3383,12 @@ msgstr "アップグレード済みパッケージ"
 
 msgid "Packages removed"
 msgstr "削除済みパッケージ"
+
+msgid "Reinstall"
+msgstr "再インストール"
+
+msgid "Confirm Reinstall"
+msgstr "再インストールの確認"
+
+msgid "Reinstall '{name}'?\n\nThe package will be downloaded and installed again. This cannot be undone."
+msgstr "「{name}」を再インストールしますか？\n\nパッケージは再度ダウンロードされ、インストールされます。この操作は元に戻せません。"

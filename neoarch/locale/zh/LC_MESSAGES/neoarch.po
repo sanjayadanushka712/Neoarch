@@ -3383,3 +3383,12 @@ msgstr "已升级的软件包"
 
 msgid "Packages removed"
 msgstr "已移除的软件包"
+
+msgid "Reinstall"
+msgstr "重新安装"
+
+msgid "Confirm Reinstall"
+msgstr "确认重新安装"
+
+msgid "Reinstall '{name}'?\n\nThe package will be downloaded and installed again. This cannot be undone."
+msgstr "重新安装“{name}”？\n\n软件包将重新下载并安装。此操作无法撤销。"

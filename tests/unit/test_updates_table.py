@@ -468,3 +468,22 @@ def test_discover_select_all_skips_installed_results(qapp):
     table.set_all_checked(True)
 
     assert [p["name"] for p in model.checked_packages()] == ["ripgrep", "fd"]
+
+
+def test_installed_row_menu_offers_reinstall(qapp):
+    table = UpdatesTable(_FakeApp())
+    table.set_enrich(False)
+    table.set_installed_mode(True)
+    table.set_packages([
+        {"name": "pkg-a", "id": "pkg-a", "version": "1.0",
+         "new_version": "1.0", "source": "pacman", "_installed": True},
+    ])
+    emitted = []
+    table.menu_action.connect(lambda action, pkg: emitted.append((action, pkg["id"])))
+
+    menu = table._build_row_menu(table.model.package_at(0))
+    by_text = {a.text(): a for a in menu.actions()}
+    assert "Reinstall" in by_text
+    by_text["Reinstall"].trigger()
+
+    assert emitted == [("reinstall", "pkg-a")]

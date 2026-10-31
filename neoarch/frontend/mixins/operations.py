@@ -500,6 +500,20 @@ class _OperationsMixin:
             danger=True,
         )
 
+    def confirm_reinstall(self, name):
+        """Confirm reinstalling an installed package. Returns False on cancel."""
+        try:
+            from neoarch.frontend.components.dark_dialogs import dark_confirm
+        except Exception as e:
+            self.log(f"Reinstall confirmation skipped: {e}")
+            return True
+        return dark_confirm(
+            self,
+            _("Confirm Reinstall"),
+            _("Reinstall '{name}'?\n\nThe package will be downloaded and "
+              "installed again. This cannot be undone.").format(name=name),
+        )
+
     def _all_pending_updates(self):
         """Every pending update on the current page (all sources).
 
