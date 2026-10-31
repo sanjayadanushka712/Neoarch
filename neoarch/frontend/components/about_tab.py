@@ -173,15 +173,35 @@ def _run_cmd(cmd, timeout=5):
 
 def _git_log_count():
     c = _run_cmd(["git", "-C", str(PROJECT_ROOT), "rev-list", "--count", "HEAD"])
-    return int(c) if c else 0
+    try:
+        return int(c)
+    except (TypeError, ValueError):
+        return None
 
 
 def _git_tags():
     out = _run_cmd(["git", "-C", str(PROJECT_ROOT), "tag", "-l",
                      "--sort=-version:refname"])
-    if not out:
-        return []
-    return [t.strip() for t in out.splitlines() if t.strip()]
+    if out:
+        tags = [t.strip() for t in out.splitlines() if t.strip()]
+        if tags:
+            return tags
+    # Installed packages have no .git; use the shipped changelog so the
+    # Releases list is still populated.
+    from neoarch.backend.services.release_notes import changelog_versions
+    return changelog_versions()
+
+
+def _release_url(tag):
+    """GitHub release URL, accounting for the old ``v``-prefixed tags."""
+    if not tag.startswith("v"):
+        try:
+            major, minor = (int(p) for p in tag.split(".")[:2])
+            if (major, minor) < (3, 5):
+                tag = f"v{tag}"
+        except (TypeError, ValueError):
+            pass
+    return f"{_REPO_URL}/releases/tag/{tag}"
 
 
 def _git_recent_log(n=10):
@@ -496,6 +516,19 @@ _ICON_ARROW_UP_CIRCLE = (
 
 # ── Tab: Overview ──────────────────────────────────────────────────
 
+class _CommitCountWorker(QThread):
+    """Fetch the repo commit count when there is no local .git history."""
+
+    count_ready = pyqtSignal(object)
+
+    def run(self):
+        try:
+            from neoarch.backend.services.release_notes import commit_count
+            self.count_ready.emit(commit_count())
+        except Exception:
+            self.count_ready.emit(None)
+
+
 class _OverviewTab(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -592,6 +625,7 @@ class _OverviewTab(QWidget):
         # Info cards grid
         grid = QGridLayout()
         grid.setSpacing(12)
+        local_commits = _git_log_count()
         cards_data = [
             (_("Version"), APP_VERSION, _("{edition} Edition").format(edition=APP_EDITION), Colors.TEXT),
             (_("License"), "GPL-3.0-or-later", _("Free Software"), Colors.GREEN),
@@ -599,7 +633,9 @@ class _OverviewTab(QWidget):
              _platform.machine(), Colors.TEXT),
             (_("Python"), _platform.python_version(), _("Runtime"), Colors.TEXT),
             (_("Qt"), "6 (PyQt6)", _("GUI Framework"), Colors.TEXT),
-            (_("Commits"), str(_git_log_count()), _("Total commits"), Colors.TEXT),
+            (_("Commits"),
+             str(local_commits) if local_commits is not None else "\u2014",
+             _("Total commits"), Colors.TEXT),
         ]
         for i, (title, value, sub, color) in enumerate(cards_data):
             card = _card()
@@ -617,6 +653,8 @@ class _OverviewTab(QWidget):
                 f"font-size: {Fonts.CARD_TITLE}; font-weight: {Fonts.BOLD};"
                 f" color: {color}; background: transparent; border: none;")
             cl_inner.addWidget(v_lbl)
+            if i == 5:
+                self._commit_value = v_lbl
             s_lbl = QLabel(sub)
             s_lbl.setStyleSheet(
                 f"font-size: {Fonts.XS}; color: {Colors.TEXT_3};"
@@ -624,6 +662,14 @@ class _OverviewTab(QWidget):
             cl_inner.addWidget(s_lbl)
             grid.addWidget(card, i // 3, i % 3)
         cl.addLayout(grid)
+
+        if local_commits is None:
+            self._commit_worker = _CommitCountWorker(self)
+            self._commit_worker.count_ready.connect(
+                self._set_remote_commit_count)
+            self._commit_worker.finished.connect(
+                self._commit_worker.deleteLater)
+            self._commit_worker.start()
 
         # Developer attribution
         dev_card = _card()
@@ -706,6 +752,13 @@ class _OverviewTab(QWidget):
         outer.setContentsMargins(0, 0, 0, 0)
         outer.addWidget(scroll, 1)
         layout.addLayout(outer, 1)
+
+    def _set_remote_commit_count(self, count):
+        try:
+            if count is not None:
+                self._commit_value.setText(str(int(count)))
+        except (TypeError, ValueError):
+            pass
 
 
 # ── Tab: Release Notes ─────────────────────────────────────────────
@@ -811,7 +864,7 @@ class _ReleaseNotesTab(QWidget):
                     f" color: {Colors.TEXT}; background: transparent; border: none;")
                 row.addWidget(t)
                 row.addStretch()
-                release_url = f"{_REPO_URL}/releases/tag/{tag}"
+                release_url = _release_url(tag)
                 row.addWidget(_link_btn(
                     _("\u2197 View Release"),
                     lambda u=release_url: _open_url(u)))

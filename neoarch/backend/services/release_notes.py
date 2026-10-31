@@ -15,6 +15,7 @@ This module is Qt-free (used by the GUI and potentially the CLI).
 import os
 import re
 import json
+import time
 import urllib.request
 from typing import Dict, List, Optional
 
@@ -25,12 +26,20 @@ __all__ = [
     "whats_new",
     "version_key",
     "latest_release",
+    "commit_count",
+    "changelog_versions",
     "CHANGELOG_PATH",
+    "REPO_STATS_CACHE",
 ]
 
 CHANGELOG_PATH = PROJECT_ROOT / "CHANGELOG.md"
 
-_RELEASE_URL = "https://api.github.com/repos/sanjayadanushka712/Neoarch/releases/latest"
+_REPO_URL = "https://api.github.com/repos/sanjayadanushka712/Neoarch"
+_RELEASE_URL = f"{_REPO_URL}/releases/latest"
+_COMMITS_URL = f"{_REPO_URL}/commits?per_page=1"
+REPO_STATS_CACHE = os.path.join(
+    os.path.expanduser("~"), ".cache", "neoarch", "repo-stats.json")
+_STATS_TTL = 24 * 60 * 60
 
 SECTION_LABELS = ("New Features", "Bug Fixes", "Improvements")
 
@@ -120,6 +129,81 @@ def whats_new(blocks: List[Dict], last_seen: str, limit: int = 4) -> List[Dict]:
     newer = [b for b in blocks if version_key(b.get("version", "")) > seen_key]
     # Changelog blocks are parsed in file order, which is newest-first.
     return newer[:limit]
+
+
+def changelog_versions() -> List[str]:
+    """Release versions from the changelog, newest first.
+
+    Installed builds have no ``.git`` directory, so the UI uses this list
+    as a stand-in for ``git tag``. The ``Unreleased`` heading is skipped
+    because it is not a published release.
+    """
+    return [
+        str(block.get("version", ""))
+        for block in parse_changelog()
+        if block.get("version")
+        and str(block["version"]).lower() != "unreleased"
+    ]
+
+
+def _cached_commit_count() -> Optional[int]:
+    try:
+        with open(REPO_STATS_CACHE, encoding="utf-8") as f:
+            data = json.load(f)
+        if time.time() - float(data.get("ts", 0)) >= _STATS_TTL:
+            return None
+        count = int(data.get("commit_count"))
+        return count if count >= 0 else None
+    except Exception:
+        return None
+
+
+def _store_commit_count(count: int) -> None:
+    try:
+        os.makedirs(os.path.dirname(REPO_STATS_CACHE), exist_ok=True)
+        with open(REPO_STATS_CACHE, "w", encoding="utf-8") as f:
+            json.dump({"commit_count": int(count), "ts": time.time()}, f)
+    except Exception:
+        pass
+
+
+def commit_count(timeout: float = 5.0) -> Optional[int]:
+    """Total commits on the default branch, cached for a day.
+
+    A source checkout uses local ``git`` instead; this is the fallback for
+    installed packages (AUR tarballs have no history). Returns ``None`` when
+    offline and no fresh cache exists.
+    """
+    cached = _cached_commit_count()
+    if cached is not None:
+        return cached
+    if os.environ.get("NEOARCH_CHECK_RELEASES", "1") != "1":
+        return None
+    req = urllib.request.Request(
+        _COMMITS_URL,
+        headers={
+            "User-Agent": f"{APP_NAME} (commit-count check)",
+            "Accept": "application/vnd.github+json",
+        },
+    )
+    try:
+        from neoarch.backend.services.network import urlopen as _urlopen
+        with _urlopen(req, timeout=timeout) as resp:
+            link = resp.headers.get("Link", "") or ""
+            body = resp.read()
+    except Exception:
+        return None
+    match = re.search(r'[?&]page=(\d+)>;\s*rel="last"', link)
+    if match:
+        count = int(match.group(1))
+    else:
+        try:
+            data = json.loads(body.decode("utf-8"))
+            count = len(data) if isinstance(data, list) else 0
+        except Exception:
+            return None
+    _store_commit_count(count)
+    return count
 
 
 def latest_release(timeout: float = 5.0) -> Optional[Dict]:

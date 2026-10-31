@@ -5,7 +5,9 @@ NEOARCH_CHECK_RELEASES toggle, which short-circuits to None so tests are
 deterministic and offline-safe.
 """
 
+import json
 import os
+import time
 
 from neoarch.backend.services import release_notes as rn
 from neoarch.resources.paths import APP_VERSION
@@ -75,3 +77,43 @@ def test_latest_release_respects_toggle():
         assert rn.latest_release() is None
     finally:
         os.environ.pop("NEOARCH_CHECK_RELEASES", None)
+
+def test_changelog_versions_skip_unreleased():
+    versions = rn.changelog_versions()
+    assert versions
+    assert "Unreleased" not in versions
+    assert all(v and v.lower() != "unreleased" for v in versions)
+
+
+def test_commit_count_reads_fresh_cache(tmp_path, monkeypatch):
+    cache = tmp_path / "repo-stats.json"
+    cache.write_text(json.dumps(
+        {"commit_count": 864, "ts": time.time()}), encoding="utf-8")
+    monkeypatch.setattr(rn, "REPO_STATS_CACHE", str(cache))
+    assert rn.commit_count() == 864
+
+
+class _FakeResponse:
+    headers = {
+        "Link": ('<https://api.github.com/repositories/1/commits'
+                 '?per_page=1&page=864>; rel="last"')
+    }
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def read(self):
+        return b"[]"
+
+
+def test_commit_count_fetches_and_caches(tmp_path, monkeypatch):
+    cache = tmp_path / "repo-stats.json"
+    monkeypatch.setattr(rn, "REPO_STATS_CACHE", str(cache))
+    monkeypatch.setattr(
+        "neoarch.backend.services.network.urlopen",
+        lambda req, timeout=None: _FakeResponse())
+    assert rn.commit_count() == 864
+    assert json.loads(cache.read_text(encoding="utf-8"))["commit_count"] == 864
