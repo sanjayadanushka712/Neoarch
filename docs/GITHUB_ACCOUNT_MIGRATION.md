@@ -1,7 +1,7 @@
 # Moving the project off a risky account
 
 The project currently lives on `sanjayadanushka712`, a personal account created after
-the original one (`dsanjaya712@gmail.com`) was suspended. Two personal accounts
+the original account was suspended. Two personal accounts
 plus a suspended one is the pattern GitHub treats as evasion, and the whole
 project — repo, releases, Actions secrets, the AUR publish workflow — goes with
 that account if it is restricted.
@@ -71,8 +71,8 @@ git config user.name  "Sanjaya Danushka"
 git config user.email "345766647+sanjayadanushka712@users.noreply.github.com"
 ```
 
-Do **not** use `dsanjaya712@gmail.com` for new commits — that address belongs to
-the suspended account and links the new work to it.
+Do **not** use the suspended account's email for new commits — it links the
+new work back to that account.
 
 ## Independent mirror (do this today)
 
@@ -95,8 +95,8 @@ and the AUR package can be rebuilt by changing one `source=` line.
   own account — a GitHub suspension does not touch it.
 - **The website** (`neoarch.dpdns.org`) and the AUR package page are proof of
   the project for interviews that does not depend on GitHub.
-- Old commits authored with `dsanjaya712@gmail.com` stay in history; only new
-  commits need the new identity.
+- Old commits authored with the suspended account's email stay in history; only
+  new commits need the new identity.
 
 ## Do not
 

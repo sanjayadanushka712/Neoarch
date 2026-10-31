@@ -19,7 +19,7 @@ If you discover a security vulnerability in NeoArch, please report it to us as s
 **Please do NOT report security vulnerabilities through public GitHub issues.**
 
 Instead, please report security vulnerabilities by emailing:
-**dsanjaya712@gmail.com**
+**neoarch.app@gmail.com**
 
 Include the following information in your report:
 - A clear description of the vulnerability
@@ -73,7 +73,7 @@ We appreciate security researchers who help keep NeoArch safe. With your permiss
 ## Contact
 
 For security-related questions or concerns:
-- Email: dsanjaya712@gmail.com
+- Email: neoarch.app@gmail.com
 - PGP Key: Available upon request
 
 Thank you for helping keep NeoArch secure!

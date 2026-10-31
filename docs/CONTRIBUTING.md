@@ -99,7 +99,7 @@ pytest tests/
 - Never commit sensitive information (API keys, passwords, etc.)
 - Be careful with subprocess calls and shell commands
 - Validate user input to prevent injection attacks
-- Report security vulnerabilities to dsanjaya712@gmail.com
+- Report security vulnerabilities to neoarch.app@gmail.com
 
 ## Community Guidelines
 

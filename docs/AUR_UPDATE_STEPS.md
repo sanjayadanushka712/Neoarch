@@ -120,7 +120,7 @@ cat .SRCINFO | grep sha256sums
 ## Complete PKGBUILD Template for v1.2-beta
 
 ```bash
-# Maintainer: Sanjaya Danushka <dsanjaya712@gmail.com>
+# Maintainer: Sanjaya Danushka <neoarch.app@gmail.com>
 pkgname=neoarch-git
 pkgver=1.2.beta
 pkgrel=1

@@ -100,6 +100,11 @@ dialog shows after an update.
 
 ### Improvements
 
+- **Project links now use the current GitHub account.** The retired account's
+  profile and sponsor links were dead. About, Help, update checks, AUR
+  sources, badges, CODEOWNERS and documentation now point at the current
+  repository, profile and sponsorship page.
+
 - **Stable and beta AUR channels.** Install `neoarch` for stable releases.
   `neoarch-git` is now the beta channel for testing unreleased `dev` builds;
   use it only if you want to try changes before they reach a stable release.
