@@ -239,7 +239,7 @@ On Arch, system `pip` usually triggers `externally-managed-environment` — pref
 
 ## Sponsors &amp; thank you
 
-<a href="https://buymeacoffee.com/sanjayadanushka/c/20640619">
+<a href="https://github.com/ferreol-fr">
   <img src="assets/icons/app/sponsor-ferreol.png" width="96" height="96" alt="Ferreol" style="border-radius:50%;border:1px solid #30363d" />
 </a>
 
@@ -250,9 +250,9 @@ your early support kept the project alive from day one — long before anyone
 else put a coin in the jar. Every release since has been built on top of
 that backing.
 
-Your words live on in [this sponsorship note](https://buymeacoffee.com/sanjayadanushka/c/20640619) —
-the very same page the app's About → Community tab links to. If you would
-like to join him and keep NeoArch independent and ad-free, you can
+Find Ferreol on [GitHub](https://github.com/ferreol-fr) — the same profile
+the app's About → Community tab links to. If you would like to join him and
+keep NeoArch independent and ad-free, you can
 [buy the project a coffee](https://www.buymeacoffee.com/sanjayadanushka).
 
 ---

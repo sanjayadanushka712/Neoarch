@@ -33,9 +33,8 @@ def test_sponsors_list_is_not_empty():
 def test_first_sponsor_is_ferreol():
     first = about_tab._SPONSORS[0]
     assert first["name"] == "Ferreol"
-    assert first["handle"] == "ferreol"
-    assert first["url"] == (
-        "https://buymeacoffee.com/sanjayadanushka/c/20640619")
+    assert first["handle"] == "ferreol-fr"
+    assert first["url"] == "https://github.com/ferreol-fr"
 
 
 def test_every_sponsor_has_the_fields_the_card_needs():
@@ -59,7 +58,7 @@ def test_sponsor_copy_marks_the_first_sponsor():
     first = about_tab._SPONSORS[0]
     copy = about_tab._sponsor_copy(first["copy"])
     assert copy["role"] == "First Sponsor"
-    assert copy["link"] == "Sponsor message"
+    assert copy["link"] == "\u2197 GitHub"
     assert copy["note"].strip()
     assert "NeoArch" in copy["note"]
 
@@ -92,19 +91,16 @@ def test_community_tab_renders_the_sponsor_row(qapp):
     assert any(text.startswith("His early backing") for text in labels)
 
 
-def test_community_tab_links_to_the_sponsor_message(qapp, monkeypatch):
+def test_community_tab_links_to_the_sponsor_profile(qapp, monkeypatch):
     opened = []
     monkeypatch.setattr(about_tab, "_open_url",
                         lambda url: opened.append(url))
     tab = about_tab._CommunityTab()
-    buttons = [b.text() for b in tab.findChildren(QPushButton)]
-    assert "Sponsor message" in buttons
-
-    btn = next(b for b in tab.findChildren(QPushButton)
-               if b.text() == "Sponsor message")
+    btn = tab.findChild(QPushButton, "sponsorLink")
+    assert btn is not None
+    assert btn.text() == "\u2197 GitHub"
     btn.click()
-    assert opened == [
-        "https://buymeacoffee.com/sanjayadanushka/c/20640619"]
+    assert opened == ["https://github.com/ferreol-fr"]
 
 
 def test_community_tab_fits_without_a_scrollbar(qapp):

@@ -40,10 +40,8 @@ _WIKI_URL = "https://github.com/sanjayadanushka712/Neoarch/wiki"
 _SPONSORS = (
     {
         "name": "Ferreol",
-        "handle": "ferreol",
-        # His sponsorship comment — the words he left with the support.
-        "url": "https://buymeacoffee.com/sanjayadanushka/c/20640619",
-        "url_icon": "buymeacoffee.svg",
+        "handle": "ferreol-fr",
+        "url": "https://github.com/ferreol-fr",
         "avatar": "sponsor-ferreol.png",
         "copy": "ferreol",
     },
@@ -55,7 +53,7 @@ def _sponsor_copy(key):
     if key == "ferreol":
         return {
             "role": _("First Sponsor"),
-            "link": _("Sponsor message"),
+            "link": _("\u2197 GitHub"),
             "note": _("His early backing kept NeoArch alive from day one "
                       "\u2014 the very first person to sponsor the project."),
         }
@@ -143,6 +141,7 @@ def _sponsor_row(sponsor, is_first):
         link = _secondary_btn(
             copy.get("link") or _("\u2197 GitHub"),
             lambda checked=False, u=sponsor["url"]: _open_url(u))
+        link.setObjectName("sponsorLink")
         icon_name = sponsor.get("url_icon")
         if icon_name:
             icon_path = os.path.join(
