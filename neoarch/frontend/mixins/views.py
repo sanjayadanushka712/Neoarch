@@ -3943,6 +3943,158 @@ class _ViewsMixin:
         from neoarch.backend.package import installer as install_service
         install_service.install_packages(self, {source: names})
 
+    def _start_install_preflight_many(self, packages_by_source):
+        """Summarise a multi-package selection before installing it.
+
+        The Discover navbar and the selection panel can mark packages from
+        several sources at once, so resolve each source separately and merge
+        the results into one summary. If a plan cannot be built the affected
+        packages are still listed with unknown sizes instead of falling back
+        to a silent install.
+        """
+        if not packages_by_source:
+            return
+        if not hasattr(self, "ui_call"):
+            self._install_many_now(packages_by_source)
+            return
+
+        def task():
+            choices = []
+            try:
+                from neoarch.backend.services.preflight import provider_choices
+                for source, names in packages_by_source.items():
+                    if source not in ("pacman", "AUR"):
+                        continue
+                    for choice in provider_choices(names, source) or []:
+                        item = dict(choice)
+                        item["source"] = source
+                        choices.append(item)
+            except Exception:
+                choices = []
+            if choices:
+                self.ui_call.emit(
+                    lambda: self._choose_providers_many(
+                        packages_by_source, choices))
+                return
+            self._resolve_install_plans(packages_by_source, {})
+
+        Thread(target=task, daemon=True).start()
+
+    def _choose_providers_many(self, packages_by_source, choices):
+        from neoarch.frontend.components.provider_chooser_dialog import (
+            show_provider_choices)
+        picked = show_provider_choices(self, choices)
+        if picked is None:
+            self.log("Install cancelled.")
+            return
+        extras_by_source = {}
+        for choice, name in zip(choices, picked):
+            if not name:
+                continue
+            source = choice.get("source") or "pacman"
+            bucket = extras_by_source.setdefault(source, [])
+            if name not in bucket:
+                bucket.append(name)
+        self._resolve_install_plans(packages_by_source, extras_by_source)
+
+    def _resolve_install_plans(self, packages_by_source, extras_by_source):
+        def task():
+            plans = []
+            for source, names in packages_by_source.items():
+                extras = []
+                for dep in extras_by_source.get(source, []) or []:
+                    if dep and dep not in extras:
+                        extras.append(dep)
+                try:
+                    from neoarch.backend.services.preflight import install_plan
+                    plan = install_plan(list(names) + extras, source)
+                except Exception:
+                    plan = {"ok": False}
+                plan["extra"] = list(extras)
+                plans.append((source, plan))
+            if hasattr(self, "ui_call"):
+                self.ui_call.emit(
+                    lambda: self._confirm_install_plans(
+                        packages_by_source, plans))
+            else:
+                self._confirm_install_plans(packages_by_source, plans)
+
+        Thread(target=task, daemon=True).start()
+
+    def _confirm_install_plans(self, packages_by_source, plans):
+        from neoarch.frontend.components.install_preflight_dialog import (
+            show_install_plan)
+        merged = {
+            "ok": True,
+            "packages": [],
+            "optional": [],
+            "total_download": 0,
+            "total_installed": 0,
+        }
+        for source, plan in plans:
+            if plan.get("ok"):
+                merged["packages"].extend(plan.get("packages") or [])
+                merged["total_download"] += plan.get("total_download") or 0
+                merged["total_installed"] += plan.get("total_installed") or 0
+                for dep in plan.get("optional") or []:
+                    dep = dict(dep)
+                    dep["source"] = source
+                    merged["optional"].append(dep)
+            else:
+                for name in packages_by_source.get(source) or []:
+                    merged["packages"].append({
+                        "name": name,
+                        "version": "",
+                        "repo": source,
+                        "download_size": 0,
+                        "installed_size": 0,
+                    })
+        if not merged["packages"]:
+            self._install_many_now(packages_by_source)
+            return
+        selected = show_install_plan(self, merged)
+        if selected is None:
+            self.log("Install cancelled.")
+            return
+        optional_by_source = {}
+        selected_set = set(selected or [])
+        for dep in merged["optional"]:
+            name = dep.get("name")
+            if name in selected_set:
+                source = dep.get("source") or "pacman"
+                bucket = optional_by_source.setdefault(source, [])
+                if name not in bucket:
+                    bucket.append(name)
+        self._install_many_now(packages_by_source, optional_by_source)
+
+    def _install_many_now(self, packages_by_source, optional_by_source=None):
+        if not packages_by_source:
+            return
+        if not self.ensure_session_auth():
+            self.log("Install cancelled: authentication required.")
+            return
+        to_install = {}
+        for source, names in packages_by_source.items():
+            final = []
+            for name in names or []:
+                if name and name not in final:
+                    final.append(name)
+            for dep in (optional_by_source or {}).get(source, []) or []:
+                if dep and dep not in final:
+                    final.append(dep)
+            if final:
+                to_install[source] = final
+        if not to_install:
+            return
+        flat = ', '.join(
+            f"{pkg} ({source})"
+            for source, pkgs in to_install.items() for pkg in pkgs)
+        self.log(f"Installing {flat}")
+        self.installation_progress.emit("start", False)
+        self._pending_install_packages = to_install
+        from neoarch.backend.package import installer as install_service
+        install_service.install_packages(self, to_install)
+
     def _open_package_page(self, pkg):
         name = (pkg.get('name') or '').strip()
         source = pkg.get('source') or 'pacman'
