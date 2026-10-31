@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Resolve repo root (bin/..)
-REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)"
+# Resolve repo root (bin/..), following symlinks so installed copies work
+SCRIPT="$(readlink -f "${BASH_SOURCE[0]}")"
+REPO_DIR="$(cd "$(dirname "$SCRIPT")"/.. && pwd)"
 
 # Ensure proper environment for GUI applications
 export DISPLAY="${DISPLAY:-:0}"
