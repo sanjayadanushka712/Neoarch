@@ -44,6 +44,11 @@ _ICON_NEWS = (
     '<path d="M18 14h-8"/><path d="M15 18h-5"/>'
     '<path d="M10 6h8v4h-8V6Z"/>'
 )
+_ICON_GLOBE = (
+    '<circle cx="12" cy="12" r="10"/>'
+    '<path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>'
+    '<path d="M2 12h20"/>'
+)
 
 
 def _action(text, on_click):
@@ -58,11 +63,14 @@ def _action(text, on_click):
 class MaintenanceSettingsWidget(QWidget):
     # Emitted from the news-count worker thread; updates the button label.
     _news_count_ready = pyqtSignal(int)
+    # Emitted from the mirror-refresh worker thread: (ok, detail).
+    _mirror_done = pyqtSignal(bool, str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.app = parent
         self._news_count_ready.connect(self._set_news_badge)
+        self._mirror_done.connect(self._on_mirror_done)
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(24)
@@ -108,6 +116,45 @@ class MaintenanceSettingsWidget(QWidget):
                     "Cache Purge", _("Nothing to purge (or failed)."))
 
         Thread(target=task, daemon=True).start()
+
+    def refresh_mirrors(self):
+        from neoarch.backend.services.mirrors import (
+            refresh_mirrors, reflector_path)
+        from threading import Thread
+
+        if not reflector_path():
+            self.app.show_message.emit(
+                "Mirrors",
+                _("reflector isn't installed. Install the 'reflector' "
+                  "package first."))
+            return
+        latest = self.mirror_count.value()
+        self.mirror_btn.setEnabled(False)
+        self.mirror_btn.setText(_("Refreshing…"))
+
+        def task():
+            ok, detail = refresh_mirrors(latest=latest)
+            try:
+                self._mirror_done.emit(ok, detail)
+            except RuntimeError:
+                pass  # widget destroyed during the refresh
+
+        Thread(target=task, daemon=True).start()
+
+    def _on_mirror_done(self, ok: bool, detail: str):
+        try:
+            self.mirror_btn.setEnabled(True)
+            self.mirror_btn.setText(_("Refresh Mirrors"))
+        except RuntimeError:
+            pass
+        if ok:
+            self.app.show_message.emit(
+                "Mirrors",
+                _("Mirror list updated with {n} servers.").format(n=detail))
+        else:
+            self.app.show_message.emit(
+                "Mirrors",
+                _("Mirror refresh failed: {err}").format(err=detail))
 
     def setup_ui(self):
         title = QLabel(_("Maintenance"))
@@ -182,6 +229,27 @@ class MaintenanceSettingsWidget(QWidget):
               "major upgrades."),
             control=self._news_btn))
         self.layout.addWidget(news_card)
+
+        # ── Package Mirrors ──
+        mirrors_card, mirrors = make_card(
+            _("Package Mirrors"), _ICON_GLOBE)
+        self.mirror_count = Stepper(3, 20)
+        self.mirror_count.setValue(10)
+        mirrors.addWidget(row(
+            _("Latest mirrors"),
+            _("How many mirrors to keep. Fewer means faster syncs; more "
+              "means more fallbacks when one goes down."),
+            control=self.mirror_count))
+        mirrors.addWidget(sep())
+        self.mirror_btn = _action(
+            _("Refresh Mirrors"), self.refresh_mirrors)
+        mirrors.addWidget(row(
+            _("Refresh mirror list"),
+            _("Download the fastest HTTPS mirrors with reflector and write "
+              "them to /etc/pacman.d/mirrorlist. Reflector must be "
+              "installed."),
+            control=self.mirror_btn))
+        self.layout.addWidget(mirrors_card)
 
     def _load_news_count_async(self):
         """Resolve the unread-news badge off the UI thread.

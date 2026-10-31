@@ -3449,3 +3449,36 @@ msgstr "一部の依存関係は複数のパッケージで満たせます。そ
 
 msgid "Provider for {name}"
 msgstr "{name} のプロバイダー"
+
+msgid "Package Mirrors"
+msgstr "パッケージミラー"
+
+msgid "Latest mirrors"
+msgstr "最新のミラー"
+
+msgid "How many mirrors to keep. Fewer means faster syncs; more means more fallbacks when one goes down."
+msgstr "保持するミラー数。少ないほど同期が速くなり、多いほど障害時の代替が増えます。"
+
+msgid "Refresh mirror list"
+msgstr "ミラーリストを更新"
+
+msgid "Download the fastest HTTPS mirrors with reflector and write them to /etc/pacman.d/mirrorlist. Reflector must be installed."
+msgstr "reflector で最速の HTTPS ミラーをダウンロードし、/etc/pacman.d/mirrorlist に書き込みます。reflector のインストールが必要です。"
+
+msgid "Refresh Mirrors"
+msgstr "ミラーを更新"
+
+msgid "Refreshing…"
+msgstr "更新中…"
+
+msgid "Mirrors"
+msgstr "ミラー"
+
+msgid "Mirror list updated with {n} servers."
+msgstr "ミラーリストを {n} 台のサーバーで更新しました。"
+
+msgid "Mirror refresh failed: {err}"
+msgstr "ミラーの更新に失敗しました: {err}"
+
+msgid "reflector isn't installed. Install the 'reflector' package first."
+msgstr "reflector がインストールされていません。先に 'reflector' パッケージをインストールしてください。"

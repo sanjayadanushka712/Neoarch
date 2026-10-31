@@ -3449,3 +3449,36 @@ msgstr "Manche Abhängigkeiten können von mehreren Paketen erfüllt werden. Wä
 
 msgid "Provider for {name}"
 msgstr "Anbieter für {name}"
+
+msgid "Package Mirrors"
+msgstr "Paket-Mirrors"
+
+msgid "Latest mirrors"
+msgstr "Neueste Mirrors"
+
+msgid "How many mirrors to keep. Fewer means faster syncs; more means more fallbacks when one goes down."
+msgstr "Wie viele Mirrors behalten werden sollen. Weniger bedeutet schnellere Synchronisierungen, mehr bedeutet mehr Ausweichmöglichkeiten, wenn einer ausfällt."
+
+msgid "Refresh mirror list"
+msgstr "Mirror-Liste aktualisieren"
+
+msgid "Download the fastest HTTPS mirrors with reflector and write them to /etc/pacman.d/mirrorlist. Reflector must be installed."
+msgstr "Lädt die schnellsten HTTPS-Mirrors mit reflector herunter und schreibt sie nach /etc/pacman.d/mirrorlist. Reflector muss installiert sein."
+
+msgid "Refresh Mirrors"
+msgstr "Mirrors aktualisieren"
+
+msgid "Refreshing…"
+msgstr "Aktualisiere…"
+
+msgid "Mirrors"
+msgstr "Mirrors"
+
+msgid "Mirror list updated with {n} servers."
+msgstr "Mirror-Liste mit {n} Servern aktualisiert."
+
+msgid "Mirror refresh failed: {err}"
+msgstr "Mirror-Aktualisierung fehlgeschlagen: {err}"
+
+msgid "reflector isn't installed. Install the 'reflector' package first."
+msgstr "reflector ist nicht installiert. Installiere zuerst das Paket 'reflector'."

@@ -3449,3 +3449,36 @@ msgstr "Bazı bağımlılıklar birden fazla paketle karşılanabilir. Her biri 
 
 msgid "Provider for {name}"
 msgstr "{name} için sağlayıcı"
+
+msgid "Package Mirrors"
+msgstr "Paket Yansıları"
+
+msgid "Latest mirrors"
+msgstr "En yeni yansılar"
+
+msgid "How many mirrors to keep. Fewer means faster syncs; more means more fallbacks when one goes down."
+msgstr "Kaç yansı tutulacağı. Daha azı daha hızlı eşitleme, daha fazlası biri çöktüğünde daha fazla yedek demektir."
+
+msgid "Refresh mirror list"
+msgstr "Yansı listesini yenile"
+
+msgid "Download the fastest HTTPS mirrors with reflector and write them to /etc/pacman.d/mirrorlist. Reflector must be installed."
+msgstr "reflector ile en hızlı HTTPS yansılarını indirir ve /etc/pacman.d/mirrorlist dosyasına yazar. reflector kurulu olmalıdır."
+
+msgid "Refresh Mirrors"
+msgstr "Yansıları yenile"
+
+msgid "Refreshing…"
+msgstr "Yenileniyor…"
+
+msgid "Mirrors"
+msgstr "Yansılar"
+
+msgid "Mirror list updated with {n} servers."
+msgstr "Yansı listesi {n} sunucuyla güncellendi."
+
+msgid "Mirror refresh failed: {err}"
+msgstr "Yansı yenileme başarısız: {err}"
+
+msgid "reflector isn't installed. Install the 'reflector' package first."
+msgstr "reflector kurulu değil. Önce 'reflector' paketini kurun."

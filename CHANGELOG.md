@@ -51,6 +51,12 @@ dialog shows after an update.
   which one to install before resolving the transaction, instead of letting
   pacman silently pick the first. Works for pacman and AUR installs.
 
+- **Refresh mirrors.** A new Package Mirrors card on the Maintenance page
+  ranks HTTPS mirrors with `reflector` and writes the fastest ones to
+  `/etc/pacman.d/mirrorlist`, with a stepper for how many to keep. The
+  refresh runs elevated through NeoArch's askpass flow and reports how many
+  servers were written.
+
 ### Bug Fixes
 
 - Right-clicking a row now opens the same menu as the row's three-dot

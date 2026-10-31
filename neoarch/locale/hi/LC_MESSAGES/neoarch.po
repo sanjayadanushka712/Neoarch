@@ -3449,3 +3449,36 @@ msgstr "कुछ निर्भरताएँ एक से अधिक प�
 
 msgid "Provider for {name}"
 msgstr "{name} के लिए प्रदाता"
+
+msgid "Package Mirrors"
+msgstr "पैकेज मिरर"
+
+msgid "Latest mirrors"
+msgstr "नवीनतम मिरर"
+
+msgid "How many mirrors to keep. Fewer means faster syncs; more means more fallbacks when one goes down."
+msgstr "कितने मिरर रखें। कम का अर्थ है तेज़ सिंक; अधिक का अर्थ है अधिक विकल्प जब कोई डाउन हो जाए।"
+
+msgid "Refresh mirror list"
+msgstr "मिरर सूची ताज़ा करें"
+
+msgid "Download the fastest HTTPS mirrors with reflector and write them to /etc/pacman.d/mirrorlist. Reflector must be installed."
+msgstr "reflector के साथ सबसे तेज़ HTTPS मिरर डाउनलोड करके /etc/pacman.d/mirrorlist में लिखता है। reflector इंस्टॉल होना चाहिए।"
+
+msgid "Refresh Mirrors"
+msgstr "मिरर ताज़ा करें"
+
+msgid "Refreshing…"
+msgstr "ताज़ा किया जा रहा है…"
+
+msgid "Mirrors"
+msgstr "मिरर"
+
+msgid "Mirror list updated with {n} servers."
+msgstr "मिरर सूची {n} सर्वर के साथ अपडेट की गई।"
+
+msgid "Mirror refresh failed: {err}"
+msgstr "मिरर ताज़ा करना विफल: {err}"
+
+msgid "reflector isn't installed. Install the 'reflector' package first."
+msgstr "reflector इंस्टॉल नहीं है। पहले 'reflector' पैकेज इंस्टॉल करें।"

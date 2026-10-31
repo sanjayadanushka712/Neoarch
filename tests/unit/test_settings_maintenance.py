@@ -93,8 +93,9 @@ def test_action_buttons_call_app(qapp):
 def test_cache_stepper_present(qapp):
     w = MaintenanceSettingsWidget(_FakeApp())
     steppers = w.findChildren(Stepper)
-    assert len(steppers) == 1
+    assert len(steppers) == 2
     assert steppers[0].value() == 3
+    assert steppers[1].value() == 10
     w.deleteLater()
 
 
@@ -104,4 +105,50 @@ def test_news_button_connected(qapp):
     buttons = _buttons(w)
     assert buttons["Show News"].click() is None  # clickable, wired
     assert app.news_clicked == 1
+    w.deleteLater()
+
+
+def test_mirrors_card_present(qapp):
+    w = MaintenanceSettingsWidget(_FakeApp())
+    texts = set(_labels(w))
+    assert "Package Mirrors" in texts
+    assert "Refresh mirror list" in texts
+    assert "Latest mirrors" in texts
+    assert "Refresh Mirrors" in _buttons(w)
+    w.deleteLater()
+
+
+def test_refresh_mirrors_without_reflector_reports(qapp, monkeypatch):
+    import neoarch.backend.services.mirrors as mirrors
+
+    monkeypatch.setattr(mirrors, "reflector_path", lambda: None)
+    app = _FakeApp()
+    w = MaintenanceSettingsWidget(app)
+    _buttons(w)["Refresh Mirrors"].click()
+    assert app.show_message.messages
+    title, message = app.show_message.messages[-1]
+    assert title == "Mirrors"
+    assert "reflector" in message
+    w.deleteLater()
+
+
+def test_refresh_mirrors_reports_result(qapp, monkeypatch):
+    import time
+    import neoarch.backend.services.mirrors as mirrors
+
+    monkeypatch.setattr(
+        mirrors, "reflector_path", lambda: "/usr/bin/reflector")
+    monkeypatch.setattr(
+        mirrors, "refresh_mirrors", lambda latest=10: (True, "7"))
+    app = _FakeApp()
+    w = MaintenanceSettingsWidget(app)
+    _buttons(w)["Refresh Mirrors"].click()
+    deadline = time.time() + 2
+    while not app.show_message.messages and time.time() < deadline:
+        qapp.processEvents()
+        time.sleep(0.01)
+    assert app.show_message.messages
+    title, message = app.show_message.messages[-1]
+    assert title == "Mirrors"
+    assert "7" in message
     w.deleteLater()

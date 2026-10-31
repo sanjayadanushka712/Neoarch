@@ -3449,3 +3449,36 @@ msgstr "Некоторые зависимости могут быть удовл
 
 msgid "Provider for {name}"
 msgstr "Поставщик для {name}"
+
+msgid "Package Mirrors"
+msgstr "Зеркала пакетов"
+
+msgid "Latest mirrors"
+msgstr "Новейшие зеркала"
+
+msgid "How many mirrors to keep. Fewer means faster syncs; more means more fallbacks when one goes down."
+msgstr "Сколько зеркал сохранять. Меньше — быстрее синхронизация, больше — больше запасных вариантов при сбое."
+
+msgid "Refresh mirror list"
+msgstr "Обновить список зеркал"
+
+msgid "Download the fastest HTTPS mirrors with reflector and write them to /etc/pacman.d/mirrorlist. Reflector must be installed."
+msgstr "Загружает самые быстрые HTTPS-зеркала с помощью reflector и записывает их в /etc/pacman.d/mirrorlist. Reflector должен быть установлен."
+
+msgid "Refresh Mirrors"
+msgstr "Обновить зеркала"
+
+msgid "Refreshing…"
+msgstr "Обновление…"
+
+msgid "Mirrors"
+msgstr "Зеркала"
+
+msgid "Mirror list updated with {n} servers."
+msgstr "Список зеркал обновлён: серверов — {n}."
+
+msgid "Mirror refresh failed: {err}"
+msgstr "Не удалось обновить зеркала: {err}"
+
+msgid "reflector isn't installed. Install the 'reflector' package first."
+msgstr "reflector не установлен. Сначала установите пакет 'reflector'."

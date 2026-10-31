@@ -3449,3 +3449,36 @@ msgstr "සමහර යැපුම් එකකට වඩා පැකේජ �
 
 msgid "Provider for {name}"
 msgstr "{name} සඳහා සැපයුම්කරු"
+
+msgid "Package Mirrors"
+msgstr "පැකේජ මිරර්"
+
+msgid "Latest mirrors"
+msgstr "නවතම මිරර්"
+
+msgid "How many mirrors to keep. Fewer means faster syncs; more means more fallbacks when one goes down."
+msgstr "රඳවා ගත යුතු මිරර් ගණන. අඩු නම් වේගවත් සමමුහුර්තකරණය; වැඩි නම් එකක් අක්‍රීය වූ විට වැඩි විකල්ප."
+
+msgid "Refresh mirror list"
+msgstr "මිරර් ලැයිස්තුව නැවුම් කරන්න"
+
+msgid "Download the fastest HTTPS mirrors with reflector and write them to /etc/pacman.d/mirrorlist. Reflector must be installed."
+msgstr "reflector සමඟ වේගවත්ම HTTPS මිරර් බාගත කර /etc/pacman.d/mirrorlist වෙත ලියයි. reflector ස්ථාපිත විය යුතුය."
+
+msgid "Refresh Mirrors"
+msgstr "මිරර් නැවුම් කරන්න"
+
+msgid "Refreshing…"
+msgstr "නැවුම් කරමින්…"
+
+msgid "Mirrors"
+msgstr "මිරර්"
+
+msgid "Mirror list updated with {n} servers."
+msgstr "මිරර් ලැයිස්තුව සේවාදායක {n} සමඟ යාවත්කාලීන කරන ලදී."
+
+msgid "Mirror refresh failed: {err}"
+msgstr "මිරර් නැවුම් කිරීම අසාර්ථකයි: {err}"
+
+msgid "reflector isn't installed. Install the 'reflector' package first."
+msgstr "reflector ස්ථාපිත නැත. පළමුව 'reflector' පැකේජය ස්ථාපනය කරන්න."

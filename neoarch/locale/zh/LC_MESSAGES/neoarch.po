@@ -3449,3 +3449,36 @@ msgstr "某些依赖项可由多个软件包提供。请为每一项选择一个
 
 msgid "Provider for {name}"
 msgstr "{name} 的提供者"
+
+msgid "Package Mirrors"
+msgstr "软件包镜像"
+
+msgid "Latest mirrors"
+msgstr "最新镜像"
+
+msgid "How many mirrors to keep. Fewer means faster syncs; more means more fallbacks when one goes down."
+msgstr "保留的镜像数量。越少同步越快，越多则在一个镜像失效时有更多备用。"
+
+msgid "Refresh mirror list"
+msgstr "刷新镜像列表"
+
+msgid "Download the fastest HTTPS mirrors with reflector and write them to /etc/pacman.d/mirrorlist. Reflector must be installed."
+msgstr "使用 reflector 下载最快的 HTTPS 镜像并写入 /etc/pacman.d/mirrorlist。必须安装 reflector。"
+
+msgid "Refresh Mirrors"
+msgstr "刷新镜像"
+
+msgid "Refreshing…"
+msgstr "正在刷新…"
+
+msgid "Mirrors"
+msgstr "镜像"
+
+msgid "Mirror list updated with {n} servers."
+msgstr "镜像列表已更新，共 {n} 个服务器。"
+
+msgid "Mirror refresh failed: {err}"
+msgstr "刷新镜像失败：{err}"
+
+msgid "reflector isn't installed. Install the 'reflector' package first."
+msgstr "未安装 reflector。请先安装 'reflector' 软件包。"
