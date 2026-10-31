@@ -819,6 +819,10 @@ class _ArrowAnimator(QObject):
 class UpdatesTable(QTableView):
     """Main redesigned updates widget."""
 
+    # Keep enough room for the source icon plus a readable package name
+    # before lower-priority columns are hidden.
+    _MIN_NAME_WIDTH = 220
+
     row_selected = pyqtSignal(object)
     rows_multi_selected = pyqtSignal(object)
     row_cleared = pyqtSignal()
@@ -880,7 +884,10 @@ class UpdatesTable(QTableView):
         self.setColumnWidth(6, 100)
         self.setColumnWidth(7, 44)
         # The "Installed" date column is only shown by the Installed view.
-        self.setColumnHidden(6, True)
+        self._mode_hidden = {6}
+        self._resp_hidden = set()
+        self._fitting_columns = False
+        self._apply_column_visibility()
 
         header.select_all_changed.connect(self._on_header_select_all)
         header.sort_requested.connect(self._on_sort_requested)
@@ -956,7 +963,7 @@ class UpdatesTable(QTableView):
 
     def show_installed_date(self, visible):
         """Show/hide the "Installed" date column (Installed view only)."""
-        self.setColumnHidden(6, not visible)
+        self._set_mode_hidden(6, not visible)
         self.viewport().update()
 
     def set_installed_mode(self, installed):
@@ -981,7 +988,7 @@ class UpdatesTable(QTableView):
         # Match the Updates page layout: same columns (Size / Status) and
         # widths; only the Installed-date column stays hidden because search
         # results carry no install date.
-        self.setColumnHidden(6, discover)
+        self._set_mode_hidden(6, discover)
         if discover:
             self.setColumnWidth(2, 190)
             self.setColumnWidth(4, 96)
@@ -1008,9 +1015,9 @@ class UpdatesTable(QTableView):
         self._discover_mode = False
         self._installed_mode = False
         self._bundles_mode = False
-        self.setColumnHidden(2, plugins)  # Version (plugins have none)
-        self.setColumnHidden(3, plugins)  # Size
-        self.setColumnHidden(6, plugins)  # Installed date
+        self._set_mode_hidden(2, plugins)  # Version (plugins have none)
+        self._set_mode_hidden(3, plugins)  # Size
+        self._set_mode_hidden(6, plugins)  # Installed date
         header = self.horizontalHeader()
         if plugins:
             header.set_header_labels(["", "Plugin", "", "", "Source", "Status", "", ""])
@@ -1031,9 +1038,9 @@ class UpdatesTable(QTableView):
         self._plugins_mode = False
         self._discover_mode = False
         self._installed_mode = False
-        self.setColumnHidden(2, bundles)   # Version
-        self.setColumnHidden(3, bundles)   # Size
-        self.setColumnHidden(6, bundles)   # Installed date
+        self._set_mode_hidden(2, bundles)   # Version
+        self._set_mode_hidden(3, bundles)   # Size
+        self._set_mode_hidden(6, bundles)   # Installed date
         header = self.horizontalHeader()
         if bundles:
             header.set_header_labels(["", "Package", "", "", "Source", "Status", "", ""])
@@ -1168,9 +1175,71 @@ class UpdatesTable(QTableView):
             self._empty.set_loading(False)
             self._empty.setVisible(False)
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        self._apply_responsive_columns()
+
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self._sync_overlays()
+        self._apply_responsive_columns()
+
+    def _set_mode_hidden(self, column, hidden):
+        """Record a column hidden by the active view mode."""
+        if hidden:
+            self._mode_hidden.add(column)
+        else:
+            self._mode_hidden.discard(column)
+        self._apply_column_visibility()
+        self._apply_responsive_columns()
+
+    def _apply_column_visibility(self):
+        """Apply the union of view-mode and responsive column hiding."""
+        if self._fitting_columns:
+            return
+        self._fitting_columns = True
+        try:
+            for col in range(self.model.columnCount()):
+                self.setColumnHidden(
+                    col, col in self._mode_hidden or col in self._resp_hidden)
+        finally:
+            self._fitting_columns = False
+
+    def _apply_responsive_columns(self):
+        """Drop low-priority columns instead of squeezing the package name.
+
+        Opening the detail panel narrows the table. Fixed-width columns used
+        to eat the whole viewport, leaving the stretched Package column a few
+        pixels wide, so names were painted clipped into garbage. Hide the
+        least important columns as space runs out and restore them when the
+        table widens again.
+        """
+        if self._fitting_columns or not self.isVisible():
+            return
+        width = self.viewport().width()
+        if width <= 0:
+            return
+        widths = {
+            0: self.columnWidth(0) or 46,
+            2: self.columnWidth(2) or 190,
+            3: self.columnWidth(3) or 96,
+            4: self.columnWidth(4) or 110,
+            5: self.columnWidth(5) or 104,
+            6: self.columnWidth(6) or 100,
+            7: self.columnWidth(7) or 44,
+        }
+        responsive = set()
+        for col in (6, 3, 4, 5):
+            if col in self._mode_hidden:
+                continue
+            hidden = self._mode_hidden | responsive
+            fixed = sum(w for c, w in widths.items() if c not in hidden)
+            if fixed + self._MIN_NAME_WIDTH <= width:
+                break
+            responsive.add(col)
+        if responsive != self._resp_hidden:
+            self._resp_hidden = responsive
+            self._apply_column_visibility()
 
     # ── icons ─────────────────────────────────────────────────────────
     def source_pixmap(self, source, size=16):
@@ -1606,7 +1675,12 @@ class UpdatesRowDelegate(QStyledItemDelegate):
         painter.drawPixmap(QPointF(ix, iy), pm)
 
         text_left = ix + 18 + 10
-        avail_w = max(20, rect.right() - text_left - 4)
+        avail_w = rect.right() - text_left - 4
+        if avail_w < 24:
+            # Not enough room beside the icon: use the whole cell so the name
+            # elides cleanly instead of being clipped mid-glyph.
+            text_left = rect.left() + 8
+            avail_w = max(20.0, rect.width() - 16)
 
         name = pkg.get("name") or pkg.get("id") or ""
         name_fm = QFontMetrics(self._name_font)

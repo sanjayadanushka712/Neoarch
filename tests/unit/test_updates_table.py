@@ -544,3 +544,22 @@ def test_size_column_accepts_raw_byte_counts(qapp):
     opt.rect = QRect(0, 0, 100, 52)
     table.itemDelegate().paint(painter, opt, table.model.index(0, 3))
     painter.end()
+
+
+def test_narrow_table_protects_package_column(qapp):
+    table = UpdatesTable(_FakeApp())
+    table.set_enrich(False)
+    table.set_discover_mode(True)
+    table.resize(640, 400)
+    table.show()
+    qapp.processEvents()
+    assert table.columnWidth(1) >= 200
+    assert table.isColumnHidden(3)
+    assert table.isColumnHidden(4)
+    assert not table.isColumnHidden(5)
+    table.resize(1000, 400)
+    qapp.processEvents()
+    assert not table.isColumnHidden(3)
+    assert not table.isColumnHidden(4)
+    assert not table.isColumnHidden(5)
+    table.hide()

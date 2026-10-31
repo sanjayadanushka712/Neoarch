@@ -46,10 +46,11 @@ dialog shows after an update.
   button on every page (Updates, Installed, Discover, Plugins, Bundles),
   instead of the legacy menu or nothing at all.
 
-- Discover rows no longer render garbled text after a click. Download sizes
-  can arrive as raw byte counts, and the table passed them straight to the
-  text renderer; they are now formatted first, so the Size column paints
-  correctly.
+- Discover results stay readable when the detail panel opens. Narrowing the
+  table used to squeeze the Package column down to a few pixels, clipping
+  names mid-glyph; low-priority columns (Size, Source, Installed date) now
+  hide as space runs out and come back when the table widens. Download sizes
+  that arrive as raw byte counts are formatted before painting too.
 
 ## 3.4.5 — 2026-10-31
 
