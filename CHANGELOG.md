@@ -10,7 +10,7 @@ dialog shows after an update.
 
 ---
 
-## Unreleased
+## 3.4.5 — 2026-10-31
 
 ### New Features
 
