@@ -6,7 +6,7 @@
 # foss, open-source, package-management, linux-tools, arch-linux
 #
 # To add topics:
-# 1. Go to https://github.com/neoarch712/Neoarch
+# 1. Go to https://github.com/sanjayadanushka712/Neoarch
 # 2. Click "Settings" tab
 # 3. Scroll down to "Topics" section
 # 4. Add the relevant topics from the list above

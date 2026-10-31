@@ -142,8 +142,8 @@ Customize NeoArch behavior:
 ### Getting Help
 
 - Check the [FAQ](faq.md)
-- Search existing [issues](https://github.com/neoarch712/Neoarch/issues)
-- Ask questions in [discussions](https://github.com/neoarch712/Neoarch/discussions)
+- Search existing [issues](https://github.com/sanjayadanushka712/Neoarch/issues)
+- Ask questions in [discussions](https://github.com/sanjayadanushka712/Neoarch/discussions)
 
 ## Best Practices
 

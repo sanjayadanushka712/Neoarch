@@ -2,7 +2,7 @@
 
 NeoArch plugins are Python modules that extend the GUI. This page is a short
 overview — the full guide lives with the plugin catalogue:
-[community_plugins/README.md](https://github.com/neoarch712/NeoArch/blob/main/community_plugins/README.md).
+[community_plugins/README.md](https://github.com/sanjayadanushka712/NeoArch/blob/main/community_plugins/README.md).
 
 ## Quick route — the built-in creator
 

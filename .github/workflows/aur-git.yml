@@ -41,7 +41,7 @@ jobs:
           printf '\tpkgver = %s\n' "$VERSION" >> packaging/.SRCINFO
           printf '\tpkgrel = 1\n' >> packaging/.SRCINFO
           printf '\tpkgdesc = NeoArch Package Manager for Arch Linux (beta channel for dev builds; use '\''neoarch'\'' for stable)\n' >> packaging/.SRCINFO
-          printf '\turl = https://github.com/neoarch712/Neoarch\n' >> packaging/.SRCINFO
+          printf '\turl = https://github.com/sanjayadanushka712/Neoarch\n' >> packaging/.SRCINFO
           printf '\tinstall = neoarch-git.install\n' >> packaging/.SRCINFO
           printf '\tarch = any\n' >> packaging/.SRCINFO
           printf '\tlicense = GPL-3.0-or-later\n' >> packaging/.SRCINFO
@@ -57,7 +57,7 @@ jobs:
           printf '\tmakedepends = git\n' >> packaging/.SRCINFO
           printf '\tprovides = neoarch\n' >> packaging/.SRCINFO
           printf '\tconflicts = neoarch\n' >> packaging/.SRCINFO
-          printf '\tsource = git+https://github.com/neoarch712/Neoarch.git#branch=dev\n' >> packaging/.SRCINFO
+          printf '\tsource = git+https://github.com/sanjayadanushka712/Neoarch.git#branch=dev\n' >> packaging/.SRCINFO
           printf '\tsha256sums = SKIP\n' >> packaging/.SRCINFO
           printf '\tpkgname = neoarch-git\n' >> packaging/.SRCINFO
 

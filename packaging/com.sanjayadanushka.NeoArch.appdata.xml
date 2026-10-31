@@ -24,7 +24,7 @@
   <screenshots>
     <screenshot type="default">
       <caption>Main interface showing package discovery</caption>
-      <image>https://raw.githubusercontent.com/neoarch712/Neoarch/main/assets/icons/app/logo.png</image>
+      <image>https://raw.githubusercontent.com/sanjayadanushka712/Neoarch/main/assets/icons/app/logo.png</image>
     </screenshot>
   </screenshots>
   <categories>
@@ -40,9 +40,9 @@
     <keyword>flatpak</keyword>
   </keywords>
   <developer_name>Sanjaya Danushka</developer_name>
-  <url type="homepage">https://github.com/neoarch712/Neoarch</url>
-  <url type="bugtracker">https://github.com/neoarch712/Neoarch/issues</url>
-  <url type="help">https://github.com/neoarch712/Neoarch#readme</url>
+  <url type="homepage">https://github.com/sanjayadanushka712/Neoarch</url>
+  <url type="bugtracker">https://github.com/sanjayadanushka712/Neoarch/issues</url>
+  <url type="help">https://github.com/sanjayadanushka712/Neoarch#readme</url>
   <releases>
     <release version="1.0-beta" date="2025-11-07">
       <description>

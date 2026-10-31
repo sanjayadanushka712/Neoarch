@@ -12,7 +12,7 @@ This guide will help you set up NeoArch for development.
 
 ```bash
 # Clone the repository
-git clone https://github.com/neoarch712/Neoarch.git
+git clone https://github.com/sanjayadanushka712/Neoarch.git
 cd Neoarch
 
 # Switch to development branch

@@ -135,7 +135,7 @@ def show_help(parent, current_view: str):
         "• Plugin system with community sharing<br>"
         "• Desktop-environment-aware authentication</p>"
         '<p>Website: <a href="https://neoarch.dpdns.org/" style="color: #00BFAE;">neoarch.dpdns.org</a><br>'
-        'Repository: <a href="https://github.com/neoarch712/Neoarch" style="color: #00BFAE;">github.com/neoarch712/Neoarch</a><br>'
+        'Repository: <a href="https://github.com/sanjayadanushka712/Neoarch" style="color: #00BFAE;">github.com/sanjayadanushka712/Neoarch</a><br>'
         "License: GPL-3.0-or-later</p>"
     )
     about_v.addWidget(about_browser)
@@ -190,7 +190,7 @@ def show_about(parent):
         "with AUR support, bundle management, and more.<br><br>"
         "Built with PyQt6<br>"
         'Website: <a href="https://neoarch.dpdns.org/" style="color: #00BFAE;">neoarch.dpdns.org</a><br>'
-        'Repository: <a href="https://github.com/neoarch712/Neoarch" style="color: #00BFAE;">github.com/neoarch712/Neoarch</a>'
+        'Repository: <a href="https://github.com/sanjayadanushka712/Neoarch" style="color: #00BFAE;">github.com/sanjayadanushka712/Neoarch</a>'
     )
     desc.setTextFormat(Qt.TextFormat.RichText)
     desc.setOpenExternalLinks(True)

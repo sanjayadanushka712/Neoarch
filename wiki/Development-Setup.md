@@ -2,7 +2,7 @@
 
 This page summarises how to run NeoArch from source. The canonical, always
 up-to-date version lives in the repository:
-[docs/development/setup.md](https://github.com/neoarch712/NeoArch/blob/main/docs/development/setup.md).
+[docs/development/setup.md](https://github.com/sanjayadanushka712/NeoArch/blob/main/docs/development/setup.md).
 
 ## Prerequisites
 
@@ -15,7 +15,7 @@ up-to-date version lives in the repository:
 ## Quick start
 
 ```bash
-git clone https://github.com/neoarch712/NeoArch.git
+git clone https://github.com/sanjayadanushka712/NeoArch.git
 cd Neoarch
 git checkout dev
 

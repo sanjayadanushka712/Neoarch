@@ -166,7 +166,7 @@ dialog shows after an update.
 ### Improvements
 
 - **NeoArch has a new home.** The project now lives at
-  `github.com/neoarch712/Neoarch`. Every in-app link — the update check, the
+  `github.com/sanjayadanushka712/Neoarch`. Every in-app link — the update check, the
   About and Help pages, the sponsors link — and the AUR package sources point
   at the new repository, so update notifications and `yay -S neoarch` keep
   working.

@@ -378,14 +378,14 @@ Plugins can store data:
 ### Documentation
 
 - [Plugin Development Guide](Plugin-Development.md)
-- [API Reference](https://github.com/neoarch712/Neoarch/wiki/API)
-- [Plugin Examples](https://github.com/neoarch712/Neoarch/tree/main/plugins)
+- [API Reference](https://github.com/sanjayadanushka712/Neoarch/wiki/API)
+- [Plugin Examples](https://github.com/sanjayadanushka712/Neoarch/tree/main/plugins)
 
 ### Community
 
-- [GitHub Discussions](https://github.com/neoarch712/Neoarch/discussions)
-- [Plugin Registry](https://github.com/neoarch712/Neoarch/wiki/Plugin-Registry)
-- [Developer Forum](https://github.com/neoarch712/Neoarch/discussions/categories/plugin-development)
+- [GitHub Discussions](https://github.com/sanjayadanushka712/Neoarch/discussions)
+- [Plugin Registry](https://github.com/sanjayadanushka712/Neoarch/wiki/Plugin-Registry)
+- [Developer Forum](https://github.com/sanjayadanushka712/Neoarch/discussions/categories/plugin-development)
 
 ---
 

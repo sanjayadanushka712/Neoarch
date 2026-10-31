@@ -82,7 +82,7 @@ git push origin main
 
 ### Create GitHub Release (Web Interface)
 
-1. Go to: https://github.com/neoarch712/Neoarch/releases
+1. Go to: https://github.com/sanjayadanushka712/Neoarch/releases
 2. Click "Draft a new release"
 3. Select tag: `v1.2-beta`
 4. Title: `Neoarch v1.2-beta`

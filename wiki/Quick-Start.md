@@ -9,7 +9,7 @@ Get NeoArch up and running in 5 minutes!
 yay -S neoarch-git
 
 # Or manually
-git clone https://github.com/neoarch712/Neoarch.git
+git clone https://github.com/sanjayadanushka712/Neoarch.git
 cd Neoarch
 pip install -r requirements_pyqt.txt
 python aurora_home.py
@@ -158,4 +158,4 @@ python aurora_home.py
 
 ---
 
-**Stuck?** Check [Troubleshooting](Troubleshooting.md) or ask in [GitHub Discussions](https://github.com/neoarch712/Neoarch/discussions)
+**Stuck?** Check [Troubleshooting](Troubleshooting.md) or ask in [GitHub Discussions](https://github.com/sanjayadanushka712/Neoarch/discussions)

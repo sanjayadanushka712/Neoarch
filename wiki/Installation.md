@@ -31,7 +31,7 @@ sudo pacman -S --needed python python-pyqt6 python-requests qt6-svg git flatpak 
 ### Step 2: Clone the Repository
 
 ```bash
-git clone https://github.com/neoarch712/Neoarch.git
+git clone https://github.com/sanjayadanushka712/Neoarch.git
 cd Neoarch
 ```
 
@@ -59,7 +59,7 @@ python aurora_home.py
 
 ```bash
 # Clone the repository
-git clone https://github.com/neoarch712/Neoarch.git
+git clone https://github.com/sanjayadanushka712/Neoarch.git
 cd Neoarch
 
 # Install to system

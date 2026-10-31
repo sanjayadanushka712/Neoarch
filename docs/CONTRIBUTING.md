@@ -5,13 +5,13 @@ Thank you for your interest in contributing to NeoArch! We welcome contributions
 ## Ways to Contribute
 
 ### 🐛 Reporting Bugs
-- Use the [bug report template](https://github.com/neoarch712/Neoarch/issues/new?template=bug_report.md)
+- Use the [bug report template](https://github.com/sanjayadanushka712/Neoarch/issues/new?template=bug_report.md)
 - Provide detailed steps to reproduce the issue
 - Include system information and error logs
 - Check if the issue already exists before creating a new one
 
 ### 💡 Suggesting Features
-- Use the [feature request template](https://github.com/neoarch712/Neoarch/issues/new?template=feature_request.md)
+- Use the [feature request template](https://github.com/sanjayadanushka712/Neoarch/issues/new?template=feature_request.md)
 - Describe the problem you're trying to solve
 - Explain why this feature would be useful
 - Consider alternative solutions
@@ -49,7 +49,7 @@ Thank you for your interest in contributing to NeoArch! We welcome contributions
 ### Quick Start
 ```bash
 # Clone the repository
-git clone https://github.com/neoarch712/Neoarch.git
+git clone https://github.com/sanjayadanushka712/Neoarch.git
 cd Neoarch
 
 # Set up virtual environment
@@ -111,7 +111,7 @@ pytest tests/
 ## Getting Help
 
 - Check the [documentation](docs/) first
-- Search existing [issues](https://github.com/neoarch712/Neoarch/issues) and [discussions](https://github.com/neoarch712/Neoarch/discussions)
+- Search existing [issues](https://github.com/sanjayadanushka712/Neoarch/issues) and [discussions](https://github.com/sanjayadanushka712/Neoarch/discussions)
 - Ask questions in GitHub discussions
 - Join the community chat (when available)
 

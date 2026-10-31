@@ -37,13 +37,13 @@ vim PKGBUILD
 **OLD:**
 ```bash
 pkgver=1.1.beta
-source=("git+https://github.com/neoarch712/Neoarch.git#tag=v1.1-beta")
+source=("git+https://github.com/sanjayadanushka712/Neoarch.git#tag=v1.1-beta")
 ```
 
 **NEW:**
 ```bash
 pkgver=1.2.beta
-source=("git+https://github.com/neoarch712/Neoarch.git#tag=v1.2-beta")
+source=("git+https://github.com/sanjayadanushka712/Neoarch.git#tag=v1.2-beta")
 ```
 
 ### Step 4: Generate New .SRCINFO
@@ -90,7 +90,7 @@ After push, AUR page will show:
 - **Last Updated**: 2025-11-15 11:06 (UTC) ← NEW
 - **Version**: 1.2.beta ← NEW
 - **Description**: NeoArch Package Manager for Arch Linux
-- **Upstream URL**: https://github.com/neoarch712/Neoarch
+- **Upstream URL**: https://github.com/sanjayadanushka712/Neoarch
 
 ## Troubleshooting
 
@@ -126,13 +126,13 @@ pkgver=1.2.beta
 pkgrel=1
 pkgdesc="NeoArch Package Manager for Arch Linux"
 arch=('x86_64')
-url="https://github.com/neoarch712/Neoarch"
+url="https://github.com/sanjayadanushka712/Neoarch"
 license=('GPL-3.0-or-later')
 depends=('python' 'python-pyqt6' 'python-requests' 'qt6-svg' 'flatpak' 'nodejs' 'npm')
 makedepends=('git')
 conflicts=('neoarch')
 provides=('neoarch')
-source=("git+https://github.com/neoarch712/Neoarch.git#tag=v1.2-beta")
+source=("git+https://github.com/sanjayadanushka712/Neoarch.git#tag=v1.2-beta")
 sha256sums=('SKIP')
 
 pkgver() {

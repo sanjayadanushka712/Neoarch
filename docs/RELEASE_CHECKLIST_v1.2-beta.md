@@ -15,7 +15,7 @@
 ## 📋 Remaining Tasks
 
 ### 1. GitHub Release Creation
-- [ ] Go to: https://github.com/neoarch712/Neoarch/releases
+- [ ] Go to: https://github.com/sanjayadanushka712/Neoarch/releases
 - [ ] Click "Draft a new release"
 - [ ] Select tag: v1.2-beta
 - [ ] Title: "Neoarch v1.2-beta"
@@ -28,7 +28,7 @@
 - [ ] Clone AUR repository: `git clone ssh://aur@aur.archlinux.org/neoarch-git.git`
 - [ ] Update PKGBUILD:
   - [ ] Set `pkgver=1.2.beta`
-  - [ ] Update source to: `git+https://github.com/neoarch712/Neoarch.git#tag=v1.2-beta`
+  - [ ] Update source to: `git+https://github.com/sanjayadanushka712/Neoarch.git#tag=v1.2-beta`
   - [ ] Update `pkgrel=1`
 - [ ] Generate .SRCINFO: `makepkg --printsrcinfo > .SRCINFO`
 - [ ] Commit changes: `git commit -m "Update to v1.2-beta"`
@@ -102,10 +102,10 @@
 
 ## 🔗 Important Links
 
-- GitHub Repository: https://github.com/neoarch712/Neoarch
-- GitHub Releases: https://github.com/neoarch712/Neoarch/releases
+- GitHub Repository: https://github.com/sanjayadanushka712/Neoarch
+- GitHub Releases: https://github.com/sanjayadanushka712/Neoarch/releases
 - AUR Package: https://aur.archlinux.org/packages/neoarch-git
-- Issue Tracker: https://github.com/neoarch712/Neoarch/issues
+- Issue Tracker: https://github.com/sanjayadanushka712/Neoarch/issues
 
 ## 📝 Release Notes Template
 
@@ -156,7 +156,7 @@ paru -S neoarch-git
 
 ### From Source
 ```bash
-git clone https://github.com/neoarch712/Neoarch.git
+git clone https://github.com/sanjayadanushka712/Neoarch.git
 cd Neoarch
 python -m venv .venv
 source .venv/bin/activate
@@ -169,7 +169,7 @@ python aurora_home.py
 - Some unused imports in aurora_home.py
 
 ## Support
-For bug reports and feature requests, visit: https://github.com/neoarch712/Neoarch/issues
+For bug reports and feature requests, visit: https://github.com/sanjayadanushka712/Neoarch/issues
 ```
 
 ## ✨ Next Priority Tasks

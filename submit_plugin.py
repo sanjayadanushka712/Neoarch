@@ -116,7 +116,7 @@ def submit_plugin():
         'description': description,
         'author': author,
         'version': version,
-        'url': f"https://raw.githubusercontent.com/neoarch712/Neoarch/main/community_plugins/{plugin_id}.py",
+        'url': f"https://raw.githubusercontent.com/sanjayadanushka712/Neoarch/main/community_plugins/{plugin_id}.py",
         'downloads': 0,
         'last_updated': "2024-01-01",  # Will be updated when merged
         'features': []  # User can add features later
@@ -149,7 +149,7 @@ def submit_plugin():
 
 ## Submission Instructions
 
-1. Fork the [NeoArch repository](https://github.com/neoarch712/Neoarch)
+1. Fork the [NeoArch repository](https://github.com/sanjayadanushka712/Neoarch)
 2. Copy `{plugin_id}.py` to the `community_plugins/` directory
 3. Update `community_plugins/index.json` with the contents of `submission_info.json`
 4. Submit a pull request
@@ -173,8 +173,8 @@ Thank you for contributing to the NeoArch community! 🎉
     print("3. Copy the plugin file to community_plugins/ directory")
     print("4. Update community_plugins/index.json with the submission info")
     print("5. Submit a pull request")
-    print("\n🔗 Repository: https://github.com/neoarch712/Neoarch")
-    print("📚 Documentation: https://github.com/neoarch712/Neoarch/blob/main/community_plugins/README.md")
+    print("\n🔗 Repository: https://github.com/sanjayadanushka712/Neoarch")
+    print("📚 Documentation: https://github.com/sanjayadanushka712/Neoarch/blob/main/community_plugins/README.md")
 
     # Ask if user wants to open the submission directory
     try:

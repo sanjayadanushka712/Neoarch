@@ -7,9 +7,9 @@ every bug report, idea, and pull request helps.
 
 | Contribution | Where |
 |---|---|
-| 🐛 Bug report | [Open an issue](https://github.com/neoarch712/NeoArch/issues/new?template=bug_report.md) |
-| 💡 Feature request | [Open an issue](https://github.com/neoarch712/NeoArch/issues/new?template=feature_request.md) |
-| 🛠 Code | Fork `neoarch712/Neoarch`, branch off `dev`, open a pull request |
+| 🐛 Bug report | [Open an issue](https://github.com/sanjayadanushka712/NeoArch/issues/new?template=bug_report.md) |
+| 💡 Feature request | [Open an issue](https://github.com/sanjayadanushka712/NeoArch/issues/new?template=feature_request.md) |
+| 🛠 Code | Fork `sanjayadanushka712/Neoarch`, branch off `dev`, open a pull request |
 | 📖 Documentation | Edit the files under `docs/` or `wiki/` |
 | 🌐 Translation | Add or correct a locale file under `neoarch/locale/` |
 
@@ -47,4 +47,4 @@ Please include:
 - [Development Setup](Development-Setup.md)
 - [Architecture](Architecture.md)
 - [Plugin Development](Plugin-Development.md)
-- Full guide: [docs/CONTRIBUTING.md](https://github.com/neoarch712/NeoArch/blob/main/docs/CONTRIBUTING.md)
+- Full guide: [docs/CONTRIBUTING.md](https://github.com/sanjayadanushka712/NeoArch/blob/main/docs/CONTRIBUTING.md)

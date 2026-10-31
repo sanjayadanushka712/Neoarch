@@ -1,6 +1,6 @@
 # Moving the project off a risky account
 
-The project currently lives on `neoarch712`, a personal account created after
+The project currently lives on `sanjayadanushka712`, a personal account created after
 the original one (`dsanjaya712@gmail.com`) was suspended. Two personal accounts
 plus a suspended one is the pattern GitHub treats as evasion, and the whole
 project — repo, releases, Actions secrets, the AUR publish workflow — goes with
@@ -13,16 +13,16 @@ The fix is to end up with **one personal account** and **one organization**:
 | You, as a person (job interviews, profile, contributions) | `sanjayadanushka712` |
 | The project (repo, releases, AUR workflow) | an Organization |
 
-## Option A — convert `neoarch712` into an Organization (recommended)
+## Option A — convert `sanjayadanushka712` into an Organization (recommended)
 
-The URL `github.com/neoarch712/Neoarch` stays exactly the same, so the AUR
+The URL `github.com/sanjayadanushka712/Neoarch` stays exactly the same, so the AUR
 source, the README links and the website keep working.
 
 1. Log in to `sanjayadanushka712` and add your SSH key under
    **Settings → SSH and GPG keys** (organisation owners need their own key).
-2. Log in to `neoarch712` → **Settings → Account** → scroll to
+2. Log in to `sanjayadanushka712` → **Settings → Account** → scroll to
    **Transform your personal account into an organization** → choose
-   `neoarch712` as the organisation name and confirm.
+   `sanjayadanushka712` as the organisation name and confirm.
 3. The account is now an organisation and you are its owner. In
    **Organisation settings → People → Invite member**, invite
    `sanjayadanushka712` with the **Owner** role, then accept the invitation
@@ -36,10 +36,10 @@ source, the README links and the website keep working.
    ```bash
    git remote set-url origin git@github.com:sanjayadanushka712/Neoarch.git
    ```
-   (the `github-neoarch712` SSH alias no longer works — organisations cannot
+   (the old GitHub SSH host alias no longer works — organisations cannot
    log in over SSH).
 
-After this the project still lives at `github.com/neoarch712/Neoarch`, but
+After this the project still lives at `github.com/sanjayadanushka712/Neoarch`, but
 `sanjayadanushka712` is the only personal account involved.
 
 ## Option B — create a new organisation and transfer the repo
@@ -53,11 +53,11 @@ update these afterwards:
 - README badges and `neoarch.dpdns.org` links
 
 1. With `sanjayadanushka712`: **+ → New organisation** → free plan → create it.
-2. Organization → **People** → invite `neoarch712` as **Owner** (needed to
+2. Organization → **People** → invite `sanjayadanushka712` as **Owner** (needed to
    transfer out of the old account), or use **Settings → Transfer ownership**
    on the repo.
 3. Transfer `Neoarch` into the new organisation.
-4. Once the transfer is done, `neoarch712` is a personal account with no
+4. Once the transfer is done, `sanjayadanushka712` is a personal account with no
    purpose — stop using it and do not log in from the same machine/browser as
    the personal account.
 

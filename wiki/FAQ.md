@@ -176,7 +176,7 @@ See [Contributing](Contributing.md) for guidelines on:
 - Improving documentation
 
 ### Where can I find the source code?
-GitHub: https://github.com/neoarch712/Neoarch
+GitHub: https://github.com/sanjayadanushka712/Neoarch
 
 ### Is there a command-line version?
 NeoArch is GUI-focused, but you can use Arch's built-in tools:
@@ -189,19 +189,19 @@ NeoArch is GUI-focused, but you can use Arch's built-in tools:
 
 ### I found a bug, what should I do?
 1. Check [Troubleshooting](Troubleshooting.md)
-2. Search existing [GitHub Issues](https://github.com/neoarch712/Neoarch/issues)
+2. Search existing [GitHub Issues](https://github.com/sanjayadanushka712/Neoarch/issues)
 3. Create a new issue with:
    - Error message
    - Steps to reproduce
    - System information
 
 ### Where can I ask questions?
-- [GitHub Discussions](https://github.com/neoarch712/Neoarch/discussions)
-- [GitHub Issues](https://github.com/neoarch712/Neoarch/issues)
+- [GitHub Discussions](https://github.com/sanjayadanushka712/Neoarch/discussions)
+- [GitHub Issues](https://github.com/sanjayadanushka712/Neoarch/issues)
 
 ### How do I report security issues?
-See [Security Policy](https://github.com/neoarch712/Neoarch/security/policy)
+See [Security Policy](https://github.com/sanjayadanushka712/Neoarch/security/policy)
 
 ---
 
-**Still have questions?** Check [Troubleshooting](Troubleshooting.md) or ask in [GitHub Discussions](https://github.com/neoarch712/Neoarch/discussions)
+**Still have questions?** Check [Troubleshooting](Troubleshooting.md) or ask in [GitHub Discussions](https://github.com/sanjayadanushka712/Neoarch/discussions)

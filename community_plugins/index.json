@@ -5,7 +5,7 @@
     "description": "A sample plugin demonstrating NeoArch plugin capabilities. Shows welcome messages and basic functionality.",
     "author": "NeoArch Team",
     "version": "1.0.0",
-    "url": "https://raw.githubusercontent.com/neoarch712/Neoarch/main/community_plugins/example_plugin.py",
+    "url": "https://raw.githubusercontent.com/sanjayadanushka712/Neoarch/main/community_plugins/example_plugin.py",
     "downloads": 42,
     "last_updated": "2024-01-15",
     "features": [

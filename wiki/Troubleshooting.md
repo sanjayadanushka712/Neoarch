@@ -46,7 +46,7 @@ sudo pip install -r requirements_pyqt.txt
 ping github.com
 
 # Try SSH instead of HTTPS
-git clone git@github.com:neoarch712/Neoarch.git
+git clone git@github.com:sanjayadanushka712/Neoarch.git
 
 # Update git
 sudo pacman -S git
@@ -459,7 +459,7 @@ pacman -Q neoarch-git       # NeoArch version (if from AUR)
 ### Report Issues
 
 1. Check [FAQ](FAQ.md)
-2. Search [GitHub Issues](https://github.com/neoarch712/Neoarch/issues)
+2. Search [GitHub Issues](https://github.com/sanjayadanushka712/Neoarch/issues)
 3. Create new issue with:
    - Error message
    - Steps to reproduce
@@ -468,4 +468,4 @@ pacman -Q neoarch-git       # NeoArch version (if from AUR)
 
 ---
 
-**Still stuck?** Ask in [GitHub Discussions](https://github.com/neoarch712/Neoarch/discussions)
+**Still stuck?** Ask in [GitHub Discussions](https://github.com/sanjayadanushka712/Neoarch/discussions)

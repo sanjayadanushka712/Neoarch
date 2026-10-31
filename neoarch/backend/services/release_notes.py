@@ -30,7 +30,7 @@ __all__ = [
 
 CHANGELOG_PATH = PROJECT_ROOT / "CHANGELOG.md"
 
-_RELEASE_URL = "https://api.github.com/repos/neoarch712/Neoarch/releases/latest"
+_RELEASE_URL = "https://api.github.com/repos/sanjayadanushka712/Neoarch/releases/latest"
 
 SECTION_LABELS = ("New Features", "Bug Fixes", "Improvements")
 
