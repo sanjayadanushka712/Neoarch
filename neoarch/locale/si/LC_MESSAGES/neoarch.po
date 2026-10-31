@@ -3419,3 +3419,15 @@ msgstr "මෙම පැකේජය සඳහා තවම ගනුදෙන�
 
 msgid "{count} transaction{s}"
 msgstr "ගනුදෙනු {count}"
+
+msgid "Install Summary"
+msgstr "ස්ථාපන සාරාංශය"
+
+msgid "{count} package{s} will be installed"
+msgstr "පැකේජ {count} ක් ස්ථාපනය වේ"
+
+msgid "Download size"
+msgstr "බාගැනීම් ප්‍රමාණය"
+
+msgid "Installed size"
+msgstr "ස්ථාපිත ප්‍රමාණය"

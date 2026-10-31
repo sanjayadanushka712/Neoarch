@@ -488,3 +488,32 @@ def test_installed_row_menu_offers_reinstall(qapp):
     by_text["Reinstall"].trigger()
 
     assert emitted == [("reinstall", "pkg-a")]
+
+
+def test_right_click_opens_the_same_row_menu(qapp):
+    table = _make_table()
+    calls = []
+    table._open_row_menu = lambda row, pos: calls.append(row)
+    table.indexAt = lambda pos: table.model.index(2, 1)
+
+    ev = QMouseEvent(QMouseEvent.Type.MouseButtonPress, QPointF(30, 30),
+                     QPointF(30, 30), Qt.MouseButton.RightButton,
+                     Qt.MouseButton.RightButton, Qt.KeyboardModifier.NoModifier)
+    table.mousePressEvent(ev)
+
+    assert calls == [2]
+
+
+def test_right_click_outside_rows_is_ignored(qapp):
+    from PyQt6.QtCore import QModelIndex
+    table = _make_table()
+    calls = []
+    table._open_row_menu = lambda row, pos: calls.append(row)
+    table.indexAt = lambda pos: QModelIndex()
+
+    ev = QMouseEvent(QMouseEvent.Type.MouseButtonPress, QPointF(30, 30),
+                     QPointF(30, 30), Qt.MouseButton.RightButton,
+                     Qt.MouseButton.RightButton, Qt.KeyboardModifier.NoModifier)
+    table.mousePressEvent(ev)
+
+    assert calls == []

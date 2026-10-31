@@ -3419,3 +3419,15 @@ msgstr "このパッケージの取引はまだありません。"
 
 msgid "{count} transaction{s}"
 msgstr "{count} 件の取引"
+
+msgid "Install Summary"
+msgstr "インストール概要"
+
+msgid "{count} package{s} will be installed"
+msgstr "{count} 個のパッケージをインストールします"
+
+msgid "Download size"
+msgstr "ダウンロードサイズ"
+
+msgid "Installed size"
+msgstr "インストールサイズ"

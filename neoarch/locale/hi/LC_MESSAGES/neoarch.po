@@ -3419,3 +3419,15 @@ msgstr "इस पैकेज के लिए अभी कोई लेन-�
 
 msgid "{count} transaction{s}"
 msgstr "{count} लेन-देन"
+
+msgid "Install Summary"
+msgstr "इंस्टॉल सारांश"
+
+msgid "{count} package{s} will be installed"
+msgstr "{count} पैकेज{s} इंस्टॉल होंगे"
+
+msgid "Download size"
+msgstr "डाउनलोड आकार"
+
+msgid "Installed size"
+msgstr "इंस्टॉल आकार"

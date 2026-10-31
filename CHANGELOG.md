@@ -32,6 +32,20 @@ dialog shows after an update.
   as the History page and shows a friendly empty state for packages with no
   recorded operations.
 
+- **Install summary.** Before installing, NeoArch resolves the transaction
+  and shows a summary of what will happen, with per-package rows and total
+  download and installed sizes. pacman resolves the full transaction with
+  `pacman -Sp`; AUR lists the requested packages plus their direct
+  dependencies that are not installed yet; npm uses a dry-run of the global
+  install; Flatpak covers the app and its runtime. Nothing runs until the
+  summary is accepted.
+
+### Bug Fixes
+
+- Right-clicking a row now opens the same menu as the row's three-dot
+  button on every page (Updates, Installed, Discover, Plugins, Bundles),
+  instead of the legacy menu or nothing at all.
+
 ## 3.4.5 — 2026-10-31
 
 ### New Features

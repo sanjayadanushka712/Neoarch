@@ -1196,8 +1196,14 @@ class UpdatesTable(QTableView):
         super().leaveEvent(event)
 
     def mousePressEvent(self, event):
+        pos = event.position().toPoint() if hasattr(event, "position") else event.pos()
+        if event.button() == Qt.MouseButton.RightButton:
+            idx = self.indexAt(pos)
+            if idx.isValid():
+                self._open_row_menu(idx.row(), pos)
+                event.accept()
+                return
         if event.button() == Qt.MouseButton.LeftButton:
-            pos = event.position().toPoint() if hasattr(event, "position") else event.pos()
             idx = self.indexAt(pos)
             col = idx.column() if idx.isValid() else -1
             if col == 7:

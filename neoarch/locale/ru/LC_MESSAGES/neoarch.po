@@ -3419,3 +3419,15 @@ msgstr "Для этого пакета пока нет операций."
 
 msgid "{count} transaction{s}"
 msgstr "{count} операц. {s}"
+
+msgid "Install Summary"
+msgstr "Сводка установки"
+
+msgid "{count} package{s} will be installed"
+msgstr "Будет установлено пакетов: {count}"
+
+msgid "Download size"
+msgstr "Размер загрузки"
+
+msgid "Installed size"
+msgstr "Установленный размер"

@@ -3755,10 +3755,7 @@ class _ViewsMixin:
             if not self.ensure_session_auth():
                 self.log("Install cancelled: authentication required.")
                 return
-            self.log(f"Installing {name} ({source})")
-            self.installation_progress.emit("start", False)
-            from neoarch.backend.package import installer as install_service
-            install_service.install_packages(self, {source: [name]})
+            self._start_install_preflight(name, source)
         elif action == "update":
             if not name:
                 return
@@ -3824,6 +3821,52 @@ class _ViewsMixin:
                 self.log(f"Copied '{name}' to clipboard")
         elif action == "bundle_remove":
             self._remove_from_bundle(pkg)
+
+    # ── install preflight ────────────────────────────────────────────
+
+    def _start_install_preflight(self, name, source):
+        """Resolve the pacman transaction, then summarise it before installing.
+
+        Every source is resolved in its own way; when a plan cannot be built
+        the install goes straight to the installer as before. Resolution runs
+        off the UI thread.
+        """
+        if not hasattr(self, "ui_call"):
+            self._install_now(name, source)
+            return
+
+        def task():
+            try:
+                from neoarch.backend.services.preflight import install_plan
+                plan = install_plan([name], source)
+            except Exception:
+                plan = {"ok": False}
+            if not plan.get("ok"):
+                self.ui_call.emit(lambda: self._install_now(name, source))
+                return
+            self.ui_call.emit(
+                lambda: self._confirm_install_plan(name, source, plan))
+
+        Thread(target=task, daemon=True).start()
+
+    def _confirm_install_plan(self, name, source, plan):
+        from neoarch.frontend.components.install_preflight_dialog import (
+            show_install_plan)
+        if not show_install_plan(self, plan):
+            self.log("Install cancelled.")
+            return
+        self._install_now(name, source)
+
+    def _install_now(self, name, source):
+        if not name:
+            return
+        if not self.ensure_session_auth():
+            self.log("Install cancelled: authentication required.")
+            return
+        self.log(f"Installing {name} ({source})")
+        self.installation_progress.emit("start", False)
+        from neoarch.backend.package import installer as install_service
+        install_service.install_packages(self, {source: [name]})
 
     def _open_package_page(self, pkg):
         name = (pkg.get('name') or '').strip()

@@ -3419,3 +3419,15 @@ msgstr "此软件包还没有任何操作记录。"
 
 msgid "{count} transaction{s}"
 msgstr "{count} 次操作"
+
+msgid "Install Summary"
+msgstr "安装摘要"
+
+msgid "{count} package{s} will be installed"
+msgstr "将安装 {count} 个软件包"
+
+msgid "Download size"
+msgstr "下载大小"
+
+msgid "Installed size"
+msgstr "安装大小"

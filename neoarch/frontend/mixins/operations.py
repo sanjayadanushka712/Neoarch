@@ -918,7 +918,7 @@ class _OperationsMixin:
             return
         to_install = {source: [name]}
         self._pending_install_packages = to_install
-        install_service.install_packages(self, to_install)
+        self._start_install_preflight(name, source)
 
     def update_from_detail(self):
         pkg = getattr(self.package_detail_card, '_pkg_data', None)

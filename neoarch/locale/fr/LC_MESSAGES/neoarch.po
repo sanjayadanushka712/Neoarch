@@ -3419,3 +3419,15 @@ msgstr "Aucune transaction pour ce paquet pour l’instant."
 
 msgid "{count} transaction{s}"
 msgstr "{count} transaction{s}"
+
+msgid "Install Summary"
+msgstr "Résumé de l’installation"
+
+msgid "{count} package{s} will be installed"
+msgstr "{count} paquet{s} sera installé"
+
+msgid "Download size"
+msgstr "Taille du téléchargement"
+
+msgid "Installed size"
+msgstr "Taille installée"
