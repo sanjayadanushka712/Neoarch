@@ -145,22 +145,22 @@ class GroupsTab(QWidget):
             QPushButton {{
                 background-color: transparent;
                 color: {Colors.TEXT};
-                border: 1px solid rgba(255, 255, 255, 0.12);
+                border: 1px solid {Colors.OVERLAY_12};
                 border-radius: 10px;
                 padding: 8px 16px;
                 font-size: {Fonts.BASE};
                 font-weight: 500;
             }}
             QPushButton:hover {{
-                background-color: rgba(255, 255, 255, 0.06);
-                border-color: rgba(255, 255, 255, 0.2);
+                background-color: {Colors.BORDER};
+                border-color: {Colors.BORDER_STRONG};
             }}
             QPushButton:pressed {{
-                background-color: rgba(255, 255, 255, 0.10);
+                background-color: {Colors.BORDER_HOVER};
             }}
             QPushButton:disabled {{
                 color: {Colors.TEXT_3};
-                border-color: rgba(255, 255, 255, 0.06);
+                border-color: {Colors.BORDER};
             }}
         """)
         self.install_all_btn.setCursor(Qt.CursorShape.PointingHandCursor)

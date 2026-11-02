@@ -8,7 +8,20 @@ import os
 import json
 from PyQt6.QtWidgets import QFileDialog
 
-__all__ = ["load_settings", "save_settings", "export_settings", "import_settings"]
+__all__ = [
+    "DEFAULT_SETTINGS",
+    "DEFAULT_WINDOW_MODE",
+    "WINDOW_MODE_NEOARCH",
+    "WINDOW_MODE_SYSTEM",
+    "load_settings",
+    "save_settings",
+    "export_settings",
+    "import_settings",
+]
+
+WINDOW_MODE_SYSTEM = "system"
+WINDOW_MODE_NEOARCH = "neoarch"
+DEFAULT_WINDOW_MODE = WINDOW_MODE_SYSTEM
 
 DEFAULT_SETTINGS = {
     'auto_check_updates': True,
@@ -28,12 +41,15 @@ DEFAULT_SETTINGS = {
     'aur_helper': 'auto',
     # Appearance
     'theme': 'dark',
+    'window_mode': DEFAULT_WINDOW_MODE,
+    'neoarch_theme': '',
     'accent_color': '#00BFAE',
     'font_size': 13,
     'source_accent_colors': True,
     'window_glow': False,
     'window_radius': 8,
     'window_opacity': 0.75,
+    'window_system_transparency': False,
     # Console output strip (pixels)
     'console_height': 150,
     # Notifications

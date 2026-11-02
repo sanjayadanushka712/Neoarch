@@ -10,61 +10,29 @@ import os
 from threading import Thread
 
 from PyQt6.QtCore import pyqtSignal, Qt, QTimer, QRectF
-from PyQt6.QtGui import QPainter, QColor, QPixmap, QIcon
-from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame,
     QFileDialog, QInputDialog, QMessageBox,
     QScrollArea, QMenu,
 )
 
-from neoarch.frontend.tokens import Colors, Fonts, Radii
+from neoarch.frontend.icon_registry import render_icon
+from neoarch.frontend.tokens import Colors, Fonts, Radii, icon_tint
 from neoarch.frontend.styles import Styles
 from neoarch.backend.services.i18n import _
 
 __all__ = ["AppImageTab"]
 
 # ── design tokens ──────────────────────────────────────────────────
-_BG = Colors.BG_SECONDARY
-_SURFACE = Colors.SURFACE
-_SURFACE_2 = Colors.SURFACE_2
-_TEXT = Colors.TEXT
-_TEXT2 = Colors.TEXT_2
-_TEXT3 = Colors.TEXT_3
-_ACCENT = Colors.ACCENT
-_BORDER = Colors.BORDER
-_BORDER_HOVER = Colors.BORDER_HOVER
 
-_TEAL = Colors.TEAL
-_ORANGE = Colors.ORANGE
-_PURPLE = Colors.PURPLE
-_BLUE = Colors.BLUE
-_GREEN = Colors.GREEN
-_RED = Colors.RED
 
 _R_SM = int(Radii.SM)
 _R_MD = int(Radii.MD)
 _R_LG = int(Radii.LG)
 
 
-def _svg_icon(rel_path, size, color="#FFFFFF"):
-    from neoarch.resources.paths import PROJECT_ROOT
-    path = os.path.join(str(PROJECT_ROOT), "assets", "icons", rel_path)
-    try:
-        r = QSvgRenderer(path)
-        if r.isValid():
-            pm = QPixmap(size, size)
-            pm.fill(Qt.GlobalColor.transparent)
-            p = QPainter(pm)
-            p.setRenderHint(QPainter.RenderHint.Antialiasing)
-            r.render(p, QRectF(0, 0, size, size))
-            p.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
-            p.fillRect(QRectF(0, 0, size, size), QColor(color))
-            p.end()
-            return QIcon(pm)
-    except Exception:
-        pass
-    return QIcon()
+def _svg_icon(rel_path, size, color=None):
+    return render_icon(rel_path, size, color or icon_tint())
 
 
 def _fmt_size(nbytes):
@@ -109,8 +77,8 @@ class _StatCard(QFrame):
         self.setFixedHeight(88)
         self.setStyleSheet(f"""
             QFrame#aiStatCard {{
-                background: {_SURFACE};
-                border: 1px solid {_BORDER};
+                background: {Colors.SURFACE};
+                border: 1px solid {Colors.BORDER};
                 border-radius: {_R_LG}px;
             }}
         """)
@@ -120,7 +88,7 @@ class _StatCard(QFrame):
 
         self._title_lbl = QLabel(title)
         self._title_lbl.setStyleSheet(
-            Styles.text(_TEXT2, Fonts.SM, Fonts.MEDIUM) +
+            Styles.text(Colors.TEXT_2, Fonts.SM, Fonts.MEDIUM) +
             "background: transparent; border: none;")
         layout.addWidget(self._title_lbl)
 
@@ -132,7 +100,7 @@ class _StatCard(QFrame):
 
         self._sub_lbl = QLabel(subtitle)
         self._sub_lbl.setStyleSheet(
-            Styles.text(_TEXT3, Fonts.XS, Fonts.REGULAR) +
+            Styles.text(Colors.TEXT_3, Fonts.XS, Fonts.REGULAR) +
             "background: transparent; border: none;")
         layout.addWidget(self._sub_lbl)
 
@@ -145,7 +113,9 @@ class _StatCard(QFrame):
 # ── Badge ──────────────────────────────────────────────────────────
 
 class _Badge(QLabel):
-    def __init__(self, text, bg="rgba(255,255,255,0.06)", color=_TEXT2, parent=None):
+    def __init__(self, text, bg=None, color=None, parent=None):
+        bg = bg or Colors.BORDER
+        color = color or Colors.TEXT_2
         super().__init__(text, parent)
         self.setStyleSheet(
             f"color: {color}; font-size: {Fonts.XS}; font-weight: 600;"
@@ -157,9 +127,9 @@ class _Badge(QLabel):
 # ── App Row ────────────────────────────────────────────────────────
 
 _SRC_COLORS = {
-    "file": ("rgba(163, 166, 176, 0.12)", Colors.SRC_LOCAL),
-    "url": ("rgba(76, 154, 255, 0.12)", _BLUE),
-    "repo": ("rgba(255, 159, 28, 0.12)", _ORANGE),
+    "file": (Colors.OVERLAY_12, Colors.SRC_LOCAL),
+    "url": (Colors.BLUE_SOFT, Colors.BLUE),
+    "repo": (Colors.ORANGE_SOFT, Colors.ORANGE),
 }
 
 
@@ -178,13 +148,13 @@ class _AppRow(QFrame):
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setStyleSheet(f"""
             QFrame#aiAppRow {{
-                background: {_SURFACE};
-                border: 1px solid {_BORDER};
+                background: {Colors.SURFACE};
+                border: 1px solid {Colors.BORDER};
                 border-radius: {_R_MD}px;
             }}
             QFrame#aiAppRow:hover {{
-                border-color: {_BORDER_HOVER};
-                background: {_SURFACE_2};
+                border-color: {Colors.BORDER_HOVER};
+                background: {Colors.SURFACE_2};
             }}
         """)
 
@@ -201,22 +171,22 @@ class _AppRow(QFrame):
 
         name_lbl = QLabel(entry.get("name", entry.get("id", "")))
         name_lbl.setStyleSheet(
-            f"color: {_TEXT}; font-size: {Fonts.BASE}; font-weight: 600;"
+            f"color: {Colors.TEXT}; font-size: {Fonts.BASE}; font-weight: 600;"
             "background: transparent; border: none;")
         top_row.addWidget(name_lbl)
 
         src_type = entry.get("source_type", "file")
         src_label = src_type.upper() if src_type == "repo" else src_type.capitalize()
-        src_bg, src_color = _SRC_COLORS.get(src_type, ("rgba(255,255,255,0.06)", _TEXT2))
+        src_bg, src_color = _SRC_COLORS.get(src_type, (Colors.BORDER, Colors.TEXT_2))
         top_row.addWidget(_Badge(src_label, src_bg, src_color))
 
         version = entry.get("version") or ""
         if version:
-            top_row.addWidget(_Badge(version, "rgba(255,255,255,0.04)", _TEXT3))
+            top_row.addWidget(_Badge(version, Colors.OVERLAY_04, Colors.TEXT_3))
 
         arch = _detect_arch(entry)
         if arch:
-            top_row.addWidget(_Badge(arch, "rgba(255,255,255,0.04)", _TEXT3))
+            top_row.addWidget(_Badge(arch, Colors.OVERLAY_04, Colors.TEXT_3))
 
         top_row.addStretch(1)
         left.addLayout(top_row)
@@ -233,7 +203,7 @@ class _AppRow(QFrame):
         if sub:
             url_lbl = QLabel(sub)
             url_lbl.setStyleSheet(
-                f"color: {_TEXT3}; font-size: {Fonts.XS};"
+                f"color: {Colors.TEXT_3}; font-size: {Fonts.XS};"
                 "background: transparent; border: none;")
             left.addWidget(url_lbl)
 
@@ -247,13 +217,13 @@ class _AppRow(QFrame):
         has_update = bool(entry.get("latest_version"))
         if has_update:
             status_text = f"↓ Update: {entry['latest_version']}"
-            status_color = _BLUE
+            status_color = Colors.BLUE
         elif entry.get("last_check") or entry.get("source_type") == "repo":
             status_text = "● Up to date"
-            status_color = _GREEN
+            status_color = Colors.GREEN
         else:
             status_text = "● Update info unavailable"
-            status_color = _TEXT3
+            status_color = Colors.TEXT_3
 
         status_lbl = QLabel(status_text)
         status_lbl.setStyleSheet(
@@ -265,7 +235,7 @@ class _AppRow(QFrame):
         if size:
             info_lbl = QLabel(_fmt_size(size))
             info_lbl.setStyleSheet(
-                f"color: {_TEXT3}; font-size: {Fonts.XS};"
+                f"color: {Colors.TEXT_3}; font-size: {Fonts.XS};"
                 "background: transparent; border: none;")
             middle.addWidget(info_lbl, 0, Qt.AlignmentFlag.AlignLeft)
 
@@ -278,11 +248,11 @@ class _AppRow(QFrame):
         aid = entry.get("id", "")
 
         if has_update:
-            upd_btn = self._action_btn("Update", _ORANGE)
+            upd_btn = self._action_btn("Update", Colors.ORANGE)
             upd_btn.clicked.connect(lambda: self.update_requested.emit(aid))
             right.addWidget(upd_btn)
 
-        open_btn = self._action_btn("Open", _ACCENT)
+        open_btn = self._action_btn("Open", Colors.ACCENT)
         open_btn.clicked.connect(lambda: self.open_requested.emit(aid))
         right.addWidget(open_btn)
 
@@ -291,12 +261,12 @@ class _AppRow(QFrame):
         menu_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         menu_btn.setStyleSheet(f"""
             QPushButton {{
-                background: transparent; color: {_TEXT3};
-                border: 1px solid {_BORDER}; border-radius: 6px;
+                background: transparent; color: {Colors.TEXT_3};
+                border: 1px solid {Colors.BORDER}; border-radius: 6px;
                 font-size: {Fonts.LG}; font-weight: 700; padding: 0;
             }}
             QPushButton:hover {{
-                background: rgba(255,255,255,0.06); color: {_TEXT2};
+                background: {Colors.BORDER}; color: {Colors.TEXT_2};
             }}
         """)
         menu_btn.clicked.connect(self._show_menu)
@@ -311,16 +281,16 @@ class _AppRow(QFrame):
         btn.setCursor(Qt.CursorShape.PointingHandCursor)
         btn.setStyleSheet(f"""
             QPushButton {{
-                background: rgba(255,255,255,0.04);
+                background: {Colors.OVERLAY_04};
                 color: {color};
-                border: 1px solid rgba(255,255,255,0.08);
+                border: 1px solid {Colors.BORDER_INPUT};
                 border-radius: 6px;
                 padding: 0 12px;
                 font-size: {Fonts.SM}; font-weight: 600;
             }}
             QPushButton:hover {{
-                background: rgba(255,255,255,0.08);
-                border-color: rgba(255,255,255,0.14);
+                background: {Colors.BORDER_INPUT};
+                border-color: {Colors.OVERLAY_14};
             }}
         """)
         return btn
@@ -328,7 +298,7 @@ class _AppRow(QFrame):
     def _show_menu(self):
         menu = QMenu(self)
         menu.setStyleSheet(Styles.menu() + f"""
-            QMenu::separator {{ height: 1px; background: {_BORDER}; margin: 4px 8px; }}
+            QMenu::separator {{ height: 1px; background: {Colors.BORDER}; margin: 4px 8px; }}
         """)
         aid = self.entry.get("id", "")
 
@@ -405,20 +375,20 @@ class AppImageTab(QWidget):
 
         title = QLabel(_("AppImages"))
         title.setStyleSheet(
-            f"color: {_TEXT}; font-size: {Fonts.HERO}; font-weight: 700;"
+            f"color: {Colors.TEXT}; font-size: {Fonts.HERO}; font-weight: 700;"
             "background: transparent; border: none;")
         left.addWidget(title)
 
         subtitle = QLabel(_("Browse and install applications from available sources"))
         subtitle.setStyleSheet(
-            f"color: {_TEXT2}; font-size: {Fonts.MD};"
+            f"color: {Colors.TEXT_2}; font-size: {Fonts.MD};"
             "background: transparent; border: none;")
         left.addWidget(subtitle)
 
         row.addLayout(left, 1)
 
         add_file_btn = QPushButton(_(" Add from File"))
-        add_file_btn.setIcon(_svg_icon("ui/import.svg", 14, f"{Colors.TEXT_ON_ACCENT}"))
+        add_file_btn.setIcon(_svg_icon("ui/import.svg", 14, f"{Colors.TEXT_ON_WHITE}"))
         add_file_btn.setIconSize(QRectF(0, 0, 14, 14).toRect().size())
         add_file_btn.setFixedHeight(34)
         add_file_btn.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -434,10 +404,10 @@ class AppImageTab(QWidget):
         self._stats_row = QHBoxLayout()
         self._stats_row.setSpacing(10)
 
-        self._stat_total = _StatCard(_("Total AppImages"), "0", _("All managed AppImages"), _TEAL)
-        self._stat_updates = _StatCard(_("Updates Available"), "0", _("Ready to update"), _BLUE)
-        self._stat_size = _StatCard(_("Total Size"), "0 B", _("Disk usage"), _PURPLE)
-        self._stat_sources = _StatCard(_("Sources"), "0", _("Unique sources"), _ORANGE)
+        self._stat_total = _StatCard(_("Total AppImages"), "0", _("All managed AppImages"), Colors.TEAL)
+        self._stat_updates = _StatCard(_("Updates Available"), "0", _("Ready to update"), Colors.BLUE)
+        self._stat_size = _StatCard(_("Total Size"), "0 B", _("Disk usage"), Colors.PURPLE)
+        self._stat_sources = _StatCard(_("Sources"), "0", _("Unique sources"), Colors.ORANGE)
 
         for card in (self._stat_total, self._stat_updates,
                      self._stat_size, self._stat_sources):
@@ -455,7 +425,7 @@ class AppImageTab(QWidget):
 
         icon = QLabel()
         icon.setFixedSize(48, 48)
-        icon_pixmap = _svg_icon("appimage.svg", 48, "#A0A3B0")
+        icon_pixmap = _svg_icon("appimage.svg", 48, f"{Colors.SRC_LOCAL}")
         if not icon_pixmap.isNull():
             icon.setPixmap(icon_pixmap.pixmap(48, 48))
         else:
@@ -466,20 +436,20 @@ class AppImageTab(QWidget):
 
         t1 = QLabel(_("No AppImages yet"))
         t1.setStyleSheet(
-            f"color: {_TEXT}; font-size: {Fonts.XL}; font-weight: 600;"
+            f"color: {Colors.TEXT}; font-size: {Fonts.XL}; font-weight: 600;"
             "background: transparent; border: none;")
         t1.setAlignment(Qt.AlignmentFlag.AlignCenter)
         el.addWidget(t1)
 
         t2 = QLabel(_("Add an AppImage from a local file or URL to get started."))
         t2.setStyleSheet(
-            f"color: {_TEXT2}; font-size: {Fonts.MD};"
+            f"color: {Colors.TEXT_2}; font-size: {Fonts.MD};"
             "background: transparent; border: none;")
         t2.setAlignment(Qt.AlignmentFlag.AlignCenter)
         el.addWidget(t2)
 
         empty_add = QPushButton(_(" Add from File"))
-        empty_add.setIcon(_svg_icon("ui/import.svg", 14, f"{Colors.TEXT_ON_ACCENT}"))
+        empty_add.setIcon(_svg_icon("ui/import.svg", 14, f"{Colors.TEXT_ON_WHITE}"))
         empty_add.setIconSize(QRectF(0, 0, 14, 14).toRect().size())
         empty_add.setFixedHeight(36)
         empty_add.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -490,7 +460,7 @@ class AppImageTab(QWidget):
 
         t3 = QLabel(_("Portable  ·  Desktop Integration  ·  Updates  ·  Easy Removal"))
         t3.setStyleSheet(
-            f"color: {_TEXT3}; font-size: {Fonts.XS};"
+            f"color: {Colors.TEXT_3}; font-size: {Fonts.XS};"
             "background: transparent; border: none;")
         t3.setAlignment(Qt.AlignmentFlag.AlignCenter)
         el.addWidget(t3)
@@ -568,7 +538,7 @@ class AppImageTab(QWidget):
 
         label = QLabel(count_text)
         label.setStyleSheet(
-            f"color: {_TEXT}; font-size: {Fonts.LG}; font-weight: 600;"
+            f"color: {Colors.TEXT}; font-size: {Fonts.LG}; font-weight: 600;"
             "background: transparent; border: none;")
         hrow.addWidget(label)
         hrow.addStretch(1)
@@ -580,11 +550,11 @@ class AppImageTab(QWidget):
         self._sort_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._sort_btn.setStyleSheet(f"""
             QPushButton {{
-                background: transparent; color: {_TEXT2};
-                border: 1px solid {_BORDER}; border-radius: 6px;
+                background: transparent; color: {Colors.TEXT_2};
+                border: 1px solid {Colors.BORDER}; border-radius: 6px;
                 padding: 0 10px; font-size: {Fonts.SM}; font-weight: 500;
             }}
-            QPushButton:hover {{ color: {_TEXT}; border-color: {_BORDER_HOVER}; }}
+            QPushButton:hover {{ color: {Colors.TEXT}; border-color: {Colors.BORDER_HOVER}; }}
         """)
         self._sort_btn.clicked.connect(self._cycle_sort)
         hrow.addWidget(self._sort_btn)

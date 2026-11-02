@@ -6,7 +6,7 @@ arrow, source and status badges, per-row overflow menu, sorting, zebra
 stripes, multi-select checkboxes, sticky header with select-all checkbox,
 a loading indicator and an empty state overlay.
 
-Design follows the app theme (tokens.py): accent #00BFAE, near-black
+Design follows the app theme (tokens.py): accent color, near-black
 surfaces and muted secondary text. The widget owns its data model and
 delegate, and talks to the rest of the app through signals.
 """
@@ -33,7 +33,6 @@ from PyQt6.QtCore import (
     pyqtSignal,
 )
 from PyQt6.QtGui import (
-    QColor,
     QFont,
     QFontMetrics,
     QIcon,
@@ -59,51 +58,48 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from neoarch.frontend.tokens import Colors, Fonts, SourceColors
+from neoarch.frontend.tokens import Colors, Fonts, SourceColors, qcolor
 from neoarch.backend.services.i18n import _
 from neoarch.backend.services.repo_map import get_repo_map, refresh_repo_map
 from neoarch.backend.sys_utils import c_locale_env
 
 # ── theme (from centralized tokens.py) ─────────────────────────────
-_ACCENT = QColor(Colors.ACCENT)
-_TEXT = QColor(Colors.TEXT)
-_TEXT_SEC = QColor(Colors.TEXT_2)
-_TEXT_MUTED = QColor(Colors.TEXT_3)
 _DEFAULT_LOADING_MESSAGE = "Loading\u2026"
-
-_SOURCE_COLORS = {k: QColor(v) for k, v in SourceColors.items()}
-_GREEN = QColor(88, 202, 143)
 
 _PANEL_RADIUS = int(Colors.ACCENT and 14)  # keep existing value
 
-_VIEWPORT_GLASS = """
-QWidget {
+
+def _viewport_glass():
+    return f"""
+QWidget {{
     background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-        stop:0    rgba(22, 23, 26, 150),
-        stop:0.06 rgba(20, 21, 24, 165),
-        stop:0.6  rgba(16, 17, 20, 180),
-        stop:1    rgba(12, 12, 14, 190));
+        stop:0    {Colors.GLASS_22_59},
+        stop:0.06 {Colors.GLASS_20_65},
+        stop:0.6  {Colors.GLASS_16_71},
+        stop:1    {Colors.GLASS_12_75});
     border: none;
-}
+}}
 """
 
-_ROW_HOVER = QColor(255, 255, 255, 22)
-_ROW_SELECTED = QColor(0, 191, 174, 31)
-_SEPARATOR = QColor(255, 255, 255, 16)
 
-_HEADER_TEXT = QColor(139, 141, 151)        # app _TEXT_SEC #8B8D97
-_HEADER_BORDER = QColor(255, 255, 255, 15)  # app _BORDER rgba(255,255,255,0.06)
+def _source_color(source):
+    return qcolor(SourceColors.get(source, Colors.TEXT_3))
+
 
 _STATUS_COLORS = {
-    "Security": QColor(248, 113, 113),
-    "Feature": QColor(96, 165, 250),
-    "Bug Fix": QColor(93, 199, 139),
-    "Maintenance": QColor(163, 166, 176),
-    "Downloading": QColor(251, 191, 36),
-    "Installed": QColor(93, 199, 139),
-    "Update": QColor(255, 179, 71),
-    "Available": QColor(0, 191, 174),
+    "Security": Colors.RED,
+    "Feature": Colors.BLUE,
+    "Bug Fix": Colors.GREEN,
+    "Maintenance": Colors.TEXT_2,
+    "Downloading": Colors.YELLOW,
+    "Installed": Colors.GREEN,
+    "Update": Colors.ORANGE,
+    "Available": Colors.ACCENT,
 }
+
+
+def _status_color(status):
+    return qcolor(_STATUS_COLORS.get(status, Colors.TEXT_3))
 
 _STATUS_TEXT = {
     "Security": "Security", "Feature": "Feature", "Bug Fix": "Bug Fix",
@@ -681,8 +677,8 @@ class _UpdatesHeader(QHeaderView):
 
         # frosted glass panel (top corners rounded to match the table frame)
         glass = QLinearGradient(0, rect.top(), 0, rect.bottom())
-        glass.setColorAt(0.0, QColor(19, 20, 23, 200))
-        glass.setColorAt(1.0, QColor(12, 12, 14, 215))
+        glass.setColorAt(0.0, qcolor(Colors.GLASS_22_92, 200))
+        glass.setColorAt(1.0, qcolor(Colors.GLASS_DARK, 215))
         is_first = section == 0
         is_last = section == self.count() - 1
         if is_first or is_last:
@@ -746,11 +742,11 @@ class _UpdatesHeader(QHeaderView):
             else:
                 tri << QPointF(arrow_x, arrow_y - 3) << QPointF(arrow_x + arrow_w, arrow_y - 3) << QPointF(arrow_x + arrow_w / 2, arrow_y + 2)
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(_ACCENT)
+            painter.setBrush(qcolor(Colors.ACCENT))
             painter.drawPolygon(tri)
 
         painter.setFont(self._font)
-        painter.setPen(_HEADER_TEXT)
+        painter.setPen(qcolor(Colors.TEXT_2))
         if right_align:
             align = Qt.AlignmentFlag.AlignRight
         elif center_align:
@@ -760,7 +756,7 @@ class _UpdatesHeader(QHeaderView):
         painter.drawText(text_rect, Qt.AlignmentFlag.AlignVCenter | align | Qt.TextFlag.TextSingleLine, label)
 
         # bottom hairline
-        line_pen = QPen(_HEADER_BORDER)
+        line_pen = QPen(qcolor(Colors.BORDER))
         line_pen.setWidthF(1)
         painter.setPen(line_pen)
         painter.drawLine(int(rect.left()), int(rect.bottom()) - 1, int(rect.right()), int(rect.bottom()) - 1)
@@ -772,16 +768,16 @@ class _UpdatesHeader(QHeaderView):
         path.addRoundedRect(r, 5, 5)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         if checked or indeterminate:
-            painter.fillPath(path, _ACCENT)
+            painter.fillPath(path, qcolor(Colors.ACCENT))
         else:
-            painter.setPen(QPen(QColor(255, 255, 255, 90), 1.5))
-            painter.fillPath(path, QColor(255, 255, 255, 14))
+            painter.setPen(QPen(qcolor(Colors.OVERLAY_90, 90), 1.5))
+            painter.fillPath(path, qcolor(Colors.OVERLAY_90, 14))
             painter.drawPath(path)
         if indeterminate:
-            painter.setPen(QPen(QColor(255, 255, 255), 1.8))
+            painter.setPen(QPen(qcolor(Colors.WHITE), 1.8))
             painter.drawLine(QPointF(r.center().x() - 3, r.center().y()), QPointF(r.center().x() + 3, r.center().y()))
         elif checked:
-            pen = QPen(QColor(255, 255, 255), 1.9)
+            pen = QPen(qcolor(Colors.WHITE), 1.9)
             pen.setCapStyle(Qt.PenCapStyle.RoundCap)
             painter.setPen(pen)
             painter.drawLine(QPointF(r.left() + 4, r.center().y()), QPointF(r.center().x() - 1, r.bottom() - 4))
@@ -855,7 +851,7 @@ class UpdatesTable(QTableView):
         self.setShowGrid(False)
         self.setFrameShape(QTableView.Shape.NoFrame)
         self.viewport().setAutoFillBackground(True)
-        self.viewport().setStyleSheet(_VIEWPORT_GLASS)
+        self.viewport().setStyleSheet(_viewport_glass())
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
@@ -1254,7 +1250,7 @@ class UpdatesTable(QTableView):
         except Exception:
             pm = None
         if pm is None or pm.isNull():
-            pm = _make_fallback_pixmap(size, _SOURCE_COLORS.get(source, _TEXT_MUTED))
+            pm = _make_fallback_pixmap(size, _source_color(source))
         self._pix_cache[key] = pm
         return pm
 
@@ -1369,12 +1365,12 @@ class UpdatesTable(QTableView):
 
     def _build_row_menu(self, pkg):
         menu = QMenu(self)
-        menu.setStyleSheet("""
-            QMenu { background-color: rgba(22, 25, 32, 235); color: #F3F4F6;
-                    border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px; padding: 4px; }
-            QMenu::item { padding: 8px 18px; border-radius: 4px; }
-            QMenu::item:selected { background-color: rgba(47, 129, 247, 0.28); color: #fff; }
-            QMenu::separator { height: 1px; background: rgba(255, 255, 255, 0.10); margin: 4px 8px; }
+        menu.setStyleSheet(f"""
+            QMenu {{ background-color: {Colors.GLASS_22_25_92}; color: {Colors.TEXT};
+                    border: 1px solid {Colors.OVERLAY_12}; border-radius: 8px; padding: 4px; }}
+            QMenu::item {{ padding: 8px 18px; border-radius: 4px; }}
+            QMenu::item:selected {{ background-color: {Colors.BLUE_STRONG_30}; color: {Colors.TEXT}; }}
+            QMenu::separator {{ height: 1px; background: {Colors.BORDER_HOVER}; margin: 4px 8px; }}
         """)
         if self._plugins_mode:
             installed = bool(pkg.get("_installed"))
@@ -1581,7 +1577,7 @@ class UpdatesRowDelegate(QStyledItemDelegate):
             self._paint_source_cell(painter, rect, pkg)
         elif col == 5:
             status = pkg.get("status") or classify_update(pkg.get("version"), pkg.get("new_version"))
-            self._paint_chip(painter, rect, _(_STATUS_TEXT.get(status, status)), _STATUS_COLORS.get(status, _TEXT_MUTED))
+            self._paint_chip(painter, rect, _(_STATUS_TEXT.get(status, status)), _status_color(status))
         elif col == 6:
             self._paint_date(painter, rect, pkg)
         elif col == 7:
@@ -1598,10 +1594,10 @@ class UpdatesRowDelegate(QStyledItemDelegate):
             path = QPainterPath()
             path.addRoundedRect(band, 6, 6)
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.fillPath(path, _ROW_SELECTED)
+            painter.fillPath(path, qcolor(Colors.ACCENT_SOFT))
             bar = QRectF(rect.left() + 2, band.top() + 7, 3, band.height() - 14)
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(_ACCENT)
+            painter.setBrush(qcolor(Colors.ACCENT))
             bar_path = QPainterPath()
             bar_path.addRoundedRect(bar, 2, 2)
             painter.drawPath(bar_path)
@@ -1610,11 +1606,11 @@ class UpdatesRowDelegate(QStyledItemDelegate):
             path = QPainterPath()
             path.addRoundedRect(band, 6, 6)
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.fillPath(path, _ROW_HOVER)
+            painter.fillPath(path, qcolor(Colors.OVERLAY_09))
 
         # hairline separator under the row (skipped on the selected row)
         if not selected:
-            pen = QPen(_SEPARATOR)
+            pen = QPen(qcolor(Colors.BORDER))
             pen.setWidthF(1)
             painter.setPen(pen)
             painter.drawLine(QPointF(rect.left() + 14, rect.bottom()), QPointF(rect.right() - 14, rect.bottom()))
@@ -1633,22 +1629,22 @@ class UpdatesRowDelegate(QStyledItemDelegate):
         path.addRoundedRect(r, 5, 5)
         if installed:
             if checked:
-                painter.fillPath(path, QColor(255, 255, 255, 40))
+                painter.fillPath(path, qcolor(Colors.OVERLAY_40))
             else:
-                painter.setPen(QPen(QColor(255, 255, 255, 40), 1.5))
-                painter.fillPath(path, QColor(255, 255, 255, 8))
+                painter.setPen(QPen(qcolor(Colors.OVERLAY_40), 1.5))
+                painter.fillPath(path, qcolor(Colors.OVERLAY_08))
                 painter.drawPath(path)
             return
         if checked:
-            painter.fillPath(path, _ACCENT)
-            pen = QPen(QColor(255, 255, 255), 1.9)
+            painter.fillPath(path, qcolor(Colors.ACCENT))
+            pen = QPen(qcolor(Colors.WHITE), 1.9)
             pen.setCapStyle(Qt.PenCapStyle.RoundCap)
             painter.setPen(pen)
             painter.drawLine(QPointF(r.left() + 4, r.center().y()), QPointF(r.center().x() - 1, r.bottom() - 4))
             painter.drawLine(QPointF(r.center().x() - 1, r.bottom() - 4), QPointF(r.right() - 3, r.top() + 4))
         else:
-            painter.setPen(QPen(QColor(255, 255, 255, 90), 1.5))
-            painter.fillPath(path, QColor(255, 255, 255, 14))
+            painter.setPen(QPen(qcolor(Colors.OVERLAY_90, 90), 1.5))
+            painter.fillPath(path, qcolor(Colors.OVERLAY_90, 14))
             painter.drawPath(path)
 
     def _paint_menu(self, painter, rect, row):
@@ -1659,9 +1655,9 @@ class UpdatesRowDelegate(QStyledItemDelegate):
             circle = QRectF(cx - 3, cy - 3, csize + 6, csize + 6)
             path = QPainterPath()
             path.addEllipse(circle)
-            painter.fillPath(path, QColor(255, 255, 255, 22))
+            painter.fillPath(path, qcolor(Colors.OVERLAY_22))
         painter.setFont(self._menu_font)
-        painter.setPen(_TEXT_SEC)
+        painter.setPen(qcolor(Colors.TEXT_2))
         painter.drawText(QRectF(rect.left(), rect.top(), rect.width(), rect.height()),
                          Qt.AlignmentFlag.AlignCenter | Qt.TextFlag.TextSingleLine, "\u22EE")
 
@@ -1686,7 +1682,7 @@ class UpdatesRowDelegate(QStyledItemDelegate):
         name_fm = QFontMetrics(self._name_font)
         name_el = name_fm.elidedText(name, Qt.TextElideMode.ElideRight, int(avail_w))
         painter.setFont(self._name_font)
-        painter.setPen(_GREEN if pkg.get("_installed") else _TEXT)
+        painter.setPen(qcolor(Colors.GREEN) if pkg.get("_installed") else qcolor(Colors.TEXT))
         painter.drawText(QRectF(text_left, rect.top() + 7, avail_w, 16),
                          Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft | Qt.TextFlag.TextSingleLine,
                          name_el)
@@ -1695,7 +1691,7 @@ class UpdatesRowDelegate(QStyledItemDelegate):
         desc_fm = QFontMetrics(self._desc_font)
         desc_el = desc_fm.elidedText(desc, Qt.TextElideMode.ElideRight, int(avail_w))
         painter.setFont(self._desc_font)
-        painter.setPen(_TEXT_SEC)
+        painter.setPen(qcolor(Colors.TEXT_2))
         painter.drawText(QRectF(text_left, rect.top() + 26, avail_w, 15),
                          Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft | Qt.TextFlag.TextSingleLine,
                          desc_el)
@@ -1710,7 +1706,7 @@ class UpdatesRowDelegate(QStyledItemDelegate):
 
         if not new or new == current:
             painter.setFont(self._ver_font)
-            painter.setPen(_TEXT_SEC)
+            painter.setPen(qcolor(Colors.TEXT_2))
             painter.drawText(QRectF(cell_left, rect.top(), cell_w, rect.height()),
                              Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft | Qt.TextFlag.TextSingleLine,
                              current or "—")
@@ -1719,19 +1715,19 @@ class UpdatesRowDelegate(QStyledItemDelegate):
         # current version on top, new version stacked underneath
         cur_el = fm.elidedText(current, Qt.TextElideMode.ElideMiddle, int(cell_w))
         painter.setFont(self._ver_font)
-        painter.setPen(_TEXT_MUTED)
+        painter.setPen(qcolor(Colors.TEXT_3))
         painter.drawText(QRectF(cell_left, rect.top() + 6, cell_w, line_h),
                          Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft | Qt.TextFlag.TextSingleLine,
                          cur_el)
 
         new_el = fm.elidedText(new, Qt.TextElideMode.ElideMiddle, int(cell_w - 14))
         new_top = rect.top() + 27
-        painter.setPen(QPen(_GREEN, 1.6))
+        painter.setPen(QPen(qcolor(Colors.GREEN), 1.6))
         painter.setFont(self._ver_font)
         painter.drawText(QRectF(cell_left, new_top, 12, line_h),
                          Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft | Qt.TextFlag.TextSingleLine,
                          "\u2191")
-        painter.setPen(_GREEN)
+        painter.setPen(qcolor(Colors.GREEN))
         painter.drawText(QRectF(cell_left + 12, new_top, max(10, cell_w - 12), line_h),
                          Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft | Qt.TextFlag.TextSingleLine,
                          new_el)
@@ -1743,7 +1739,7 @@ class UpdatesRowDelegate(QStyledItemDelegate):
         fm = QFontMetrics(self._ver_font)
         el = fm.elidedText(size, Qt.TextElideMode.ElideLeft, int(max(12, rect.width() - 10)))
         painter.setFont(self._ver_font)
-        painter.setPen(_TEXT_SEC)
+        painter.setPen(qcolor(Colors.TEXT_2))
         painter.drawText(QRectF(rect.left() + 4, rect.top(), rect.width() - 10, rect.height()),
                          Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight | Qt.TextFlag.TextSingleLine,
                          el)
@@ -1752,7 +1748,7 @@ class UpdatesRowDelegate(QStyledItemDelegate):
         avail = max(10, rect.width() - 12)
         el = fm.elidedText(text, Qt.TextElideMode.ElideRight, int(avail))
         painter.setFont(self._badge_font)
-        painter.setPen(_TEXT_SEC)
+        painter.setPen(qcolor(Colors.TEXT_2))
         painter.drawText(QRectF(rect.left() + 6, rect.top(), avail, rect.height()),
                          Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft | Qt.TextFlag.TextSingleLine,
                          el)
@@ -1766,14 +1762,14 @@ class UpdatesRowDelegate(QStyledItemDelegate):
             repo = pkg.get("repo") or ""
             if repo:
                 src = f"{src} \u00b7 {repo}"
-        self._paint_label(painter, rect, src, _TEXT_SEC)
+        self._paint_label(painter, rect, src, qcolor(Colors.TEXT_2))
 
     def _paint_date(self, painter, rect, pkg):
         text = _fmt_date(pkg.get("installed_date"))
         fm = QFontMetrics(self._ver_font)
         el = fm.elidedText(text, Qt.TextElideMode.ElideLeft, int(max(12, rect.width() - 10)))
         painter.setFont(self._ver_font)
-        painter.setPen(_TEXT_SEC)
+        painter.setPen(qcolor(Colors.TEXT_2))
         painter.drawText(QRectF(rect.left() + 4, rect.top(), rect.width() - 10, rect.height()),
                          Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft | Qt.TextFlag.TextSingleLine,
                          el)
@@ -1793,15 +1789,15 @@ class UpdatesRowDelegate(QStyledItemDelegate):
         chip = QRectF(x, cy, total, 24)
         path = QPainterPath()
         path.addRoundedRect(chip, 12, 12)
-        painter.setPen(QPen(QColor(255, 255, 255, 40), 1))
-        painter.fillPath(path, QColor(255, 255, 255, 10))
+        painter.setPen(QPen(qcolor(Colors.OVERLAY_40), 1))
+        painter.fillPath(path, qcolor(Colors.OVERLAY_10))
         painter.drawPath(path)
         # minimal colored dot identifying the status type
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(color)
         painter.drawEllipse(QPointF(chip.left() + 13, chip.center().y()), dot / 2, dot / 2)
         painter.setFont(self._badge_font)
-        painter.setPen(_TEXT)
+        painter.setPen(qcolor(Colors.TEXT))
         painter.drawText(QRectF(chip.left() + 13 + dot + 6, chip.top(), tw, chip.height()),
                          Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft | Qt.TextFlag.TextSingleLine,
                          text)
@@ -1848,8 +1844,8 @@ class _BottomFade(QWidget):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         r = QRectF(self.rect())
         grad = QLinearGradient(0, r.top(), 0, r.bottom())
-        grad.setColorAt(0.0, QColor(9, 9, 11, 0))
-        grad.setColorAt(1.0, QColor(8, 8, 10, 235))
+        grad.setColorAt(0.0, qcolor(Colors.BG, 0))
+        grad.setColorAt(1.0, qcolor(Colors.BG, 235))
         painter.fillRect(r, grad)
 
 
@@ -1870,20 +1866,20 @@ class _EmptyBadge(QWidget):
 
         # soft radial glow
         glow = QRadialGradient(cx, cy, r)
-        glow.setColorAt(0.0, QColor(88, 202, 143, 46))
-        glow.setColorAt(0.55, QColor(88, 202, 143, 22))
-        glow.setColorAt(1.0, QColor(88, 202, 143, 0))
+        glow.setColorAt(0.0, qcolor(Colors.GREEN, 46))
+        glow.setColorAt(0.55, qcolor(Colors.GREEN, 22))
+        glow.setColorAt(1.0, qcolor(Colors.GREEN, 0))
         p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(glow)
         p.drawEllipse(QRectF(cx - r, cy - r, r * 2, r * 2))
 
         # thin ring
-        p.setPen(QPen(QColor(88, 202, 143, 90), 1.5))
+        p.setPen(QPen(qcolor(Colors.GREEN, 90), 1.5))
         p.setBrush(Qt.BrushStyle.NoBrush)
         p.drawEllipse(QRectF(cx - r + 2, cy - r + 2, (r - 2) * 2, (r - 2) * 2))
 
         # white checkmark
-        pen = QPen(QColor(255, 255, 255, 235), 3.2)
+        pen = QPen(qcolor(Colors.WHITE, 235), 3.2)
         pen.setCapStyle(Qt.PenCapStyle.RoundCap)
         pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
         p.setPen(pen)
@@ -1914,22 +1910,22 @@ class _EmptyOverlay(QWidget):
         f.setPointSize(13)
         f.setWeight(QFont.Weight.DemiBold)
         self._title.setFont(f)
-        self._title.setStyleSheet("color: #EDEDEF; background: transparent; border: none;")
+        self._title.setStyleSheet(f"color: {Colors.TEXT}; background: transparent; border: none;")
         layout.addWidget(self._title)
 
         self._sub = QLabel(_("Your system is up to date"))
         self._sub.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._sub.setStyleSheet("color: #8B8D97; background: transparent; border: none;")
+        self._sub.setStyleSheet(f"color: {Colors.TEXT_2}; background: transparent; border: none;")
         layout.addWidget(self._sub)
 
         self._hint = QLabel(_("Updates will appear here automatically when available"))
         self._hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._hint.setStyleSheet("color: #5C5E66; background: transparent; border: none;")
+        self._hint.setStyleSheet(f"color: {Colors.TEXT_3}; background: transparent; border: none;")
         layout.addWidget(self._hint)
 
         self._suggest_label = QLabel(_("Did you mean\u2026"))
         self._suggest_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._suggest_label.setStyleSheet("color: #8B8D97; background: transparent; border: none;")
+        self._suggest_label.setStyleSheet(f"color: {Colors.TEXT_2}; background: transparent; border: none;")
         self._suggest_label.hide()
         layout.addWidget(self._suggest_label)
 
@@ -1949,8 +1945,8 @@ class _EmptyOverlay(QWidget):
         self._progress.setVisible(False)
         self._progress.setStyleSheet(
             "QProgressBar { border: none; border-radius: 3px;"
-            " background: rgba(255,255,255,0.07); }"
-            " QProgressBar::chunk { background: #00BFAE; border-radius: 3px; }")
+            f" background: {Colors.OVERLAY_07}; }}"
+            f" QProgressBar::chunk {{ background: {Colors.ACCENT}; border-radius: 3px; }}")
         layout.addSpacing(6)
         layout.addWidget(self._progress, alignment=Qt.AlignmentFlag.AlignHCenter)
 
@@ -1998,11 +1994,11 @@ class _EmptyOverlay(QWidget):
             btn = QPushButton(name)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
             btn.setStyleSheet(
-                f"QPushButton {{ background: rgba(0,191,174,0.12); color: #4FDBCE;"
-                f" border: 1px solid rgba(0,191,174,0.35); border-radius: 13px;"
+                f"QPushButton {{ background: {Colors.ACCENT_SOFT}; color: {Colors.ACCENT_HOVER};"
+                f" border: 1px solid {Colors.ACCENT_BORDER_STRONG}; border-radius: 13px;"
                 f" padding: 5px 14px; font-size: {Fonts.MD}; }}"
-                f" QPushButton:hover {{ background: rgba(0,191,174,0.22); }}"
-                f" QPushButton:pressed {{ background: rgba(0,191,174,0.32); }}")
+                f" QPushButton:hover {{ background: {Colors.ACCENT_22}; }}"
+                f" QPushButton:pressed {{ background: {Colors.ACCENT_32}; }}")
             btn.clicked.connect(lambda _=False, n=name: self._suggest_clicked(n))
             self._chips_layout.addWidget(btn)
         self._suggest_label.show()

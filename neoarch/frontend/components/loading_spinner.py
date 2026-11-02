@@ -94,7 +94,7 @@ class LoadingSpinner(QWidget):
             }}
             LoadingSpinner QLabel#spinnerMsgLabel {{
                 background-color: transparent;
-                color: #E8E8E8;
+                color: {Colors.TEXT};
                 font-size: {Fonts.HERO};
                 font-weight: 500;
             }}
@@ -102,7 +102,7 @@ class LoadingSpinner(QWidget):
                 border: none;
                 border-radius: 4px;
                 text-align: center;
-                background-color: rgba(255, 255, 255, 0.08);
+                background-color: {Colors.BORDER_INPUT};
             }}
             LoadingSpinner QProgressBar::chunk {{
                 background-color: {Colors.ACCENT};

@@ -66,7 +66,7 @@ class _SettingsMixin:
                 margin: 1px 8px;
             }}
             QPushButton:hover {{
-                background-color: rgba(255, 255, 255, 0.06);
+                background-color: {Colors.BORDER};
                 color: {Colors.TEXT};
             }}
             QPushButton:checked {{
@@ -166,8 +166,8 @@ class _SettingsMixin:
         edition_badge = QLabel(APP_EDITION)
         edition_badge.setStyleSheet(f"""
             color: {Colors.ACCENT};
-            background-color: rgba(0, 191, 174, 0.08);
-            border: 1px solid rgba(0, 191, 174, 0.18);
+            background-color: {Colors.ACCENT_08};
+            border: 1px solid {Colors.ACCENT_18};
             font-size: {Fonts.XS};
             font-weight: {Fonts.SEMI};
             letter-spacing: 0.3px;
@@ -195,8 +195,8 @@ class _SettingsMixin:
         content_scroll.setHorizontalScrollBarPolicy(
             Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         content_scroll.setStyleSheet(
-            Styles.scrollbar(width=8, color="rgba(255,255,255,0.12)",
-                             hover="rgba(255,255,255,0.22)", min_len=36)
+            Styles.scrollbar(width=8, color=f"{Colors.OVERLAY_12}",
+                             hover=f"{Colors.OVERLAY_22}", min_len=36)
             + f"\nQWidget#settingsInner {{ background-color: {Colors.BG}; }}")
 
         settings_inner = QWidget()
@@ -280,18 +280,32 @@ class _SettingsMixin:
         opt-in (default OFF) and switchable without restarting.
         """
         from neoarch.frontend import tokens
-        tokens.WINDOW_GLOW = bool(self.settings.get('window_glow', False))
+        native = self._window_mode() == settings_service.WINDOW_MODE_SYSTEM
+        tokens.WINDOW_GLOW = (
+            bool(self.settings.get('window_glow', False)) and not native)
         try:
             radius = int(self.settings.get('window_radius', 8))
         except (TypeError, ValueError):
             radius = 8
-        tokens.WINDOW_RADIUS = max(0, min(radius, 24))
+        tokens.WINDOW_RADIUS = 0 if native else max(0, min(radius, 24))
 
         try:
             opacity = float(self.settings.get('window_opacity', 0.75))
         except (TypeError, ValueError):
             opacity = 0.75
-        tokens.WINDOW_OPACITY = max(0.20, min(opacity, 1.0))
+        system_transparency = (
+            native
+            and bool(self.settings.get('window_system_transparency', False))
+        )
+        tokens.WINDOW_OPACITY = (
+            max(0.20, min(opacity, 1.0))
+            if (not native or system_transparency)
+            else 1.0
+        )
+        self.setAttribute(
+            Qt.WidgetAttribute.WA_TranslucentBackground,
+            (not native) or system_transparency,
+        )
 
         outer = self.centralWidget()
         if outer is not None:

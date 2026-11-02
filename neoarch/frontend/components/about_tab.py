@@ -7,21 +7,20 @@ import os
 import subprocess
 import platform as _platform
 
-from PyQt6.QtCore import Qt, QThread, QTimer, pyqtSignal, QRectF, QSize
+from PyQt6.QtCore import Qt, QThread, QTimer, pyqtSignal, QSize
 from PyQt6.QtGui import QPixmap, QPainter, QPainterPath, QIcon
-from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QFrame, QScrollArea, QGridLayout,
     QApplication, QStackedWidget,
 )
 
-from neoarch.frontend.tokens import Colors, Fonts, Radii, QSS
+from neoarch.frontend.tokens import Colors, Fonts, Radii, QSS, icon_tint
 from neoarch.frontend.styles import Styles
 from neoarch.backend.services.i18n import _
-from neoarch.resources.paths import (
-    ASSETS_DIR, APP_VERSION, APP_EDITION, PROJECT_ROOT,
-)
+from neoarch.resources.paths import APP_VERSION, APP_EDITION, PROJECT_ROOT
+from neoarch.frontend.icon_registry import (
+    brand_icon_candidates, icon_path, render_pixmap)
 
 __all__ = ["AboutTab"]
 
@@ -67,8 +66,7 @@ def _sponsor_row(sponsor, is_first):
     row.setSpacing(14)
 
     # Portrait — a button, so the avatar opens the sponsor's page too.
-    av_path = os.path.join(
-        str(ASSETS_DIR), "icons", "app", sponsor.get("avatar", ""))
+    av_path = icon_path(f"app/{sponsor.get('avatar', '')}")
     apm = QPixmap(av_path) if (
         sponsor.get("avatar") and os.path.exists(av_path)
     ) else QPixmap()
@@ -83,7 +81,7 @@ def _sponsor_row(sponsor, is_first):
         badge.setStyleSheet(
             "QPushButton { border: none; border-radius: 24px;"
             " background: transparent; padding: 0; }"
-            "QPushButton:hover { background: rgba(255, 255, 255, 0.06); }")
+            f"QPushButton:hover {{ background: {Colors.BORDER}; }}")
     else:
         badge.setText((sponsor["name"] or "?")[0].upper())
         badge.setStyleSheet(
@@ -91,7 +89,7 @@ def _sponsor_row(sponsor, is_first):
             f" background: {Colors.ACCENT_SOFT};"
             f" color: {Colors.ACCENT}; font-size: {Fonts.LG};"
             f" font-weight: {Fonts.BOLD}; padding: 0; }}"
-            "QPushButton:hover { background: rgba(255, 255, 255, 0.06); }")
+            f"QPushButton:hover {{ background: {Colors.BORDER}; }}")
     if sponsor.get("url"):
         link_label = copy.get("link") or _("\u2197 GitHub")
         badge.setToolTip(link_label)
@@ -119,8 +117,8 @@ def _sponsor_row(sponsor, is_first):
     # The first sponsor is marked in gold — the app's coffee colour — so
     # the roll of honour reads at a glance.
     if is_first:
-        role = _chip("\u2605 " + copy["role"], "#FFC832",
-                     "rgba(255, 200, 50, 0.12)", "rgba(255, 200, 50, 0.35)")
+        role = _chip("\u2605 " + copy["role"], f"{Colors.GOLD}",
+                     f"{Colors.GOLD_SOFT}", f"{Colors.GOLD_BORDER}")
     else:
         role = _chip(copy["role"], Colors.ACCENT, Colors.ACCENT_SOFT,
                      Colors.ACCENT_BORDER)
@@ -144,10 +142,9 @@ def _sponsor_row(sponsor, is_first):
         link.setObjectName("sponsorLink")
         icon_name = sponsor.get("url_icon")
         if icon_name:
-            icon_path = os.path.join(
-                str(ASSETS_DIR), "icons", "ui", icon_name)
-            if os.path.exists(icon_path):
-                link.setIcon(QIcon(icon_path))
+            link_icon_path = icon_path(f"ui/{icon_name}")
+            if os.path.exists(link_icon_path):
+                link.setIcon(QIcon(link_icon_path))
                 link.setIconSize(QSize(15, 15))
         row.addWidget(link, 0, Qt.AlignmentFlag.AlignTop)
     return row
@@ -268,28 +265,11 @@ def _card_body(text):
 
 
 # ── Community page pieces ───────────────────────────────────────────
-# Inline lucide-style stroke icons (24x24 viewBox).
-_ICON_USERS = (
-    '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>'
-    '<circle cx="9" cy="7" r="4"/>'
-    '<path d="M22 21v-2a4 4 0 0 0-3-3.87"/>'
-    '<path d="M16 3.13a4 4 0 0 1 0 7.75"/>'
-)
-_ICON_HEART = (
-    '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3'
-    'c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5'
-    'c0 2.3 1.5 4.05 3 5.5l7 7Z"/>'
-)
-_ICON_COFFEE = (
-    '<path d="M10 2v2"/><path d="M14 2v2"/><path d="M6 2v2"/>'
-    '<path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4'
-    'V9a1 1 0 0 1 1-1h14a4 4 0 0 1 4 4v2a1 1 0 0 1-1 1h-1"/>'
-)
-_ICON_GIT = (
-    '<path d="M6 3v12"/><circle cx="18" cy="6" r="3"/>'
-    '<circle cx="6" cy="18" r="3"/>'
-    '<path d="M18 9a9 9 0 0 1-9 9"/>'
-)
+# Card icons (assets/icons/ui).
+_ICON_USERS = "ui/users"
+_ICON_HEART = "ui/heart"
+_ICON_COFFEE = "ui/coffee"
+_ICON_GIT = "ui/git-branch"
 
 
 def _circular_pixmap(pm, size):
@@ -379,20 +359,20 @@ def _accent_btn(text, on_click):
     btn.setCursor(Qt.CursorShape.PointingHandCursor)
     btn.setStyleSheet(f"""
         QPushButton {{
-            background-color: rgba(255, 255, 255, 0.06);
+            background-color: {Colors.BORDER};
             color: {Colors.TEXT};
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid {Colors.BORDER_HOVER};
             border-radius: 10px;
             padding: 8px 18px;
             font-size: {Fonts.BASE};
             font-weight: {Fonts.MEDIUM};
         }}
         QPushButton:hover {{
-            background-color: rgba(255, 255, 255, 0.1);
-            border-color: rgba(0, 191, 174, 0.4);
+            background-color: {Colors.BORDER_HOVER};
+            border-color: {Colors.ACCENT_40};
         }}
         QPushButton:pressed {{
-            background-color: rgba(255, 255, 255, 0.14);
+            background-color: {Colors.OVERLAY_14};
         }}
     """)
     btn.clicked.connect(lambda checked=False: on_click())
@@ -404,7 +384,7 @@ def _secondary_btn(text, on_click):
     btn.setCursor(Qt.CursorShape.PointingHandCursor)
     btn.setStyleSheet(f"""
         QPushButton {{
-            background-color: rgba(255, 255, 255, 0.04);
+            background-color: {Colors.OVERLAY_04};
             color: {Colors.TEXT_2};
             border: 1px solid {Colors.BORDER};
             border-radius: 10px;
@@ -413,7 +393,7 @@ def _secondary_btn(text, on_click):
             font-weight: {Fonts.MEDIUM};
         }}
         QPushButton:hover {{
-            background-color: rgba(255, 255, 255, 0.08);
+            background-color: {Colors.BORDER_INPUT};
             border-color: {Colors.BORDER_HOVER};
             color: {Colors.TEXT};
         }}
@@ -456,27 +436,13 @@ def _sep():
     return f
 
 
-def _mac_icon_pixmap(svg_body, size=16, color="#FFFFFF"):
-    """Render an inline stroke-SVG as a monochrome SF-Symbols-style pixmap."""
-    svg = (
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"'
-        ' fill="none" stroke="{c}" stroke-width="2"'
-        ' stroke-linecap="round" stroke-linejoin="round">{b}</svg>'
-    ).format(c=color, b=svg_body)
-    r = QSvgRenderer(svg.encode("utf-8"))
-    pm = QPixmap(size, size)
-    pm.fill(Qt.GlobalColor.transparent)
-    if r.isValid():
-        p = QPainter(pm)
-        p.setRenderHint(QPainter.RenderHint.Antialiasing)
-        p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        r.render(p, QRectF(0, 0, size, size))
-        p.end()
-    return pm
+def _mac_icon_pixmap(icon_name, size=16, color=None):
+    """Render a registered stroke icon as a themed monochrome pixmap."""
+    return render_pixmap(icon_name, size, color or icon_tint())
 
 
-def _icon_title_row(svg_body, title):
-    """Card title row with a white macOS-style line-icon badge."""
+def _icon_title_row(icon_name, title):
+    """Card title row with a themed macOS-style line-icon badge."""
     row = QHBoxLayout()
     row.setSpacing(10)
 
@@ -486,7 +452,7 @@ def _icon_title_row(svg_body, title):
     badge.setStyleSheet(
         f"background: {Colors.SURFACE_2}; border: none;"
         f"border-radius: {Radii.SM}px;")
-    badge.setPixmap(_mac_icon_pixmap(svg_body, 15))
+    badge.setPixmap(_mac_icon_pixmap(icon_name, 15))
     row.addWidget(badge)
 
     lbl = _card_title(title)
@@ -495,23 +461,10 @@ def _icon_title_row(svg_body, title):
     return row
 
 
-# White macOS-style section icons (stroke paths, 24x24 viewBox)
-_ICON_SPARKLES = (
-    '<path d="M12 4l1.7 4.6a2 2 0 0 0 1.2 1.2L19.5 11.5l-4.6 1.7'
-    'a2 2 0 0 0-1.2 1.2L12 19l-1.7-4.6a2 2 0 0 0-1.2-1.2L4.5 11.5'
-    'l4.6-1.7a2 2 0 0 0 1.2-1.2L12 4z"/>'
-    '<path d="M18.5 3v3"/><path d="M17 4.5h3"/>'
-    '<path d="M5.5 17v3"/><path d="M4 18.5h3"/>'
-)
-_ICON_WRENCH = (
-    '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0'
-    'l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3'
-    'l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>'
-)
-_ICON_ARROW_UP_CIRCLE = (
-    '<circle cx="12" cy="12" r="9"/>'
-    '<path d="m8.5 12.5 3.5-3.5 3.5 3.5"/><path d="M12 15V9"/>'
-)
+# White macOS-style section icons (assets/icons/ui).
+_ICON_SPARKLES = "ui/sparkles"
+_ICON_WRENCH = "ui/wrench"
+_ICON_ARROW_UP_CIRCLE = "ui/arrow-up-circle"
 
 
 # ── Tab: Overview ──────────────────────────────────────────────────
@@ -556,13 +509,7 @@ class _OverviewTab(QWidget):
         logo_row.setSpacing(16)
         logo_lbl = QLabel()
         pm = QPixmap()
-        for logo_name in (
-            os.path.join("icons", "app", "logo.png"),
-            os.path.join("icons", "app", "icon.png"),
-            os.path.join("icons", "app.png"),
-            os.path.join("icons", "NeoarchLogo.svg"),
-        ):
-            logo_path = os.path.join(str(ASSETS_DIR), logo_name)
+        for logo_path in brand_icon_candidates():
             if os.path.exists(logo_path):
                 candidate = QPixmap(logo_path)
                 if not candidate.isNull():
@@ -700,8 +647,7 @@ class _OverviewTab(QWidget):
             f"border-radius: 16px; border: none;"
             f" background: {Colors.SURFACE_2};")
         avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        dev_img_path = os.path.join(
-            str(ASSETS_DIR), "icons", "app", "developer.png")
+        dev_img_path = icon_path("app/developer")
         if os.path.exists(dev_img_path):
             dev_pm = QPixmap(dev_img_path)
             if not dev_pm.isNull():
@@ -902,7 +848,7 @@ class _ReleaseNotesTab(QWidget):
 
 # ── Tab: Documentation ─────────────────────────────────────────────
 
-_DOC_CHECK = '<path d="M5 13l4 4L19 7"/>'
+_DOC_CHECK = "ui/check-line"
 
 # (section, [(num, title, purpose, [(feature, description), ...]), ...])
 _DOC_SECTIONS = [
@@ -1130,7 +1076,7 @@ def _doc_step_row(idx, text, account=False):
         tag = QLabel(_("SIGN-IN"))
         tag.setStyleSheet(
             f"color: {Colors.ORANGE};"
-            " background: rgba(255, 159, 28, 0.12);"
+            f" background: {Colors.ORANGE_SOFT};"
             f" border-radius: 6px; padding: 2px 7px;"
             f" font-size: {Fonts.XS}; font-weight: {Fonts.SEMI};")
         row.addWidget(tag, 0, Qt.AlignmentFlag.AlignVCenter)
@@ -1293,7 +1239,7 @@ class _DocumentationTab(QWidget):
                 border-radius: {Radii.SM}px;
             }}
             QPushButton:hover {{
-                background-color: rgba(255, 255, 255, 0.06);
+                background-color: {Colors.BORDER};
                 color: {Colors.TEXT};
             }}
             QPushButton:checked {{
@@ -1829,12 +1775,12 @@ class _CommunityTab(QWidget):
             _("People"), _ICON_USERS, Colors.TEXT_2))
         left_lay.addWidget(self._maintainer_card())
         left_lay.addWidget(_section_header(
-            _("Sponsors"), _ICON_HEART, "#FFC832"))
+            _("Sponsors"), _ICON_HEART, f"{Colors.GOLD}"))
         left_lay.addWidget(self._sponsors_card())
         left_lay.addStretch(1)
 
         right_lay.addWidget(_section_header(
-            _("Support"), _ICON_COFFEE, "#FFC832"))
+            _("Support"), _ICON_COFFEE, f"{Colors.GOLD}"))
         right_lay.addWidget(self._support_card())
         right_lay.addWidget(_section_header(
             _("Get involved"), _ICON_GIT, Colors.TEXT_2))
@@ -1865,8 +1811,7 @@ class _CommunityTab(QWidget):
         avatar = QLabel()
         avatar.setFixedSize(56, 56)
         avatar.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        dev_img = os.path.join(
-            str(ASSETS_DIR), "icons", "app", "developer.png")
+        dev_img = icon_path("app/developer")
         pm = QPixmap(dev_img) if os.path.exists(dev_img) else QPixmap()
         if not pm.isNull():
             avatar.setPixmap(_circular_pixmap(pm, 56))
@@ -1917,7 +1862,7 @@ class _CommunityTab(QWidget):
 
     def _sponsors_card(self):
         """The sponsor roll — the first entry is the first sponsor."""
-        card, lay = _icon_card(_("Sponsors"), _ICON_HEART, "#FFC832")
+        card, lay = _icon_card(_("Sponsors"), _ICON_HEART, f"{Colors.GOLD}")
 
         sub = QLabel(_("The people who keep NeoArch afloat."))
         sub.setWordWrap(True)
@@ -1934,7 +1879,7 @@ class _CommunityTab(QWidget):
 
     def _support_card(self):
         """Ways to back the project, with the coffee QR."""
-        card, lay = _icon_card(_("Support NeoArch"), _ICON_COFFEE, "#FFC832")
+        card, lay = _icon_card(_("Support NeoArch"), _ICON_COFFEE, f"{Colors.GOLD}")
 
         body = _card_body(
             _("NeoArch is free, open-source and developed independently by "
@@ -1948,7 +1893,7 @@ class _CommunityTab(QWidget):
         top.addWidget(body, 1)
 
         qr = QLabel()
-        qr_path = os.path.join(str(ASSETS_DIR), "icons", "app", "qr-code.png")
+        qr_path = icon_path("app/qr-code")
         qpm = QPixmap(qr_path) if os.path.exists(qr_path) else QPixmap()
         if not qpm.isNull():
             qr.setPixmap(qpm.scaled(
@@ -1956,7 +1901,7 @@ class _CommunityTab(QWidget):
                 Qt.TransformationMode.SmoothTransformation))
             qr.setAlignment(Qt.AlignmentFlag.AlignCenter)
             qr.setStyleSheet(
-                f"background: #FFFFFF; border-radius: {Radii.MD}px;"
+                f"background: {Colors.WHITE}; border-radius: {Radii.MD}px;"
                 " padding: 8px;")
             qr_frame = QVBoxLayout()
             qr_frame.setSpacing(6)
@@ -1984,32 +1929,33 @@ class _CommunityTab(QWidget):
 
         btn_row = QHBoxLayout()
         btn_row.setSpacing(10)
-        bmc_icon = os.path.join(
-            str(ASSETS_DIR), "icons", "ui", "buymeacoffee.svg")
-        for label, url, color, bg, icon_path in [
+        bmc_icon = icon_path("ui/buymeacoffee")
+        for label, url, color, bg, border, hover, button_icon in [
             (_("\u2665  GitHub Sponsors"), _SPONSORS_URL,
-             "#FF6464", "rgba(255,100,100,", None),
+             Colors.RED, Colors.RED_SOFT, Colors.RED_BORDER,
+             Colors.RED_30, None),
             (_("Buy Me a Coffee"), _BUYMEACOFFEE_URL,
-             "#FFC832", "rgba(255,200,50,", bmc_icon),
+             Colors.GOLD, Colors.GOLD_SOFT, Colors.GOLD_BORDER,
+             Colors.GOLD_BORDER, bmc_icon),
         ]:
             b = QPushButton(label)
             b.setFixedHeight(34)
             b.setCursor(Qt.CursorShape.PointingHandCursor)
-            if icon_path and os.path.exists(icon_path):
-                b.setIcon(QIcon(icon_path))
+            if button_icon and os.path.exists(button_icon):
+                b.setIcon(QIcon(button_icon))
                 b.setIconSize(QSize(15, 15))
             b.setStyleSheet(f"""
                 QPushButton {{
-                    background: {bg}0.12);
+                    background: {bg};
                     color: {color};
-                    border: 1px solid {bg}0.25);
+                    border: 1px solid {border};
                     border-radius: {Radii.MD}px;
                     padding: 0 16px;
                     font-size: {Fonts.BASE};
                     font-weight: {Fonts.SEMI};
                 }}
                 QPushButton:hover {{
-                    background: {bg}0.20);
+                    background: {hover};
                 }}
             """)
             b.clicked.connect(lambda checked=False, u=url: _open_url(u))
@@ -2118,7 +2064,7 @@ class AboutTab(QWidget):
                 margin: 1px 8px;
             }}
             QPushButton:hover {{
-                background-color: rgba(255, 255, 255, 0.06);
+                background-color: {Colors.BORDER};
                 color: {Colors.TEXT};
             }}
             QPushButton:checked {{
@@ -2170,8 +2116,8 @@ class AboutTab(QWidget):
         ed_badge = QLabel(APP_EDITION)
         ed_badge.setStyleSheet(f"""
             color: {Colors.ACCENT};
-            background-color: rgba(0, 191, 174, 0.08);
-            border: 1px solid rgba(0, 191, 174, 0.18);
+            background-color: {Colors.ACCENT_08};
+            border: 1px solid {Colors.ACCENT_18};
             font-size: {Fonts.XS};
             font-weight: {Fonts.SEMI};
             letter-spacing: 0.3px;

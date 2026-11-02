@@ -1,261 +1,445 @@
-"""Theme definitions for NeoArch.
+"""Theme definitions and loading for NeoArch.
 
-Each theme is a dict that can be applied to update Colors, Fonts, Radii,
-and regenerate QSS blocks.  The current dark theme is the DEFAULT — its
-values match the existing tokens.py defaults exactly.
+Built-in themes live in ``assets/themes/*.json``.  Users can drop their own
+``*.json`` files into one of the search paths below; later directories win,
+so a user theme can override a built-in with the same ``id``.
+
+A theme file only needs the values it wants to change.  Missing colors are
+inherited from the Dark theme, which makes small accent-only themes possible.
 """
 
-__all__ = ["THEMES", "ThemeManager"]
+from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 
 from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtGui import QColor
+
+from neoarch.resources.paths import ASSETS_DIR
+
+__all__ = [
+    "DARK_THEME_ID",
+    "DEFAULT_THEME_ID",
+    "SYSTEM_THEME_ID",
+    "THEMES",
+    "THEME_DIRS",
+    "ThemeManager",
+    "get_theme_data",
+    "load_themes",
+    "reload_themes",
+    "system_font_families",
+    "system_metric_scale",
+    "system_scrollbar_width",
+    "system_theme_id",
+    "theme_search_paths",
+]
+
+BUILTIN_THEME_DIR = ASSETS_DIR / "themes"
+DARK_THEME_ID = "dark"
+SYSTEM_THEME_ID = "system"
+DEFAULT_THEME_ID = SYSTEM_THEME_ID
 
 
-# ── Theme palette definitions ──────────────────────────────────────
+def system_theme_id() -> str:
+    """Return the concrete theme matching the operating system appearance."""
+    try:
+        from PyQt6.QtCore import Qt
+        from PyQt6.QtGui import QPalette
+        from PyQt6.QtWidgets import QApplication
 
-DARK = {
-    "name": "Dark",
-    "description": "Default premium dark theme",
-    "is_dark": True,
-    "colors": {
-        "BG": "#0C0C0E",
-        "BG_SECONDARY": "#191A1F",
-        "SURFACE": "#16171A",
-        "SURFACE_2": "#1E1F24",
-        "SURFACE_3": "#252730",
-        "CARD": "#1C1E24",
-        "CARD_HOVER": "#22242A",
-        "INPUT_BG": "#121316",
-        "INPUT_BG_FOCUS": "#141518",
-        "SIDEBAR": "#0E0E10",
-        "BORDER": "rgba(255, 255, 255, 0.06)",
-        "BORDER_INPUT": "rgba(255, 255, 255, 0.08)",
-        "BORDER_HOVER": "rgba(255, 255, 255, 0.10)",
-        "BORDER_FOCUS": "rgba(0, 191, 174, 0.5)",
-        "BORDER_STRONG": "rgba(255, 255, 255, 0.20)",
-        "TEXT": "#EDEDEF",
-        "TEXT_2": "#8B8D97",
-        "TEXT_3": "#5C5E66",
-        "TEXT_ON_ACCENT": "#0C0C0E",
-        "ACCENT": "#00BFAE",
-        "ACCENT_HOVER": "#00D4C1",
-        "ACCENT_PRESSED": "#009688",
-        "ACCENT_SOFT": "rgba(0, 191, 174, 0.12)",
-        "ACCENT_BORDER": "rgba(0, 191, 174, 0.25)",
-        "ACCENT_BORDER_STRONG": "rgba(0, 191, 174, 0.35)",
-        "WHITE": "#FFFFFF",
-        "WHITE_HOVER": "#E8EAF0",
-        "WHITE_PRESSED": "#D3D6DE",
-        "TEAL": "#00D4AA",
-        "ORANGE": "#FF9F1C",
-        "PURPLE": "#8B7CFF",
-        "BLUE": "#4C9AFF",
-        "GREEN": "#22C55E",
-        "RED": "#FF6B6B",
-        "YELLOW": "#FBBF24",
-        "TOAST_INFO": "#4C9AFF",
-        "TOAST_SUCCESS": "#22C55E",
-        "TOAST_WARNING": "#FF9F1C",
-        "TOAST_ERROR": "#FF6B6B",
-    },
-    "source_colors": {
-        "pacman": "#4FC3F7",
-        "AUR": "#FF8A65",
-        "Flatpak": "#26A69A",
-        "npm": "#E53935",
-        "Firmware": "#A3A6B0",
-        "Docker": "#2496ED",
-        "Brew": "#8B5CF6",
-        "pipx": "#00ACC1",
-    },
-}
-
-LIGHT = {
-    "name": "Light",
-    "description": "Clean light theme for bright environments",
-    "is_dark": False,
-    "coming_soon": True,
-    "colors": {
-        "BG": "#F5F5F7",
-        "BG_SECONDARY": "#ECECEF",
-        "SURFACE": "#FFFFFF",
-        "SURFACE_2": "#F0F0F2",
-        "SURFACE_3": "#E8E8EC",
-        "CARD": "#FFFFFF",
-        "CARD_HOVER": "#F5F5F7",
-        "INPUT_BG": "#F0F0F2",
-        "INPUT_BG_FOCUS": "#FFFFFF",
-        "SIDEBAR": "#ECECEF",
-        "BORDER": "rgba(0, 0, 0, 0.08)",
-        "BORDER_INPUT": "rgba(0, 0, 0, 0.12)",
-        "BORDER_HOVER": "rgba(0, 0, 0, 0.15)",
-        "BORDER_FOCUS": "rgba(0, 150, 136, 0.5)",
-        "BORDER_STRONG": "rgba(0, 0, 0, 0.20)",
-        "TEXT": "#1A1A2E",
-        "TEXT_2": "#6B7280",
-        "TEXT_3": "#9CA3AF",
-        "TEXT_ON_ACCENT": "#FFFFFF",
-        "ACCENT": "#009688",
-        "ACCENT_HOVER": "#00796B",
-        "ACCENT_PRESSED": "#004D40",
-        "ACCENT_SOFT": "rgba(0, 150, 136, 0.10)",
-        "ACCENT_BORDER": "rgba(0, 150, 136, 0.25)",
-        "ACCENT_BORDER_STRONG": "rgba(0, 150, 136, 0.35)",
-        "WHITE": "#FFFFFF",
-        "WHITE_HOVER": "#F0F0F2",
-        "WHITE_PRESSED": "#E0E0E4",
-        "TEAL": "#00897B",
-        "ORANGE": "#E65100",
-        "PURPLE": "#5C6BC0",
-        "BLUE": "#1976D2",
-        "GREEN": "#2E7D32",
-        "RED": "#D32F2F",
-        "YELLOW": "#F9A825",
-        "TOAST_INFO": "#1976D2",
-        "TOAST_SUCCESS": "#2E7D32",
-        "TOAST_WARNING": "#E65100",
-        "TOAST_ERROR": "#D32F2F",
-    },
-    "source_colors": {
-        "pacman": "#1976D2",
-        "AUR": "#E65100",
-        "Flatpak": "#00897B",
-        "npm": "#D32F2F",
-        "Firmware": "#6B7280",
-        "Docker": "#1565C0",
-        "Brew": "#5C6BC0",
-        "pipx": "#00838F",
-    },
-}
-
-DRACULA = {
-    "name": "Dracula",
-    "description": "Popular dark theme with purple accents",
-    "is_dark": True,
-    "coming_soon": True,
-    "colors": {
-        "BG": "#282A36",
-        "BG_SECONDARY": "#2E303E",
-        "SURFACE": "#343746",
-        "SURFACE_2": "#3C3F58",
-        "SURFACE_3": "#44475A",
-        "CARD": "#343746",
-        "CARD_HOVER": "#3C3F58",
-        "INPUT_BG": "#2E303E",
-        "INPUT_BG_FOCUS": "#343746",
-        "SIDEBAR": "#21222C",
-        "BORDER": "rgba(255, 255, 255, 0.06)",
-        "BORDER_INPUT": "rgba(255, 255, 255, 0.08)",
-        "BORDER_HOVER": "rgba(255, 255, 255, 0.10)",
-        "BORDER_FOCUS": "rgba(189, 147, 249, 0.5)",
-        "BORDER_STRONG": "rgba(255, 255, 255, 0.20)",
-        "TEXT": "#F8F8F2",
-        "TEXT_2": "#6272A4",
-        "TEXT_3": "#44475A",
-        "TEXT_ON_ACCENT": "#282A36",
-        "ACCENT": "#BD93F9",
-        "ACCENT_HOVER": "#CAA8FB",
-        "ACCENT_PRESSED": "#A37FDB",
-        "ACCENT_SOFT": "rgba(189, 147, 249, 0.12)",
-        "ACCENT_BORDER": "rgba(189, 147, 249, 0.25)",
-        "ACCENT_BORDER_STRONG": "rgba(189, 147, 249, 0.35)",
-        "WHITE": "#FFFFFF",
-        "WHITE_HOVER": "#F0F0F2",
-        "WHITE_PRESSED": "#D3D6DE",
-        "TEAL": "#50FA7B",
-        "ORANGE": "#FFB86C",
-        "PURPLE": "#BD93F9",
-        "BLUE": "#8BE9FD",
-        "GREEN": "#50FA7B",
-        "RED": "#FF5555",
-        "YELLOW": "#F1FA8C",
-        "TOAST_INFO": "#8BE9FD",
-        "TOAST_SUCCESS": "#50FA7B",
-        "TOAST_WARNING": "#FFB86C",
-        "TOAST_ERROR": "#FF5555",
-    },
-    "source_colors": {
-        "pacman": "#8BE9FD",
-        "AUR": "#FFB86C",
-        "Flatpak": "#50FA7B",
-        "npm": "#FF5555",
-        "Firmware": "#6272A4",
-        "Docker": "#8BE9FD",
-        "Brew": "#BD93F9",
-        "pipx": "#8BE9FD",
-    },
-}
-
-NORD = {
-    "name": "Nord",
-    "description": "Arctic blue color palette",
-    "is_dark": True,
-    "coming_soon": True,
-    "colors": {
-        "BG": "#2E3440",
-        "BG_SECONDARY": "#3B4252",
-        "SURFACE": "#3B4252",
-        "SURFACE_2": "#434C5E",
-        "SURFACE_3": "#4C566A",
-        "CARD": "#3B4252",
-        "CARD_HOVER": "#434C5E",
-        "INPUT_BG": "#2E3440",
-        "INPUT_BG_FOCUS": "#3B4252",
-        "SIDEBAR": "#2E3440",
-        "BORDER": "rgba(255, 255, 255, 0.06)",
-        "BORDER_INPUT": "rgba(255, 255, 255, 0.08)",
-        "BORDER_HOVER": "rgba(255, 255, 255, 0.10)",
-        "BORDER_FOCUS": "rgba(136, 192, 208, 0.5)",
-        "BORDER_STRONG": "rgba(255, 255, 255, 0.20)",
-        "TEXT": "#ECEFF4",
-        "TEXT_2": "#616E88",
-        "TEXT_3": "#4C566A",
-        "TEXT_ON_ACCENT": "#2E3440",
-        "ACCENT": "#88C0D0",
-        "ACCENT_HOVER": "#8FBCBB",
-        "ACCENT_PRESSED": "#81A1C1",
-        "ACCENT_SOFT": "rgba(136, 192, 208, 0.12)",
-        "ACCENT_BORDER": "rgba(136, 192, 208, 0.25)",
-        "ACCENT_BORDER_STRONG": "rgba(136, 192, 208, 0.35)",
-        "WHITE": "#FFFFFF",
-        "WHITE_HOVER": "#ECEFF4",
-        "WHITE_PRESSED": "#D8DEE9",
-        "TEAL": "#88C0D0",
-        "ORANGE": "#D08770",
-        "PURPLE": "#B48EAD",
-        "BLUE": "#81A1C1",
-        "GREEN": "#A3BE8C",
-        "RED": "#BF616A",
-        "YELLOW": "#EBCB8B",
-        "TOAST_INFO": "#81A1C1",
-        "TOAST_SUCCESS": "#A3BE8C",
-        "TOAST_WARNING": "#D08770",
-        "TOAST_ERROR": "#BF616A",
-    },
-    "source_colors": {
-        "pacman": "#81A1C1",
-        "AUR": "#D08770",
-        "Flatpak": "#A3BE8C",
-        "npm": "#BF616A",
-        "Firmware": "#616E88",
-        "Docker": "#88C0D0",
-        "Brew": "#B48EAD",
-        "pipx": "#88C0D0",
-    },
-}
+        app = QApplication.instance()
+        if app is None:
+            return DARK_THEME_ID
+        scheme = app.styleHints().colorScheme()
+        if scheme == Qt.ColorScheme.Light:
+            return "light" if "light" in THEMES else DARK_THEME_ID
+        if scheme == Qt.ColorScheme.Dark:
+            return DARK_THEME_ID
+        window = app.palette().color(QPalette.ColorRole.Window)
+        if window.lightness() > 127:
+            return "light" if "light" in THEMES else DARK_THEME_ID
+    except Exception:
+        pass
+    return DARK_THEME_ID
 
 
-THEMES = {
-    "dark": DARK,
-    "light": LIGHT,
-    "dracula": DRACULA,
-    "nord": NORD,
-}
+def _hex(color: QColor) -> str:
+    """Return an uppercase ``#RRGGBB`` string for a QColor."""
+    return color.name(QColor.NameFormat.HexRgb).upper()
 
 
-# ── Theme manager ──────────────────────────────────────────────────
+def _css(color: QColor) -> str:
+    """Return a CSS color, preserving QColor alpha when present."""
+    from neoarch.frontend import tokens
+
+    return tokens.css_color(color)
+
+
+def _mix(first: QColor, second: QColor, weight: float) -> QColor:
+    """Blend two colors; ``weight`` 0 is first, 1 is second."""
+    weight = max(0.0, min(1.0, weight))
+    inverse = 1.0 - weight
+    return QColor(
+        round(first.red() * inverse + second.red() * weight),
+        round(first.green() * inverse + second.green() * weight),
+        round(first.blue() * inverse + second.blue() * weight),
+    )
+
+
+def _shift_lightness(color: QColor, amount: float) -> QColor:
+    """Lighten (positive) or darken (negative) a color in HSL space."""
+    hue, saturation, lightness, alpha = color.getHslF()
+    if hue < 0:
+        hue = 0.0
+    return QColor.fromHslF(
+        hue,
+        max(0.0, min(1.0, saturation)),
+        max(0.0, min(1.0, lightness + amount)),
+        max(0.0, min(1.0, alpha)),
+    )
+
+
+def _palette_color(palette, role_name: str, fallback: QColor) -> QColor:
+    """Read a QPalette role, falling back to a theme token."""
+    try:
+        from PyQt6.QtGui import QPalette
+
+        color = palette.color(getattr(QPalette.ColorRole, role_name))
+        if color.isValid() and color.alpha() > 0:
+            return color
+    except Exception:
+        pass
+    return fallback
+
+
+def _system_palette_colors(base: dict) -> dict:
+    """Build a full token palette from the live QPalette.
+
+    Only the neutral surfaces, text, borders, and accent families are
+    replaced. Semantic colors and glass tokens keep the light/dark base so
+    success/warning/error states stay recognizable.
+    """
+    from neoarch.frontend import tokens
+
+    base_colors = dict(base.get("colors", {}))
+    try:
+        from PyQt6.QtWidgets import QApplication
+
+        app = QApplication.instance()
+        if app is None:
+            return base_colors
+        palette = app.palette()
+    except Exception:
+        return base_colors
+
+    window = _palette_color(
+        palette, "Window", QColor(base_colors.get("BG") or "black"))
+    base_bg = _palette_color(
+        palette, "Base", QColor(base_colors.get("SURFACE") or "black"))
+    alternate = _palette_color(
+        palette, "AlternateBase",
+        QColor(base_colors.get("SURFACE_2") or "black"))
+    button = _palette_color(
+        palette, "Button", QColor(base_colors.get("CARD") or "black"))
+    window_text = _palette_color(
+        palette, "WindowText", QColor(base_colors.get("TEXT") or "white"))
+    text = _palette_color(palette, "Text", window_text)
+    highlight = _palette_color(
+        palette, "Highlight", QColor(base_colors.get("ACCENT") or "blue"))
+    highlighted_text = _palette_color(
+        palette, "HighlightedText",
+        QColor(base_colors.get("TEXT_ON_ACCENT") or "white"))
+    placeholder = _palette_color(
+        palette, "PlaceholderText", _mix(window_text, window, 0.58))
+    mid = _palette_color(
+        palette, "Mid", _mix(window_text, window, 0.38))
+    midlight = _palette_color(
+        palette, "Midlight", _mix(window, window_text, 0.10))
+    dark = _palette_color(
+        palette, "Dark", _mix(window_text, window, 0.68))
+    light = _palette_color(
+        palette, "Light", _mix(window, window_text, 0.18))
+
+    colors = dict(base_colors)
+    colors.update({
+        "BG": _hex(window),
+        "BG_SECONDARY": _hex(_mix(window, alternate, 0.55)),
+        "SURFACE": _hex(base_bg),
+        "SURFACE_2": _hex(_mix(base_bg, button, 0.55)),
+        "SURFACE_3": _hex(_mix(button, mid, 0.55)),
+        "CARD": _hex(base_bg),
+        "CARD_HOVER": _hex(_mix(base_bg, window_text, 0.04)),
+        "INPUT_BG": _hex(base_bg),
+        "INPUT_BG_FOCUS": _hex(_mix(base_bg, highlight, 0.04)),
+        "SIDEBAR": _hex(_mix(window, alternate, 0.35)),
+        "BORDER": tokens.alpha_css(window_text, 0.10),
+        "BORDER_INPUT": tokens.alpha_css(window_text, 0.14),
+        "BORDER_HOVER": tokens.alpha_css(window_text, 0.18),
+        "BORDER_FOCUS": tokens.alpha_css(highlight, 0.55),
+        "BORDER_STRONG": tokens.alpha_css(window_text, 0.25),
+        "TEXT": _css(text if text.isValid() else window_text),
+        "TEXT_2": _css(_mix(window_text, window, 0.40)),
+        "TEXT_3": _css(placeholder if placeholder.isValid()
+                       else _mix(window_text, window, 0.60)),
+        "TEXT_ON_ACCENT": _css(highlighted_text),
+        "ACCENT": _hex(highlight),
+        "ACCENT_HOVER": _hex(_shift_lightness(highlight, 0.06)),
+        "ACCENT_PRESSED": _hex(_shift_lightness(highlight, -0.06)),
+        "ACCENT_SOFT": tokens.alpha_css(highlight, 0.12),
+        "ACCENT_BORDER": tokens.alpha_css(highlight, 0.25),
+        "ACCENT_BORDER_STRONG": tokens.alpha_css(highlight, 0.35),
+        "NEON": _hex(highlight),
+    })
+
+    # Keep the accent/overlay/neon alpha families in sync with the live
+    # system accent and text color.
+    for key in list(colors):
+        if key.startswith("ACCENT_"):
+            try:
+                alpha = int(key.rsplit("_", 1)[1]) / 100.0
+            except (ValueError, IndexError):
+                continue
+            colors[key] = tokens.alpha_css(highlight, alpha)
+        elif key.startswith("OVERLAY_"):
+            try:
+                alpha = int(key.rsplit("_", 1)[1]) / 100.0
+            except (ValueError, IndexError):
+                continue
+            colors[key] = tokens.alpha_css(window_text, alpha)
+        elif key.startswith("NEON_"):
+            try:
+                alpha = int(key.rsplit("_", 1)[1]) / 100.0
+            except (ValueError, IndexError):
+                continue
+            colors[key] = tokens.alpha_css(highlight, alpha)
+
+    # Darker/lighter roles are available for components that need them.
+    colors.setdefault("TEXT_2", _css(mid))
+    colors.setdefault("TEXT_3", _css(dark))
+    colors.setdefault("SURFACE_3", _css(midlight))
+    colors.setdefault("BORDER_STRONG", tokens.alpha_css(light, 0.25))
+    return colors
+
+
+def _system_theme_data(resolved_id: str, base: dict | None) -> dict | None:
+    """Return the virtual System theme with live OS colors."""
+    if base is None:
+        return None
+    colors = _system_palette_colors(base)
+    try:
+        is_dark = QColor(colors.get("BG", "")).lightness() < 128
+    except Exception:
+        is_dark = bool(base.get("is_dark", True))
+    return {
+        **base,
+        "id": SYSTEM_THEME_ID,
+        "name": "System",
+        "description": (
+            "Follow the operating system appearance "
+            f"(currently {base['name']})"
+        ),
+        "is_dark": is_dark,
+        "coming_soon": False,
+        "colors": colors,
+    }
+
+
+def system_font_families() -> tuple[str, str] | None:
+    """Return CSS family lists for the OS UI font and fixed-width font."""
+    try:
+        from PyQt6.QtGui import QFontDatabase
+        from PyQt6.QtWidgets import QApplication
+        from neoarch.frontend import tokens
+
+        if QApplication.instance() is None:
+            return None
+        general = QFontDatabase.systemFont(
+            QFontDatabase.SystemFont.GeneralFont)
+        fixed = QFontDatabase.systemFont(
+            QFontDatabase.SystemFont.FixedFont)
+        family = general.family().strip()
+        mono = fixed.family().strip()
+        if not family:
+            family = QApplication.instance().font().family().strip()
+        if not mono:
+            mono = family
+        if not family:
+            return None
+
+        def quoted(name: str) -> str:
+            return "'" + name.replace("\\", "\\\\").replace("'", "\\'") + "'"
+
+        return (
+            f"{quoted(family)}, {tokens.Fonts.DEFAULT_FAMILY}",
+            f"{quoted(mono)}, {tokens.Fonts.DEFAULT_MONO}",
+        )
+    except Exception:
+        return None
+
+
+def system_font_scale() -> float:
+    """Return a safe UI size scale based on the OS font point size."""
+    try:
+        from PyQt6.QtGui import QFontDatabase, QFontInfo
+        from PyQt6.QtWidgets import QApplication
+
+        if QApplication.instance() is None:
+            return 1.0
+        font = QFontDatabase.systemFont(
+            QFontDatabase.SystemFont.GeneralFont)
+        point_size = QFontInfo(font).pointSizeF()
+        if point_size <= 0:
+            point_size = font.pointSizeF()
+        if point_size <= 0:
+            return 1.0
+        return max(0.85, min(point_size / 9.75, 1.20))
+    except Exception:
+        return 1.0
+
+
+def system_metric_scale() -> float:
+    """Return a conservative UI metric scale for the current platform."""
+    import sys
+
+    if sys.platform.startswith("win"):
+        return 0.85
+    if sys.platform == "darwin":
+        return 1.0
+    return 0.9
+
+
+def system_scrollbar_width() -> int:
+    """Return a system-like scrollbar width, clamped for the UI."""
+    try:
+        from PyQt6.QtWidgets import QApplication, QStyle
+
+        app = QApplication.instance()
+        if app is None:
+            return 8
+        extent = app.style().pixelMetric(
+            QStyle.PixelMetric.PM_ScrollBarExtent)
+        return max(8, min(int(extent), 14))
+    except Exception:
+        return 8
+
+
+def get_theme_data(theme_id: str) -> dict | None:
+    """Return display data for a theme, including the virtual system theme."""
+    if theme_id == SYSTEM_THEME_ID:
+        resolved = system_theme_id()
+        base = THEMES.get(resolved) or THEMES.get(DARK_THEME_ID)
+        return _system_theme_data(resolved, base)
+    return THEMES.get(theme_id)
+
+
+def theme_search_paths() -> list[Path]:
+    """Return theme directories in increasing priority order."""
+    return [
+        BUILTIN_THEME_DIR,
+        Path.home() / ".local" / "share" / "neoarch" / "themes",
+        Path.home() / ".config" / "neoarch" / "themes",
+    ]
+
+
+THEME_DIRS = theme_search_paths()
+
+
+def _tokens_fallback() -> dict:
+    """Build a Dark theme from the live token defaults.
+
+    This keeps the app usable if the built-in JSON is missing (for example a
+    broken package) without duplicating the whole palette here.
+    """
+    from neoarch.frontend import tokens
+
+    colors = {
+        key: value
+        for key, value in vars(tokens.Colors).items()
+        if key.isupper() and isinstance(value, str)
+    }
+    return {
+        "id": DARK_THEME_ID,
+        "name": "Dark",
+        "description": "Default premium dark theme",
+        "is_dark": True,
+        "coming_soon": False,
+        "colors": colors,
+        "source_colors": dict(tokens.SourceColors),
+    }
+
+
+def _read_theme_file(path: Path) -> dict | None:
+    try:
+        with path.open(encoding="utf-8") as handle:
+            data = json.load(handle)
+    except (OSError, ValueError, TypeError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    colors = data.get("colors", {})
+    source_colors = data.get("source_colors", {})
+    if not isinstance(colors, dict) or not isinstance(source_colors, dict):
+        return None
+    theme_id = str(data.get("id") or path.stem).strip()
+    if not theme_id:
+        return None
+    data["id"] = theme_id
+    return data
+
+
+def _normalise(theme_id: str, raw: dict, base: dict | None) -> dict:
+    base = base or {}
+    colors = dict(base.get("colors", {}))
+    colors.update(raw.get("colors", {}))
+    source_colors = dict(base.get("source_colors", {}))
+    source_colors.update(raw.get("source_colors", {}))
+    return {
+        "id": theme_id,
+        "name": str(raw.get("name") or theme_id.replace("-", " ").title()),
+        "description": str(raw.get("description") or ""),
+        "is_dark": bool(raw.get("is_dark", base.get("is_dark", True))),
+        "coming_soon": bool(raw.get("coming_soon", False)),
+        "colors": colors,
+        "source_colors": source_colors,
+    }
+
+
+def load_themes(dirs: list[Path] | None = None) -> dict[str, dict]:
+    """Load built-in and user themes from ``dirs`` (or the default paths)."""
+    raw_themes: dict[str, dict] = {}
+    for directory in dirs if dirs is not None else theme_search_paths():
+        try:
+            paths = sorted(Path(directory).glob("*.json"))
+        except OSError:
+            continue
+        for path in paths:
+            theme = _read_theme_file(path)
+            if theme is not None:
+                raw_themes[theme["id"]] = theme
+
+    fallback = _tokens_fallback()
+    dark_raw = raw_themes.get(DARK_THEME_ID)
+    dark = _normalise(DARK_THEME_ID, dark_raw, fallback) if dark_raw else fallback
+
+    themes = {DARK_THEME_ID: dark}
+    for theme_id, raw in raw_themes.items():
+        if theme_id in (DARK_THEME_ID, SYSTEM_THEME_ID):
+            continue
+        themes[theme_id] = _normalise(theme_id, raw, dark)
+    return themes
+
+
+THEMES = load_themes()
+
+
+def reload_themes() -> dict[str, dict]:
+    """Re-scan the theme directories and refresh the shared ``THEMES`` map."""
+    THEMES.clear()
+    THEMES.update(load_themes())
+    return THEMES
+
 
 class ThemeManager(QObject):
     """Applies themes to the token system and emits change signals."""
@@ -264,7 +448,10 @@ class ThemeManager(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._current_id = "dark"
+        self._current_id = DEFAULT_THEME_ID
+        self._resolved_id = DARK_THEME_ID
+        self._system_tracking = False
+        self._applying_theme = False
         self._settings_path = os.path.join(
             os.path.expanduser("~"), ".config", "neoarch", "theme.json")
 
@@ -272,33 +459,141 @@ class ThemeManager(QObject):
     def current_id(self):
         return self._current_id
 
-    def apply_theme(self, theme_id):
-        """Apply a theme by id. Updates Colors, Fonts, Radii, SourceColors,
-        and regenerates QSS blocks. Coming-soon themes are not selectable yet."""
-        if theme_id not in THEMES or THEMES[theme_id].get("coming_soon"):
+    @property
+    def resolved_id(self):
+        return self._resolved_id
+
+    def _resolve_theme_id(self, theme_id):
+        if theme_id == SYSTEM_THEME_ID:
+            resolved = system_theme_id()
+            return resolved if resolved in THEMES else DARK_THEME_ID
+        return theme_id
+
+    def _apply_font_tokens(self, theme_id):
+        """Match the OS UI/fixed font in System mode; restore defaults else."""
+        from neoarch.frontend import tokens
+
+        if theme_id == SYSTEM_THEME_ID:
+            families = system_font_families()
+            if families:
+                tokens.Fonts.FAMILY, tokens.Fonts.MONO = families
+            scale = system_font_scale()
+        else:
+            tokens.Fonts.FAMILY = tokens.Fonts.DEFAULT_FAMILY
+            tokens.Fonts.MONO = tokens.Fonts.DEFAULT_MONO
+            scale = 1.0
+
+        for name in tokens.FONT_SIZE_NAMES:
+            default = tokens.DEFAULT_FONT_SIZES[name]
+            try:
+                size = int(str(default).rstrip("px"))
+            except (TypeError, ValueError):
+                continue
+            setattr(tokens.Fonts, name, f"{max(8, round(size * scale))}px")
+
+    def _apply_metric_tokens(self, theme_id):
+        """Use platform-like radii, spacing, and scrollbars in System mode."""
+        from neoarch.frontend import tokens
+
+        if theme_id == SYSTEM_THEME_ID:
+            scale = system_metric_scale()
+            width = system_scrollbar_width()
+        else:
+            scale = 1.0
+            width = None
+
+        for name in tokens.RADII_NAMES:
+            default = int(tokens.DEFAULT_RADII[name])
+            value = max(2, round(default * scale))
+            setattr(tokens.Radii, name, str(value))
+        for name in tokens.SPACING_NAMES:
+            default = int(tokens.DEFAULT_SPACING[name])
+            value = max(2, round(default * scale))
+            setattr(tokens.Spacing, name, str(value))
+
+        if width is None:
+            for name, default in tokens.DEFAULT_SCROLLBAR.items():
+                setattr(tokens.Scrollbar, name, default)
             return
-        theme = THEMES[theme_id]
+        tokens.Scrollbar.WIDTH = str(width)
+        tokens.Scrollbar.RADIUS = str(max(3, width // 2))
+        tokens.Scrollbar.MARGIN = str(max(2, width // 4))
+        tokens.Scrollbar.MIN_LEN = str(max(24, width * 3))
+
+    def apply_theme(self, theme_id):
+        """Apply a theme by id and regenerate the QSS blocks."""
+        resolved_id = self._resolve_theme_id(theme_id)
+        if theme_id == SYSTEM_THEME_ID:
+            base = THEMES.get(resolved_id) or THEMES.get(DARK_THEME_ID)
+            theme = _system_theme_data(resolved_id, base)
+        else:
+            theme = THEMES.get(resolved_id)
+        if theme is None or theme.get("coming_soon"):
+            return False
         self._current_id = theme_id
+        self._resolved_id = resolved_id
 
         from neoarch.frontend import tokens
 
-        # Update Colors
-        for key, val in theme["colors"].items():
-            if hasattr(tokens.Colors, key):
-                setattr(tokens.Colors, key, val)
+        self._applying_theme = True
+        try:
+            for key, val in theme["colors"].items():
+                if hasattr(tokens.Colors, key):
+                    setattr(tokens.Colors, key, val)
 
-        # Update SourceColors
-        tokens.SourceColors.clear()
-        tokens.SourceColors.update(theme["source_colors"])
+            self._apply_font_tokens(theme_id)
+            self._apply_metric_tokens(theme_id)
 
-        # Regenerate QSS blocks
-        tokens.QSS.regenerate()
+            tokens.SourceColors.clear()
+            tokens.SourceColors.update(theme["source_colors"])
 
-        # Rebuild DARK_STYLESHEET
-        tokens.rebuild_stylesheet()
+            tokens.QSS.regenerate()
+            tokens.rebuild_stylesheet()
+        finally:
+            self._applying_theme = False
 
         self._save()
         self.theme_changed.emit(theme_id)
+        return True
+
+    def enable_system_tracking(self):
+        """Re-apply the system theme when OS colors or fonts change."""
+        if self._system_tracking:
+            return
+        try:
+            from PyQt6.QtWidgets import QApplication
+
+            app = QApplication.instance()
+            if app is None:
+                return
+            connected = False
+            hints = app.styleHints()
+            signal = getattr(hints, "colorSchemeChanged", None)
+            if signal is not None:
+                signal.connect(self._on_system_color_scheme_changed)
+                connected = True
+            for name in ("paletteChanged", "fontChanged"):
+                signal = getattr(app, name, None)
+                if signal is not None:
+                    signal.connect(self._on_system_color_scheme_changed)
+                    connected = True
+            if connected:
+                self._system_tracking = True
+        except Exception:
+            pass
+
+    def _on_system_color_scheme_changed(self, *_args):
+        if self._applying_theme:
+            return
+        if self._current_id == SYSTEM_THEME_ID:
+            self.apply_theme(SYSTEM_THEME_ID)
+
+    def reload(self):
+        """Reload theme files and re-apply the current theme if possible."""
+        reload_themes()
+        if self._current_id not in THEMES and self._current_id != SYSTEM_THEME_ID:
+            self._current_id = DEFAULT_THEME_ID
+        return self.apply_theme(self._current_id)
 
     def _save(self):
         try:
@@ -309,12 +604,14 @@ class ThemeManager(QObject):
             pass
 
     def load_saved(self):
-        """Load the saved theme from disk."""
+        """Load the saved theme from disk, falling back to the system theme."""
+        theme_id = DEFAULT_THEME_ID
         try:
             with open(self._settings_path) as f:
                 data = json.load(f)
-                theme_id = data.get("theme", "dark")
-                if theme_id in THEMES:
-                    self.apply_theme(theme_id)
+                saved = data.get("theme", DEFAULT_THEME_ID)
+                if saved == SYSTEM_THEME_ID or saved in THEMES:
+                    theme_id = saved
         except Exception:
             pass
+        self.apply_theme(theme_id)

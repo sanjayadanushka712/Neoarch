@@ -5,23 +5,20 @@ latency: no signal, low, medium or high. Icons live in
 ``assets/icons/navbar``.
 """
 
-import os
-
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor, QImage, QPixmap
 from PyQt6.QtWidgets import QLabel
 
 from neoarch.backend.services import network_latency
-from neoarch.resources.paths import PROJECT_ROOT
+from neoarch.frontend.icon_registry import status_icon_path
+from neoarch.frontend.tokens import Colors, qcolor
 from neoarch.backend.services.i18n import _
 
-_ICON_DIR = os.path.join(str(PROJECT_ROOT), "assets", "icons", "status")
-
-_NEON = QColor("#00D6D5")
 
 
 def _colorize_green(pixmap):
     """Recolor the green (filled) bars of a signal icon to neon teal."""
+    neon = qcolor(Colors.NEON)
     image = pixmap.toImage().convertToFormat(QImage.Format.Format_ARGB32)
     for y in range(image.height()):
         for x in range(image.width()):
@@ -32,15 +29,8 @@ def _colorize_green(pixmap):
             # Filled bars are green-dominant; grey placeholder bars stay as-is.
             if g > r + 12 and g > b + 8:
                 image.setPixelColor(
-                    x, y, QColor(_NEON.red(), _NEON.green(), _NEON.blue(), c.alpha()))
+                    x, y, QColor(neon.red(), neon.green(), neon.blue(), c.alpha()))
     return QPixmap.fromImage(image)
-
-_ICONS = {
-    "nosignal": "nosignal.png",
-    "low": "signal-low.png",
-    "medium": "signal-medium.png",
-    "high": "signal-high.png",
-}
 
 _TIER_LABELS = {
     "nosignal": "No signal",
@@ -81,9 +71,8 @@ class SignalIndicator(QLabel):
         self.setCursor(Qt.CursorShape.ArrowCursor)
 
         self._pixmaps = {}
-        for state, filename in _ICONS.items():
-            path = os.path.join(_ICON_DIR, filename)
-            pixmap = QPixmap(path)
+        for state in ("nosignal", "low", "medium", "high"):
+            pixmap = QPixmap(status_icon_path(state))
             if not pixmap.isNull():
                 self._pixmaps[state] = _colorize_green(pixmap)
 

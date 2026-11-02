@@ -13,42 +13,12 @@ from neoarch.frontend.tokens import Colors, Fonts, QSS
 from neoarch.backend.services.i18n import _
 from neoarch.frontend.views._settings_kit import make_card, row, sep, Stepper
 
-# ── Inline stroke icons (24x24 viewBox, lucide-style) ──────────────
-_ICON_TRASH = (
-    '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>'
-    '<path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>'
-    '<line x1="10" x2="10" y1="11" y2="17"/>'
-    '<line x1="14" x2="14" y1="11" y2="17"/>'
-)
-_ICON_GEAR = (
-    '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82'
-    'l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33'
-    'a1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9'
-    '19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06'
-    'a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09'
-    'A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83'
-    'a2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3'
-    'a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33'
-    'l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9'
-    'a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51'
-    '1z"/>'
-)
-_ICON_DATABASE = (
-    '<ellipse cx="12" cy="5" rx="9" ry="3"/>'
-    '<path d="M3 5V19A9 3 0 0 0 21 19V5"/>'
-    '<path d="M3 12A9 3 0 0 0 21 12"/>'
-)
-_ICON_NEWS = (
-    '<path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16'
-    'a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>'
-    '<path d="M18 14h-8"/><path d="M15 18h-5"/>'
-    '<path d="M10 6h8v4h-8V6Z"/>'
-)
-_ICON_GLOBE = (
-    '<circle cx="12" cy="12" r="10"/>'
-    '<path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>'
-    '<path d="M2 12h20"/>'
-)
+# ── Card icons (assets/icons/ui) ───────────────────────────────────
+_ICON_TRASH = "ui/trash"
+_ICON_GEAR = "ui/gear"
+_ICON_DATABASE = "ui/database"
+_ICON_NEWS = "ui/news-line"
+_ICON_GLOBE = "ui/globe"
 
 
 def _action(text, on_click):

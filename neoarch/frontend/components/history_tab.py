@@ -22,52 +22,48 @@ from PyQt6.QtCore import (
     QPointF,
 )
 from PyQt6.QtGui import (
-    QColor, QFont, QFontMetrics, QIcon, QLinearGradient, QPainter,
+    QFont, QFontMetrics, QIcon, QLinearGradient, QPainter,
     QPainterPath, QPen, QRadialGradient,
 )
 
-from neoarch.frontend.tokens import Colors, Fonts, Radii
+from neoarch.frontend.icon_registry import icon_path
+from neoarch.frontend.tokens import Colors, Fonts, Radii, qcolor
 from neoarch.frontend.styles import Styles
 from neoarch.backend.services.i18n import _
 from neoarch.backend.services.history import read_history, history_stats
-from neoarch.resources.paths import PROJECT_ROOT
 
 __all__ = ["HistoryTab"]
 
 # ── theme, mirrored from the Updates table ──────────────────────────
-_ACCENT = QColor(Colors.ACCENT)
-_TEXT = QColor(Colors.TEXT)
-_TEXT_SEC = QColor(Colors.TEXT_2)
-_TEXT_MUTED = QColor(Colors.TEXT_3)
-_GREEN = QColor(88, 202, 143)
-_YELLOW = QColor(Colors.YELLOW)
-
-_ROW_HOVER = QColor(255, 255, 255, 22)
-_SEPARATOR = QColor(255, 255, 255, 16)
-_HEADER_TEXT = QColor(139, 141, 151)
-_HEADER_BORDER = QColor(255, 255, 255, 15)
 _PANEL_RADIUS = 14
 
-_VIEWPORT_GLASS = """
-QWidget {
+
+def _viewport_glass():
+    return f"""
+QWidget {{
     background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-        stop:0    rgba(22, 23, 26, 150),
-        stop:0.06 rgba(20, 21, 24, 165),
-        stop:0.6  rgba(16, 17, 20, 180),
-        stop:1    rgba(12, 12, 14, 190));
+        stop:0    {Colors.GLASS_22_59},
+        stop:0.06 {Colors.GLASS_20_65},
+        stop:0.6  {Colors.GLASS_16_71},
+        stop:1    {Colors.GLASS_12_75});
     border: none;
-}
+}}
 """
+
 
 _HEADERS = ("Time", "Package", "Version", "Date")
 
 _ACTION_COLORS = {
-    "install": QColor(Colors.GREEN),
-    "upgrade": QColor(Colors.ACCENT),
-    "downgrade": QColor(Colors.YELLOW),
-    "reinstall": QColor(Colors.BLUE),
-    "remove": QColor(Colors.RED),
+    "install": Colors.GREEN,
+    "upgrade": Colors.ACCENT,
+    "downgrade": Colors.YELLOW,
+    "reinstall": Colors.BLUE,
+    "remove": Colors.RED,
 }
+
+
+def _action_color(action):
+    return qcolor(_ACTION_COLORS.get(action, Colors.TEXT_2))
 
 _ACTION_LABELS = {
     "install": "Installed",
@@ -95,6 +91,29 @@ class _HistoryModel(QAbstractTableModel):
 
     def columnCount(self, parent=QModelIndex()):
         return 0 if parent.isValid() else len(_HEADERS)
+
+    def data(self, index, role=Qt.ItemDataRole.DisplayRole):
+        if not index.isValid():
+            return None
+        row_item = self.row_at(index.row())
+        if row_item is None:
+            return None
+        if role == Qt.ItemDataRole.UserRole:
+            return row_item
+        if role != Qt.ItemDataRole.DisplayRole:
+            return None
+        col = index.column()
+        if col == 0:
+            ts = row_item.get("timestamp")
+            return ts.strftime("%H:%M") if ts else "—"
+        if col == 1:
+            return row_item.get("name") or ""
+        if col == 2:
+            return row_item.get("version") or row_item.get("old_version") or ""
+        if col == 3:
+            ts = row_item.get("timestamp")
+            return ts.strftime("%b %d, %Y") if ts else "—"
+        return None
 
     def row_at(self, row):
         if 0 <= row < len(self._rows):
@@ -142,8 +161,8 @@ class _HistoryHeader(QHeaderView):
             rect = self._section_rects[section]
 
         glass = QLinearGradient(0, rect.top(), 0, rect.bottom())
-        glass.setColorAt(0.0, QColor(19, 20, 23, 200))
-        glass.setColorAt(1.0, QColor(12, 12, 14, 215))
+        glass.setColorAt(0.0, qcolor(Colors.GLASS_22_92, 200))
+        glass.setColorAt(1.0, qcolor(Colors.GLASS_DARK, 215))
         is_first = section == 0
         is_last = section == self.count() - 1
         if is_first or is_last:
@@ -173,12 +192,12 @@ class _HistoryHeader(QHeaderView):
         text_rect = QRectF(rect)
         text_rect.setLeft(rect.left() + (12 if section == 1 else 6))
         painter.setFont(self._font)
-        painter.setPen(_HEADER_TEXT)
+        painter.setPen(qcolor(Colors.TEXT_2))
         painter.drawText(text_rect,
                          Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft
                          | Qt.TextFlag.TextSingleLine, label)
 
-        line_pen = QPen(_HEADER_BORDER)
+        line_pen = QPen(qcolor(Colors.BORDER))
         line_pen.setWidthF(1)
         painter.setPen(line_pen)
         painter.drawLine(int(rect.left()), int(rect.bottom()) - 1,
@@ -248,9 +267,9 @@ class _HistoryDelegate(QStyledItemDelegate):
             path = QPainterPath()
             path.addRoundedRect(band, 6, 6)
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.fillPath(path, _ROW_HOVER)
+            painter.fillPath(path, qcolor(Colors.OVERLAY_09))
 
-        pen = QPen(_SEPARATOR)
+        pen = QPen(qcolor(Colors.BORDER))
         pen.setWidthF(1)
         painter.setPen(pen)
         painter.drawLine(QPointF(rect.left() + 14, rect.bottom()),
@@ -260,7 +279,7 @@ class _HistoryDelegate(QStyledItemDelegate):
         ts = row_item.get("timestamp")
         text = ts.strftime("%H:%M") if ts else "—"
         painter.setFont(self._ver_font)
-        painter.setPen(_TEXT_SEC)
+        painter.setPen(qcolor(Colors.TEXT_2))
         painter.drawText(QRectF(rect.left() + 14, rect.top(), rect.width() - 14, rect.height()),
                          Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft
                          | Qt.TextFlag.TextSingleLine, text)
@@ -273,13 +292,13 @@ class _HistoryDelegate(QStyledItemDelegate):
         name_fm = QFontMetrics(self._name_font)
         name_el = name_fm.elidedText(name, Qt.TextElideMode.ElideRight, int(avail_w))
         painter.setFont(self._name_font)
-        painter.setPen(_TEXT)
+        painter.setPen(qcolor(Colors.TEXT))
         painter.drawText(QRectF(text_left, rect.top() + 7, avail_w, 16),
                          Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft
                          | Qt.TextFlag.TextSingleLine, name_el)
 
         action = row_item.get("action", "")
-        color = _ACTION_COLORS.get(action, _TEXT_SEC)
+        color = _action_color(action)
         label = _(_ACTION_LABELS.get(action, action))
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(color)
@@ -303,7 +322,7 @@ class _HistoryDelegate(QStyledItemDelegate):
 
         if not old or old == new:
             painter.setFont(self._ver_font)
-            painter.setPen(_TEXT_SEC)
+            painter.setPen(qcolor(Colors.TEXT_2))
             painter.drawText(QRectF(cell_left, rect.top(), cell_w, rect.height()),
                              Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft
                              | Qt.TextFlag.TextSingleLine,
@@ -311,11 +330,11 @@ class _HistoryDelegate(QStyledItemDelegate):
                                            Qt.TextElideMode.ElideMiddle, int(cell_w)))
             return
 
-        color = _YELLOW if action == "downgrade" else _GREEN
+        color = qcolor(Colors.YELLOW) if action == "downgrade" else qcolor(Colors.GREEN)
         arrow = "\u2193" if action == "downgrade" else "\u2191"
 
         painter.setFont(self._ver_font)
-        painter.setPen(_TEXT_MUTED)
+        painter.setPen(qcolor(Colors.TEXT_3))
         painter.drawText(QRectF(cell_left, rect.top() + 6, cell_w, line_h),
                          Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft
                          | Qt.TextFlag.TextSingleLine,
@@ -338,7 +357,7 @@ class _HistoryDelegate(QStyledItemDelegate):
         fm = QFontMetrics(self._ver_font)
         el = fm.elidedText(text, Qt.TextElideMode.ElideLeft, int(max(12, rect.width() - 10)))
         painter.setFont(self._ver_font)
-        painter.setPen(_TEXT_SEC)
+        painter.setPen(qcolor(Colors.TEXT_2))
         painter.drawText(QRectF(rect.left() + 4, rect.top(), rect.width() - 10, rect.height()),
                          Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft
                          | Qt.TextFlag.TextSingleLine, el)
@@ -358,7 +377,7 @@ class _HistoryTable(QTableView):
         self.setShowGrid(False)
         self.setFrameShape(QTableView.Shape.NoFrame)
         self.viewport().setAutoFillBackground(True)
-        self.viewport().setStyleSheet(_VIEWPORT_GLASS)
+        self.viewport().setStyleSheet(_viewport_glass())
         self.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection)
         self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.setMouseTracking(True)
@@ -417,9 +436,9 @@ class _FilterChip(QPushButton):
         if checked:
             self.setStyleSheet(f"""
                 QPushButton {{
-                    background: rgba(0, 191, 174, 0.14);
+                    background: {Colors.ACCENT_14};
                     color: {Colors.ACCENT};
-                    border: 1px solid rgba(0, 191, 174, 0.25);
+                    border: 1px solid {Colors.ACCENT_BORDER};
                     border-radius: 10px;
                     padding: 0 16px;
                     font-size: {Fonts.MD}; font-weight: 600;
@@ -437,7 +456,7 @@ class _FilterChip(QPushButton):
                 }}
                 QPushButton:hover {{
                     color: {Colors.TEXT};
-                    background: rgba(255, 255, 255, 0.04);
+                    background: {Colors.OVERLAY_04};
                 }}
             """)
 
@@ -495,20 +514,20 @@ class _Badge(QWidget):
         r = s / 2 - 4
 
         glow = QRadialGradient(cx, cy, r)
-        glow.setColorAt(0.0, QColor(88, 202, 143, 46))
-        glow.setColorAt(0.55, QColor(88, 202, 143, 22))
-        glow.setColorAt(1.0, QColor(88, 202, 143, 0))
+        glow.setColorAt(0.0, qcolor(Colors.GREEN, 46))
+        glow.setColorAt(0.55, qcolor(Colors.GREEN, 22))
+        glow.setColorAt(1.0, qcolor(Colors.GREEN, 0))
         p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(glow)
         p.drawEllipse(QRectF(cx - r, cy - r, r * 2, r * 2))
 
-        p.setPen(QPen(QColor(88, 202, 143, 90), 1.5))
+        p.setPen(QPen(qcolor(Colors.GREEN, 90), 1.5))
         p.setBrush(Qt.BrushStyle.NoBrush)
         p.drawEllipse(QRectF(cx - r + 2, cy - r + 2, (r - 2) * 2, (r - 2) * 2))
 
-        icon_path = os.path.join(str(PROJECT_ROOT), "assets", "icons", "history.svg")
-        if os.path.exists(icon_path):
-            pm = QIcon(icon_path).pixmap(30, 30)
+        history_icon_path = icon_path("history")
+        if os.path.exists(history_icon_path):
+            pm = QIcon(history_icon_path).pixmap(30, 30)
             p.drawPixmap(int(cx - 15), int(cy - 15), pm)
         p.end()
 
@@ -532,12 +551,12 @@ class _Overlay(QWidget):
         font.setPointSize(13)
         font.setWeight(QFont.Weight.DemiBold)
         self.title.setFont(font)
-        self.title.setStyleSheet("color: #EDEDEF; background: transparent; border: none;")
+        self.title.setStyleSheet(f"color: {Colors.TEXT}; background: transparent; border: none;")
         layout.addWidget(self.title)
 
         self.subtitle = QLabel(_("Please wait, reading the pacman log"))
         self.subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.subtitle.setStyleSheet("color: #8B8D97; background: transparent; border: none;")
+        self.subtitle.setStyleSheet(f"color: {Colors.TEXT_2}; background: transparent; border: none;")
         layout.addWidget(self.subtitle)
 
         self.progress = QProgressBar()
@@ -547,8 +566,8 @@ class _Overlay(QWidget):
         self.progress.setTextVisible(False)
         self.progress.setStyleSheet(
             "QProgressBar { border: none; border-radius: 3px;"
-            " background: rgba(255,255,255,0.07); }"
-            " QProgressBar::chunk { background: #00BFAE; border-radius: 3px; }")
+            f" background: {Colors.OVERLAY_07}; }}"
+            f" QProgressBar::chunk {{ background: {Colors.ACCENT}; border-radius: 3px; }}")
         layout.addSpacing(6)
         layout.addWidget(self.progress, alignment=Qt.AlignmentFlag.AlignHCenter)
         layout.addStretch()
@@ -619,9 +638,9 @@ class HistoryTab(QWidget):
         self.refresh_btn.setFixedSize(30, 30)
         self.refresh_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.refresh_btn.setToolTip(_("Refresh"))
-        icon_path = os.path.join(str(PROJECT_ROOT), "assets", "icons", "ui", "refresh.svg")
-        if os.path.exists(icon_path):
-            self.refresh_btn.setIcon(QIcon(icon_path))
+        refresh_icon_path = icon_path("ui/refresh")
+        if os.path.exists(refresh_icon_path):
+            self.refresh_btn.setIcon(QIcon(refresh_icon_path))
         self.refresh_btn.setStyleSheet(f"""
             QPushButton {{
                 background: {Colors.SURFACE};

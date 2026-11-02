@@ -1,26 +1,28 @@
 """Filters and sources mixin for the main window."""
 
-import os
 from threading import Thread
 
 from PyQt6.QtWidgets import (QFrame, QVBoxLayout, QHBoxLayout, QWidget, QCheckBox,
                              QScrollArea, QLabel, QSizePolicy, QPushButton, QMenu,
                              QLineEdit)
 from PyQt6.QtCore import Qt, QRectF, pyqtSignal, QSize
-from PyQt6.QtGui import QColor, QPainter, QPen, QRadialGradient, QFont, QPixmap, QIcon
+from PyQt6.QtGui import QPainter, QPen, QRadialGradient, QFont
 
-from neoarch.resources.paths import PROJECT_ROOT
 from neoarch.frontend.components.source_card import SourceCard
+from neoarch.frontend.icon_registry import (
+    icon_path,
+    render_icon,
+    render_pixmap,
+    source_icon_path,
+)
 
 
-from neoarch.frontend.tokens import Colors, Fonts
+from neoarch.frontend.tokens import Colors, Fonts, qcolor, icon_tint
 from neoarch.frontend.styles import Styles
 
 from neoarch.backend.services import filter as filters_service
 from neoarch.backend.services.i18n import _
 from neoarch.frontend.components.updates_table import classify_update, _parse_size, _parse_version
-
-_BASE_DIR = str(PROJECT_ROOT)
 
 
 class _BundleListRow(QWidget):
@@ -54,12 +56,12 @@ class _BundleListRow(QWidget):
 
         if self._hover and not self._selected:
             p.setPen(Qt.PenStyle.NoPen)
-            p.setBrush(QColor(Colors.CARD_HOVER))
+            p.setBrush(qcolor(Colors.CARD_HOVER))
             p.drawRoundedRect(r.adjusted(1, 1, -1, -1), 8, 8)
 
         if self._selected:
             p.setPen(Qt.PenStyle.NoPen)
-            p.setBrush(QColor(168, 85, 247, 18))
+            p.setBrush(qcolor(Colors.PURPLE_BRIGHT, 18))
             p.drawRoundedRect(r.adjusted(1, 1, -1, -1), 8, 8)
 
         cs = 10
@@ -67,16 +69,16 @@ class _BundleListRow(QWidget):
         cy = (h - cs) / 2
 
         if self._selected:
-            p.setPen(QPen(QColor("#A855F7"), 2))
+            p.setPen(QPen(qcolor(Colors.PURPLE_BRIGHT), 2))
         else:
-            p.setPen(QPen(QColor(255, 255, 255, 50), 1.5))
+            p.setPen(QPen(qcolor(Colors.OVERLAY_50), 1.5))
         p.setBrush(Qt.BrushStyle.NoBrush)
         p.drawEllipse(QRectF(cx + 1, cy + 1, cs - 2, cs - 2))
 
         if self._selected:
             dot = 3.5
             p.setPen(Qt.PenStyle.NoPen)
-            p.setBrush(QColor("#A855F7"))
+            p.setBrush(qcolor(Colors.PURPLE_BRIGHT))
             center = cs / 2.0
             p.drawEllipse(QRectF(cx + center - dot, cy + center - dot, dot * 2, dot * 2))
 
@@ -84,7 +86,7 @@ class _BundleListRow(QWidget):
         font.setPixelSize(11)
         font.setWeight(QFont.Weight.Medium if not self._selected else QFont.Weight.DemiBold)
         p.setFont(font)
-        p.setPen(QColor("#FFFFFF") if self._selected else QColor(Colors.TEXT_2))
+        p.setPen(qcolor(Colors.TEXT) if self._selected else qcolor(Colors.TEXT_2))
 
         del_zone_w = 22
         right_w = 0
@@ -95,14 +97,14 @@ class _BundleListRow(QWidget):
             p.setFont(count_font)
             count_text = str(self._count)
             right_w = p.fontMetrics().horizontalAdvance(count_text) + 6
-            p.setPen(QColor(Colors.TEXT_3))
+            p.setPen(qcolor(Colors.TEXT_3))
             p.drawText(
                 QRectF(w - right_w - del_zone_w, 0, right_w, h),
                 Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight,
                 count_text,
             )
             p.setFont(font)
-            p.setPen(QColor("#FFFFFF") if self._selected else QColor(Colors.TEXT_2))
+            p.setPen(qcolor(Colors.TEXT) if self._selected else qcolor(Colors.TEXT_2))
 
         text_left = cx + cs + 8
         text_width = w - text_left - right_w - del_zone_w
@@ -117,7 +119,7 @@ class _BundleListRow(QWidget):
             del_font.setPixelSize(14)
             del_font.setWeight(QFont.Weight.Medium)
             p.setFont(del_font)
-            p.setPen(QColor(Colors.TEXT_3))
+            p.setPen(qcolor(Colors.TEXT_3))
             p.drawText(
                 QRectF(w - del_zone_w, 0, del_zone_w, h),
                 Qt.AlignmentFlag.AlignCenter,
@@ -178,13 +180,7 @@ class _SvgActionRow(QWidget):
         self.setFixedHeight(32)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setMouseTracking(True)
-        pixmap = QPixmap(icon_path)
-        if pixmap.isNull():
-            pixmap = QPixmap(QSize(16, 16))
-            pixmap.fill(Qt.GlobalColor.transparent)
-        self._pixmap = pixmap.scaled(
-            QSize(16, 16), Qt.AspectRatioMode.KeepAspectRatio,
-            Qt.TransformationMode.SmoothTransformation)
+        self._pixmap = render_pixmap(icon_path, 16, icon_tint())
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -192,8 +188,8 @@ class _SvgActionRow(QWidget):
         w, h = self.width(), self.height()
 
         if self._hover:
-            painter.setPen(QPen(QColor(255, 255, 255, 8), 1))
-            painter.setBrush(QColor(Colors.CARD_HOVER))
+            painter.setPen(QPen(qcolor(Colors.OVERLAY_08), 1))
+            painter.setBrush(qcolor(Colors.CARD_HOVER))
             painter.drawRoundedRect(QRectF(self.rect()).adjusted(1, 1, -1, -1), 10, 10)
 
         icon_x = 16
@@ -204,7 +200,7 @@ class _SvgActionRow(QWidget):
         font.setPixelSize(11)
         font.setWeight(QFont.Weight.Medium)
         painter.setFont(font)
-        painter.setPen(QColor(Colors.TEXT))
+        painter.setPen(qcolor(Colors.TEXT))
         painter.drawText(
             QRectF(40, 0, w - 40 - 24, h),
             Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft,
@@ -213,7 +209,7 @@ class _SvgActionRow(QWidget):
 
         font.setPixelSize(15)
         painter.setFont(font)
-        painter.setPen(QColor(255, 255, 255, 40))
+        painter.setPen(qcolor(Colors.OVERLAY_40))
         painter.drawText(
             QRectF(w - 21, 0, 13, h),
             Qt.AlignmentFlag.AlignCenter,
@@ -252,10 +248,10 @@ class _BundlesSourcePanel(QWidget):
     import_code_clicked = pyqtSignal(str)
     manage_cloud_clicked = pyqtSignal()
 
-    _SECTION_SS = """
-        QWidget#bundSection, QWidget#shareSection, QWidget#importSection, QWidget#actionSection {
-            border-top: 1px solid rgba(255, 255, 255, 0.03);
-        }
+    _SECTION_SS = f"""
+        QWidget#bundSection, QWidget#shareSection, QWidget#importSection, QWidget#actionSection {{
+            border-top: 1px solid {Colors.OVERLAY_03};
+        }}
     """
 
     def __init__(self, parent=None):
@@ -326,19 +322,19 @@ class _BundlesSourcePanel(QWidget):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         r = self.rect()
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QColor(9, 9, 10))
+        painter.setBrush(qcolor(Colors.BG))
         painter.drawRect(r)
         glow = QRadialGradient(r.width() / 2.0, 0, r.width() * 0.9)
-        glow.setColorAt(0.0, QColor(124, 58, 237, 16))
-        glow.setColorAt(0.5, QColor(88, 40, 160, 8))
-        glow.setColorAt(1.0, QColor(88, 40, 160, 0))
+        glow.setColorAt(0.0, qcolor(Colors.PURPLE_BRIGHT, 16))
+        glow.setColorAt(0.5, qcolor(Colors.PURPLE, 8))
+        glow.setColorAt(1.0, qcolor(Colors.PURPLE, 0))
         painter.setBrush(glow)
         painter.drawRect(r)
-        painter.setPen(QPen(QColor(255, 255, 255, 6), 1))
+        painter.setPen(QPen(qcolor(Colors.OVERLAY_06), 1))
         painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawRect(QRectF(r).adjusted(0.5, 0.5, -0.5, -0.5))
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QColor(168, 85, 247, 8))
+        painter.setBrush(qcolor(Colors.PURPLE_BRIGHT, 8))
         painter.drawRect(QRectF(0, 0, r.width(), 1))
         painter.end()
         super().paintEvent(event)
@@ -364,22 +360,22 @@ class _BundlesSourcePanel(QWidget):
         add_btn = QPushButton()
         add_btn.setFixedSize(20, 20)
         add_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        add_icon_path = os.path.join(_BASE_DIR, "assets", "icons", "ui", "createBundle.svg")
+        add_icon_path = icon_path("ui/createBundle")
         add_btn.setIcon(self._get_panel_icon(add_icon_path, 20))
         add_btn.setIconSize(QSize(18, 18))
-        add_btn.setStyleSheet("""
-            QPushButton {
+        add_btn.setStyleSheet(f"""
+            QPushButton {{
                 background: transparent;
                 border: none;
                 padding: 0;
-            }
-            QPushButton:hover {
-                background: rgba(168, 85, 247, 0.15);
+            }}
+            QPushButton:hover {{
+                background: {Colors.PURPLE_SOFT};
                 border-radius: 5px;
-            }
-            QPushButton:pressed {
-                background: rgba(168, 85, 247, 0.25);
-            }
+            }}
+            QPushButton:pressed {{
+                background: {Colors.PURPLE_BORDER};
+            }}
         """)
         add_btn.clicked.connect(self._on_create_bundle)
         hdr_row.addWidget(add_btn)
@@ -407,13 +403,7 @@ class _BundlesSourcePanel(QWidget):
 
     @staticmethod
     def _get_panel_icon(path, size=18):
-        pixmap = QPixmap(path)
-        if pixmap.isNull():
-            pixmap = QPixmap(QSize(size, size))
-            pixmap.fill(Qt.GlobalColor.transparent)
-        return QIcon(pixmap.scaled(QSize(size, size),
-                                  Qt.AspectRatioMode.KeepAspectRatio,
-                                  Qt.TransformationMode.SmoothTransformation))
+        return render_icon(path, size, icon_tint())
 
     def _build_share_code_section(self, layout):
         sec = QWidget()
@@ -440,7 +430,7 @@ class _BundlesSourcePanel(QWidget):
         copy_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         copy_btn.setStyleSheet(f"""
             QPushButton {{
-                background: rgba(255, 255, 255, 0.04);
+                background: {Colors.OVERLAY_04};
                 color: {Colors.TEXT_2};
                 border: 1px solid {Colors.BORDER};
                 border-radius: 8px;
@@ -449,8 +439,8 @@ class _BundlesSourcePanel(QWidget):
                 font-weight: 500;
             }}
             QPushButton:hover {{
-                background: rgba(255, 255, 255, 0.08);
-                color: #EDEDEF;
+                background: {Colors.BORDER_INPUT};
+                color: {Colors.TEXT};
             }}
         """)
         copy_btn.clicked.connect(self._on_copy_share_code)
@@ -463,7 +453,7 @@ class _BundlesSourcePanel(QWidget):
         gen_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         gen_btn.setStyleSheet(f"""
             QPushButton {{
-                background: rgba(255, 255, 255, 0.04);
+                background: {Colors.OVERLAY_04};
                 color: {Colors.TEXT_2};
                 border: 1px solid {Colors.BORDER};
                 border-radius: 8px;
@@ -472,8 +462,8 @@ class _BundlesSourcePanel(QWidget):
                 font-weight: 500;
             }}
             QPushButton:hover {{
-                background: rgba(255, 255, 255, 0.08);
-                color: #EDEDEF;
+                background: {Colors.BORDER_INPUT};
+                color: {Colors.TEXT};
             }}
         """)
         gen_btn.clicked.connect(self.share_clicked.emit)
@@ -529,10 +519,10 @@ class _BundlesSourcePanel(QWidget):
                 font-family: 'Cascadia Code', 'JetBrains Mono', 'Consolas', monospace;
                 font-size: {Fonts.SM};
                 padding: 0 8px;
-                selection-background-color: rgba(168, 85, 247, 0.3);
+                selection-background-color: {Colors.PURPLE_30};
             }}
             QLineEdit:focus {{
-                border: 1px solid rgba(168, 85, 247, 0.35);
+                border: 1px solid {Colors.PURPLE_35};
             }}
         """)
         self._import_code_input.returnPressed.connect(self._on_import_code_submit)
@@ -543,7 +533,7 @@ class _BundlesSourcePanel(QWidget):
         import_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         import_btn.setStyleSheet(f"""
             QPushButton {{
-                background: rgba(255, 255, 255, 0.04);
+                background: {Colors.OVERLAY_04};
                 color: {Colors.TEXT_2};
                 border: 1px solid {Colors.BORDER};
                 border-radius: 8px;
@@ -552,8 +542,8 @@ class _BundlesSourcePanel(QWidget):
                 font-weight: 500;
             }}
             QPushButton:hover {{
-                background: rgba(255, 255, 255, 0.08);
-                color: #EDEDEF;
+                background: {Colors.BORDER_INPUT};
+                color: {Colors.TEXT};
             }}
         """)
         import_btn.clicked.connect(self._on_import_code_submit)
@@ -658,14 +648,13 @@ class _BundlesSourcePanel(QWidget):
 
         sec_lay.addWidget(self._section_header(_("Actions")))
 
-        ui_dir = os.path.join(_BASE_DIR, "assets", "icons", "ui")
         defs = [
-            ("Export", os.path.join(ui_dir, "export.svg"), self.export_clicked),
-            ("Import", os.path.join(ui_dir, "import.svg"), self.import_clicked),
-            ("Manage Cloud", os.path.join(ui_dir, "cloud.svg"), self.manage_cloud_clicked),
+            ("Export", icon_path("ui/export"), self.export_clicked),
+            ("Import", icon_path("ui/import"), self.import_clicked),
+            ("Manage Cloud", icon_path("ui/cloud"), self.manage_cloud_clicked),
         ]
-        for title, icon_path, signal in defs:
-            row = _SvgActionRow(title, icon_path)
+        for title, row_icon, signal in defs:
+            row = _SvgActionRow(title, row_icon)
             row.clicked.connect(signal.emit)
             sec_lay.addWidget(row)
 
@@ -676,11 +665,11 @@ class _BundlesSourcePanel(QWidget):
         bar = QWidget()
         bar.setObjectName("countBar")
         bar.setMinimumHeight(38)
-        bar.setStyleSheet("""
-            QWidget#countBar {
-                background: rgba(255, 255, 255, 0.02);
-                border-top: 1px solid rgba(255, 255, 255, 0.04);
-            }
+        bar.setStyleSheet(f"""
+            QWidget#countBar {{
+                background: {Colors.OVERLAY_02};
+                border-top: 1px solid {Colors.OVERLAY_04};
+            }}
         """)
         bl = QHBoxLayout(bar)
         bl.setContentsMargins(16, 6, 16, 6)
@@ -696,7 +685,7 @@ class _BundlesSourcePanel(QWidget):
         """)
         self._count_items_caption = QLabel(_("ITEMS"))
         self._count_items_caption.setStyleSheet(f"""
-            color: #6B7280;
+            color: {Colors.TEXT_3};
             font-size: {Fonts.TINY};
             font-weight: 600;
             letter-spacing: 0.5px;
@@ -725,7 +714,7 @@ class _BundlesSourcePanel(QWidget):
         """)
         self._count_bundles_caption = QLabel(_("BUNDLES"))
         self._count_bundles_caption.setStyleSheet(f"""
-            color: #6B7280;
+            color: {Colors.TEXT_3};
             font-size: {Fonts.TINY};
             font-weight: 600;
             letter-spacing: 0.5px;
@@ -814,8 +803,8 @@ class _FiltersMixin:
         scroll.setFrameShape(QFrame.Shape.NoFrame)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
-        scroll.setStyleSheet(Styles.scrollbar(width=6, color="rgba(255,255,255,0.10)",
-                                      hover="rgba(255,255,255,0.18)") + """
+        scroll.setStyleSheet(Styles.scrollbar(width=6, color=f"{Colors.BORDER_HOVER}",
+                                      hover=f"{Colors.OVERLAY_18}") + """
             QScrollArea > QWidget > QWidget { background: transparent; }
             QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
                 background: transparent;
@@ -909,14 +898,14 @@ class _FiltersMixin:
 
         # Add the four main sources (exclude Local from Discover)
         sources = [
-            ("pacman", os.path.join(_BASE_DIR, "assets", "icons", "sources", "pacman.svg")),
-            ("AUR", os.path.join(_BASE_DIR, "assets", "icons", "sources", "aur.svg")),
-            ("Flatpak", os.path.join(_BASE_DIR, "assets", "icons", "sources", "flatpack.svg")),
-            ("npm", os.path.join(_BASE_DIR, "assets", "icons", "sources", "node.svg")),
+            ("pacman", source_icon_path("pacman")),
+            ("AUR", source_icon_path("AUR")),
+            ("Flatpak", source_icon_path("Flatpak")),
+            ("npm", source_icon_path("npm")),
         ]
 
-        for source_name, source_icon_path in sources:
-            self.source_card.add_source(source_name, source_icon_path)
+        for source_name, icon_file in sources:
+            self.source_card.add_source(source_name, icon_file)
 
         # Discover-specific sort options. "relevance" keeps the best-match
         # ordering produced by the search; the rest are plain field sorts.
@@ -1000,15 +989,15 @@ class _FiltersMixin:
                 item.widget().deleteLater()
         self.source_card = SourceCard(self)
         sources = [
-            ("pacman", os.path.join(_BASE_DIR, "assets", "icons", "sources", "pacman.svg")),
-            ("AUR", os.path.join(_BASE_DIR, "assets", "icons", "sources", "aur.svg")),
-            ("Flatpak", os.path.join(_BASE_DIR, "assets", "icons", "sources", "flatpack.svg")),
-            ("npm", os.path.join(_BASE_DIR, "assets", "icons", "sources", "node.svg")),
-            ("Firmware", os.path.join(_BASE_DIR, "assets", "icons", "sources", "firmware.svg")),
-            ("pipx", os.path.join(_BASE_DIR, "assets", "icons", "sources", "pipx.svg")),
+            ("pacman", source_icon_path("pacman")),
+            ("AUR", source_icon_path("AUR")),
+            ("Flatpak", source_icon_path("Flatpak")),
+            ("npm", source_icon_path("npm")),
+            ("Firmware", source_icon_path("Firmware")),
+            ("pipx", source_icon_path("pipx")),
         ]
-        for source_name, source_icon_path in sources:
-            self.source_card.add_source(source_name, source_icon_path)
+        for source_name, icon_file in sources:
+            self.source_card.add_source(source_name, icon_file)
         # The pacman package "linux-firmware" is a regular repo update, NOT a
         # fwupd device update; label the toggle with a smaller font so the
         # count badge still has room, and keep the clarifying tooltip.
@@ -1057,13 +1046,13 @@ class _FiltersMixin:
         self.source_card = SourceCard(self)
         self.source_card.source_changed.connect(self.on_installed_source_changed)
         sources = [
-            ("pacman", os.path.join(_BASE_DIR, "assets", "icons", "sources", "pacman.svg")),
-            ("AUR", os.path.join(_BASE_DIR, "assets", "icons", "sources", "aur.svg")),
-            ("Flatpak", os.path.join(_BASE_DIR, "assets", "icons", "sources", "flatpack.svg")),
-            ("npm", os.path.join(_BASE_DIR, "assets", "icons", "sources", "node.svg"))
+            ("pacman", source_icon_path("pacman")),
+            ("AUR", source_icon_path("AUR")),
+            ("Flatpak", source_icon_path("Flatpak")),
+            ("npm", source_icon_path("npm"))
         ]
-        for source_name, source_icon_path in sources:
-            self.source_card.add_source(source_name, source_icon_path)
+        for source_name, icon_file in sources:
+            self.source_card.add_source(source_name, icon_file)
         self._disable_unavailable_sources()
         self.sources_layout.addWidget(self.source_card)
         self.source_card.health_action.connect(self.on_installed_health_action)
@@ -1268,13 +1257,13 @@ class _FiltersMixin:
             pass
 
         sources = [
-            ("pacman", os.path.join(_BASE_DIR, "assets", "icons", "sources", "pacman.svg")),
-            ("AUR", os.path.join(_BASE_DIR, "assets", "icons", "sources", "aur.svg")),
-            ("Flatpak", os.path.join(_BASE_DIR, "assets", "icons", "sources", "flatpack.svg")),
-            ("npm", os.path.join(_BASE_DIR, "assets", "icons", "sources", "node.svg")),
+            ("pacman", source_icon_path("pacman")),
+            ("AUR", source_icon_path("AUR")),
+            ("Flatpak", source_icon_path("Flatpak")),
+            ("npm", source_icon_path("npm")),
         ]
-        for source_name, source_icon_path in sources:
-            self.source_card.add_source(source_name, source_icon_path, count=counts.get(source_name, 0))
+        for source_name, icon_file in sources:
+            self.source_card.add_source(source_name, icon_file, count=counts.get(source_name, 0))
 
         self.source_card.set_sort_methods([
             ("name_asc", True, _("Name A-Z")),
@@ -1549,12 +1538,11 @@ class _FiltersMixin:
         panel.bundle_renamed.connect(self._on_bundle_row_renamed)
         panel.bundle_deleted.connect(self._on_bundle_row_deleted)
 
-        src_icon = os.path.join(_BASE_DIR, "assets", "icons", "sources")
         for name, icon_file in [
             ("pacman", "pacman.svg"), ("AUR", "aur.svg"),
             ("Flatpak", "flatpack.svg"), ("npm", "node.svg"),
         ]:
-            panel.add_source(name, os.path.join(src_icon, icon_file), count=0)
+            panel.add_source(name, source_icon_path(name), count=0)
 
         bundles = list_bundles()
         active = getattr(self, '_active_bundle_key', '')

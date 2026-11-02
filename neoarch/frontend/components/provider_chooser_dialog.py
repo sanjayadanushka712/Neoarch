@@ -9,9 +9,9 @@ from PyQt6.QtWidgets import (
 )
 
 from neoarch.frontend.tokens import Colors, Fonts
+from neoarch.frontend.styles import Styles
 from neoarch.frontend.components.dark_dialogs import (
-    _DIALOG_STYLE, _DialogTitleBar, _apply_dialog_flags,
-    _BTN_PRIMARY, _BTN_SECONDARY,
+    _dialog_style, _DialogTitleBar, _apply_dialog_flags,
 )
 from neoarch.backend.services.i18n import _
 
@@ -23,7 +23,7 @@ class ProviderChooserDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(_("Choose providers"))
         self.setMinimumWidth(560)
-        self.setStyleSheet(_DIALOG_STYLE)
+        self.setStyleSheet(_dialog_style())
         _apply_dialog_flags(self)
 
         self._combos = []
@@ -75,18 +75,18 @@ class ProviderChooserDialog(QDialog):
         divider = QFrame()
         divider.setFixedHeight(1)
         divider.setStyleSheet(
-            "background: rgba(255,255,255,0.08); border: none;")
+            f"background: {Colors.BORDER_INPUT}; border: none;")
         layout.addWidget(divider)
 
         btn_row = QHBoxLayout()
         btn_row.setSpacing(8)
         btn_row.addStretch()
         cancel = QPushButton(_("Cancel"))
-        cancel.setStyleSheet(_BTN_SECONDARY)
+        cancel.setStyleSheet(Styles.btn_secondary())
         cancel.clicked.connect(self.reject)
         btn_row.addWidget(cancel)
         cont = QPushButton(_("Continue"))
-        cont.setStyleSheet(_BTN_PRIMARY)
+        cont.setStyleSheet(Styles.btn_white())
         cont.clicked.connect(self.accept)
         btn_row.addWidget(cont)
         layout.addLayout(btn_row)

@@ -13,14 +13,13 @@ from the network here; unknown packages simply show no link).
 import webbrowser
 
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTableWidget, QTableWidgetItem, QHeaderView, QWidget,
     QStyledItemDelegate, QStyle,
 )
 
-from neoarch.frontend.tokens import Colors, Fonts
+from neoarch.frontend.tokens import Colors, Fonts, qcolor
 from neoarch.backend.services.i18n import _
 from neoarch.resources.changelog_map import get_changelog_url
 
@@ -56,7 +55,7 @@ class UpdateReviewDialog(QDialog):
         self.resize(640, 420)
         self.setMinimumWidth(560)
         self.setStyleSheet(
-            "QDialog { background-color: rgba(22, 23, 26, 235); }")
+            f"QDialog {{ background-color: {Colors.GLASS_22_92}; }}")
         self._build(packages or [])
 
     def _build(self, packages):
@@ -120,7 +119,7 @@ class UpdateReviewDialog(QDialog):
                 _("View changes ↗") if notes_url else "")
             notes_item.setFlags(notes_item.flags() & ~Qt.ItemFlag.ItemIsEditable)
             if notes_url:
-                notes_item.setForeground(QColor(Colors.ACCENT))
+                notes_item.setForeground(qcolor(Colors.ACCENT))
                 notes_item.setToolTip(notes_url)
                 notes_item.setData(Qt.ItemDataRole.UserRole, notes_url)
             self.table.setItem(i, 4, notes_item)
@@ -155,8 +154,8 @@ class UpdateReviewDialog(QDialog):
             pass
         self.confirm_btn.setStyleSheet(
             f"QPushButton {{ background-color: {Colors.WHITE};"
-            f" color: {Colors.TEXT_ON_ACCENT};"
-            f" border: 1px solid rgba(255, 255, 255, 0.9);"
+            f" color: {Colors.TEXT_ON_WHITE};"
+            f" border: 1px solid {Colors.OVERLAY_90};"
             f" border-radius: 10px; padding: 8px 18px;"
             f" font-size: {Fonts.BASE}; font-weight: 600; }}"
             f"QPushButton:hover {{ background-color: {Colors.WHITE_HOVER}; }}"

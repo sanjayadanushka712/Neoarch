@@ -4,10 +4,10 @@ import os
 from PyQt6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout, QLabel, QSizePolicy,
 )
-from PyQt6.QtGui import QPixmap, QPainter, QColor, QPen, QPalette, QFontMetrics
+from PyQt6.QtGui import QPainter, QColor, QPen, QPalette, QFontMetrics
 from PyQt6.QtCore import Qt, QRectF, pyqtSignal, QPropertyAnimation, QEasingCurve, pyqtProperty
-from PyQt6.QtSvg import QSvgRenderer
-from neoarch.frontend.tokens import Colors, Fonts, SourceColors
+from neoarch.frontend.icon_registry import render_pixmap
+from neoarch.frontend.tokens import Colors, Fonts, SourceColors, qcolor
 
 
 class ToggleSwitch(QWidget):
@@ -15,14 +15,15 @@ class ToggleSwitch(QWidget):
 
     toggled = pyqtSignal(bool)
 
-    def __init__(self, accent_color="#3B82F6", parent=None):
+    def __init__(self, accent_color=None, parent=None):
         super().__init__(parent)
+        accent_color = accent_color or Colors.BLUE_STRONG
         self.setFixedSize(38, 20)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self._checked = True
         self._knob_pos = 1.0
         self._on_color = QColor(accent_color)
-        self._off_color = QColor(48, 50, 58, 220)
+        self._off_color = qcolor(Colors.SURFACE_3, 220)
         self._animation = QPropertyAnimation(self, b"knob_pos", self)
         self._animation.setDuration(180)
         self._animation.setEasingCurve(QEasingCurve.Type.OutCubic)
@@ -89,7 +90,7 @@ class ToggleSwitch(QWidget):
         else:
             track_color = off_color
 
-        painter.setPen(QPen(QColor(255, 255, 255, 20), 0.5))
+        painter.setPen(QPen(qcolor(Colors.OVERLAY_20), 0.5))
         painter.setBrush(track_color)
         painter.drawRoundedRect(QRectF(0, track_y, w, track_h), radius, radius)
 
@@ -97,18 +98,18 @@ class ToggleSwitch(QWidget):
         knob_rect = QRectF(knob_x, (h - knob_diam) / 2, knob_diam, knob_diam)
 
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QColor(0, 0, 0, 40))
+        painter.setBrush(qcolor(Colors.SHADOW_35, 40))
         painter.drawEllipse(knob_rect.translated(0, 1))
 
-        painter.setBrush(QColor(255, 255, 255))
-        painter.setPen(QPen(QColor(0, 0, 0, 15), 0.5))
+        painter.setBrush(qcolor(Colors.WHITE))
+        painter.setPen(QPen(qcolor(Colors.SHADOW_35, 15), 0.5))
         painter.drawEllipse(knob_rect)
 
         if not self.isEnabled():
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(QColor(8, 8, 10, 110))
+            painter.setBrush(qcolor(Colors.BG, 110))
             painter.drawRoundedRect(QRectF(0, track_y, w, track_h), radius, radius)
-            painter.setBrush(QColor(150, 152, 158, 130))
+            painter.setBrush(qcolor(Colors.TEXT_2, 130))
             painter.drawEllipse(knob_rect)
 
         painter.end()
@@ -129,7 +130,7 @@ class _ElideLabel(QLabel):
         painter.setFont(self.font())
         color = self.palette().color(QPalette.ColorRole.WindowText)
         if not color.isValid():
-            color = QColor(245, 246, 250)
+            color = qcolor(Colors.TEXT)
         painter.setPen(color)
         fm = QFontMetrics(self.font())
         text = fm.elidedText(self.text(), Qt.TextElideMode.ElideRight, self.width())
@@ -241,17 +242,7 @@ class SourceItem(QWidget):
         try:
             if not os.path.exists(icon_path):
                 return False
-            svg_renderer = QSvgRenderer(icon_path)
-            if not svg_renderer.isValid():
-                return False
-            size = 22
-            pixmap = QPixmap(size, size)
-            pixmap.fill(Qt.GlobalColor.transparent)
-            painter = QPainter(pixmap)
-            painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
-            painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform, True)
-            svg_renderer.render(painter, QRectF(0, 0, size, size))
-            painter.end()
+            pixmap = render_pixmap(icon_path, 22)
             if not pixmap.isNull():
                 self.icon_label.setPixmap(pixmap)
                 self.icon_label.setStyleSheet("background: transparent; border: none; padding: 0; margin: 0;")
@@ -287,7 +278,7 @@ class SourceItem(QWidget):
                     border: none;
                 }}
                 QLabel#sourceItemSubtitle {{
-                    color: #6B7280;
+                    color: {Colors.TEXT_3};
                     font-size: {Fonts.XS};
                     font-weight: 400;
                     background: transparent;
@@ -297,7 +288,7 @@ class SourceItem(QWidget):
                     color: {Colors.TEXT};
                     font-size: {Fonts.XS};
                     font-weight: 600;
-                    background: rgba(255, 255, 255, 0.08);
+                    background: {Colors.BORDER_INPUT};
                     border: 1px solid {Colors.BORDER_HOVER};
                     border-radius: 10px;
                     padding: 1px 7px;
@@ -318,7 +309,7 @@ class SourceItem(QWidget):
                     border: none;
                 }}
                 QLabel#sourceItemSubtitle {{
-                    color: #6B7280;
+                    color: {Colors.TEXT_3};
                     font-size: {Fonts.XS};
                     font-weight: 400;
                     background: transparent;
@@ -328,7 +319,7 @@ class SourceItem(QWidget):
                     color: {Colors.TEXT_2};
                     font-size: {Fonts.XS};
                     font-weight: 600;
-                    background: rgba(255, 255, 255, 0.04);
+                    background: {Colors.OVERLAY_04};
                     border: 1px solid {Colors.BORDER_INPUT};
                     border-radius: 10px;
                     padding: 1px 7px;
@@ -347,8 +338,8 @@ class SourceItem(QWidget):
             painter.setBrush(QColor(0, 0, 0, 0))
             painter.drawRoundedRect(rect, 12, 12)
         elif self._hover:
-            painter.setPen(QPen(QColor(255, 255, 255, 10), 1))
-            painter.setBrush(QColor("#202733"))
+            painter.setPen(QPen(qcolor(Colors.OVERLAY_10), 1))
+            painter.setBrush(qcolor(Colors.SURFACE_3))
             painter.drawRoundedRect(rect, 12, 12)
         else:
             painter.setPen(Qt.PenStyle.NoPen)

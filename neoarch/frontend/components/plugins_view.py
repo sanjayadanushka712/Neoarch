@@ -1,7 +1,7 @@
 # === components: plugins_view.py ===
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QScrollArea, QFrame, QGridLayout, QSizePolicy
 from PyQt6.QtCore import pyqtSignal, Qt, QTimer
-from PyQt6.QtGui import QColor, QFont
+from PyQt6.QtGui import QFont
 from typing import Any
 import os
 import shutil
@@ -13,11 +13,8 @@ from neoarch.frontend.styles import Styles
 from neoarch.backend.services.i18n import _
 from neoarch.frontend.components.packages_grid_view import (
     PackageCard, _Chip, _CheckBox, _SmallLabel, _SourceLogo,
-    _STATUS_COLORS,
+    _status_color,
 )
-
-_ACCENT = Colors.ACCENT
-_TEXT_MUTED = QColor(Colors.TEXT_3)
 
 
 def _canonical_source(source):
@@ -114,7 +111,7 @@ class _PluginPackageCard(PackageCard):
         top.addWidget(self.logo)
 
         name = self._plugin.get("name") or self._plugin.get("id") or ""
-        self.name_label = _SmallLabel(name, 11, QFont.Weight.Bold, "#EEF0F4")
+        self.name_label = _SmallLabel(name, 11, QFont.Weight.Bold, f"{Colors.TEXT}")
         self.name_label.setToolTip(name)
         top.addWidget(self.name_label, 1)
 
@@ -125,7 +122,7 @@ class _PluginPackageCard(PackageCard):
         layout.addLayout(top)
 
         desc = self._plugin.get("desc") or ""
-        self.desc_label = _SmallLabel(desc, 8, QFont.Weight.Normal, "#8B8D97")
+        self.desc_label = _SmallLabel(desc, 8, QFont.Weight.Normal, f"{Colors.TEXT_2}")
         self.desc_label.setToolTip(desc)
         layout.addWidget(self.desc_label)
 
@@ -135,7 +132,7 @@ class _PluginPackageCard(PackageCard):
         bottom.setSpacing(6)
 
         status = "Installed" if self._installed else "Available"
-        self.status_chip = _Chip(status, _STATUS_COLORS.get(status, _TEXT_MUTED))
+        self.status_chip = _Chip(status, _status_color(status))
         bottom.addWidget(self.status_chip, alignment=Qt.AlignmentFlag.AlignBottom)
 
         bottom.addStretch(1)
@@ -174,7 +171,7 @@ class _PluginPackageCard(PackageCard):
             self._uninstall_btn.setVisible(bool(self._hover) and not self._installing)
 
     def _set_status(self, status):
-        color = _STATUS_COLORS.get(status, _TEXT_MUTED)
+        color = _status_color(status)
         chip = _Chip(status, color)
         if hasattr(self, '_action_row') and self._action_row is not None:
             try:
@@ -375,40 +372,40 @@ class PluginsView(QWidget):
     @staticmethod
     def _get_scrollbar_stylesheet():
         """Scrollbar styling matching the Updates/Discover card grid."""
-        return """
-            QScrollArea { background: transparent; border: none; }
-            QScrollBar:vertical {
-                background: rgba(255,255,255,0.03);
+        return f"""
+            QScrollArea {{ background: transparent; border: none; }}
+            QScrollBar:vertical {{
+                background: {Colors.OVERLAY_03};
                 width: 8px;
                 border-radius: 4px;
-            }
-            QScrollBar::handle:vertical {
-                background: rgba(255,255,255,0.1);
+            }}
+            QScrollBar::handle:vertical {{
+                background: {Colors.BORDER_HOVER};
                 border-radius: 4px;
                 min-height: 30px;
-            }
-            QScrollBar::handle:vertical:hover {
-                background: rgba(255,255,255,0.15);
-            }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            }}
+            QScrollBar::handle:vertical:hover {{
+                background: {Colors.OVERLAY_15};
+            }}
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
                 height: 0px;
-            }
-            QScrollBar:horizontal {
-                background: rgba(255,255,255,0.03);
+            }}
+            QScrollBar:horizontal {{
+                background: {Colors.OVERLAY_03};
                 height: 8px;
                 border-radius: 4px;
-            }
-            QScrollBar::handle:horizontal {
-                background: rgba(255,255,255,0.1);
+            }}
+            QScrollBar::handle:horizontal {{
+                background: {Colors.BORDER_HOVER};
                 border-radius: 4px;
                 min-width: 30px;
-            }
-            QScrollBar::handle:horizontal:hover {
-                background: rgba(255,255,255,0.15);
-            }
-            QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {
+            }}
+            QScrollBar::handle:horizontal:hover {{
+                background: {Colors.OVERLAY_15};
+            }}
+            QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal {{
                 width: 0px;
-            }
+            }}
         """
 
     def create_apps_grid(self, parent_layout):
@@ -439,7 +436,7 @@ class PluginsView(QWidget):
         self._live_search_label = QLabel("")
         self._live_search_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._live_search_label.setStyleSheet(
-            f"color: #8B8D97; font-size: {Fonts.BASE}; border: none; padding: 24px;")
+            f"color: {Colors.TEXT_2}; font-size: {Fonts.BASE}; border: none; padding: 24px;")
         self._live_search_label.hide()
         scroll_layout.addWidget(self._live_search_label)
 

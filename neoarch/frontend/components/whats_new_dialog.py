@@ -23,7 +23,7 @@ from PyQt6.QtWidgets import (
 from neoarch.frontend.tokens import Colors, Fonts, Radii
 from neoarch.frontend.styles import Styles
 from neoarch.frontend.components.dark_dialogs import (
-    _DIALOG_STYLE, _DialogTitleBar, _apply_dialog_flags,
+    _dialog_style, _DialogTitleBar, _apply_dialog_flags,
 )
 from neoarch.backend.services.i18n import _
 from neoarch.backend.services.release_notes import latest_release, SECTION_LABELS
@@ -85,7 +85,7 @@ class WhatIsNewDialog(QDialog):
         self.setWindowTitle(_("What's New"))
         self.resize(720, 640)
         self.setMinimumSize(560, 420)
-        self.setStyleSheet(_DIALOG_STYLE)
+        self.setStyleSheet(_dialog_style())
         _apply_dialog_flags(self)
         self._build()
 
@@ -168,7 +168,8 @@ class WhatIsNewDialog(QDialog):
         row.addLayout(col, 1)
         return row
 
-    def _card(self, bg=Colors.SURFACE):
+    def _card(self, bg=None):
+        bg = bg or Colors.SURFACE
         card = QFrame()
         card.setObjectName("cardFrame")
         card.setStyleSheet(Styles.card(bg=bg))

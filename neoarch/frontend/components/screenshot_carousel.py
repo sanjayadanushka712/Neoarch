@@ -35,12 +35,12 @@ def _download(url: str, timeout: int = 10) -> bytes:
 
 def _nav_style() -> str:
     return (
-        f"QPushButton {{ background: rgba(255,255,255,0.08);"
+        f"QPushButton {{ background: {Colors.BORDER_INPUT};"
         f" border: 1px solid {Colors.BORDER}; border-radius: 13px;"
         f" color: {Colors.TEXT}; font-size: 16px; padding: 0; }}"
-        f"QPushButton:hover {{ background: rgba(255,255,255,0.14); }}"
+        f"QPushButton:hover {{ background: {Colors.OVERLAY_14}; }}"
         f"QPushButton:disabled {{ color: {Colors.TEXT_3};"
-        f" border-color: rgba(255,255,255,0.04); }}"
+        f" border-color: {Colors.OVERLAY_04}; }}"
     )
 
 
@@ -79,7 +79,7 @@ class ScreenshotCarousel(QFrame):
         self.image.setFixedHeight(_IMAGE_HEIGHT)
         self.image.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.image.setStyleSheet(
-            f"background: rgba(255,255,255,0.03);"
+            f"background: {Colors.OVERLAY_03};"
             f" border: 1px solid {Colors.BORDER}; border-radius: 8px;"
             f" color: {Colors.TEXT_3}; font-size: {Fonts.SM};")
         row.addWidget(self.image, 1)

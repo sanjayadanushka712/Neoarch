@@ -9,9 +9,9 @@ from PyQt6.QtWidgets import (
 )
 
 from neoarch.frontend.tokens import Colors, Fonts
+from neoarch.frontend.styles import Styles
 from neoarch.frontend.components.dark_dialogs import (
-    _DIALOG_STYLE, _DialogTitleBar, _apply_dialog_flags,
-    _BTN_PRIMARY, _BTN_SECONDARY,
+    _dialog_style, _DialogTitleBar, _apply_dialog_flags,
 )
 from neoarch.frontend.components.toggle_switch import ToggleSwitch
 from neoarch.backend.services.i18n import _
@@ -43,7 +43,7 @@ def _stat(label: str, value: str, color: str) -> QWidget:
     box.setObjectName("statCard")
     box.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
     box.setStyleSheet(
-        "#statCard { background: rgba(255,255,255,0.04);"
+        f"#statCard {{ background: {Colors.OVERLAY_04};"
         f" border: 1px solid {Colors.BORDER}; border-radius: 10px; }}")
     v = QVBoxLayout(box)
     v.setContentsMargins(14, 10, 14, 10)
@@ -98,7 +98,7 @@ class InstallPreflightDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(_("Install Summary"))
         self.setMinimumWidth(620)
-        self.setStyleSheet(_DIALOG_STYLE)
+        self.setStyleSheet(_dialog_style())
         _apply_dialog_flags(self)
 
         packages = plan.get("packages") or []
@@ -147,18 +147,18 @@ class InstallPreflightDialog(QDialog):
         divider = QFrame()
         divider.setFixedHeight(1)
         divider.setStyleSheet(
-            "background: rgba(255,255,255,0.08); border: none;")
+            f"background: {Colors.BORDER_INPUT}; border: none;")
         layout.addWidget(divider)
 
         btn_row = QHBoxLayout()
         btn_row.setSpacing(8)
         btn_row.addStretch()
         cancel = QPushButton(_("Cancel"))
-        cancel.setStyleSheet(_BTN_SECONDARY)
+        cancel.setStyleSheet(Styles.btn_secondary())
         cancel.clicked.connect(self.reject)
         btn_row.addWidget(cancel)
         install = QPushButton(_("Install"))
-        install.setStyleSheet(_BTN_PRIMARY)
+        install.setStyleSheet(Styles.btn_white())
         install.clicked.connect(self.accept)
         btn_row.addWidget(install)
         layout.addLayout(btn_row)
@@ -199,11 +199,11 @@ class InstallPreflightDialog(QDialog):
         row = QWidget()
         row.setObjectName("depRow")
         row.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        border = "" if last else " border-bottom: 1px solid rgba(255,255,255,0.06);"
+        border = "" if last else f" border-bottom: 1px solid {Colors.BORDER};"
         row.setStyleSheet(
             f"#depRow {{ background: transparent; border: none;{border}"
             " border-radius: 6px; }"
-            f"#depRow:hover {{ background: rgba(255,255,255,0.04); }}")
+            f"#depRow:hover {{ background: {Colors.OVERLAY_04}; }}")
 
         hl = QHBoxLayout(row)
         hl.setContentsMargins(12, 7, 10, 7)
@@ -245,9 +245,9 @@ class InstallPreflightDialog(QDialog):
         row.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         row.setStyleSheet(
             "#pkgRow { background: transparent; border: none;"
-            " border-bottom: 1px solid rgba(255,255,255,0.06);"
+            f" border-bottom: 1px solid {Colors.BORDER};"
             " border-radius: 6px; }"
-            "#pkgRow:hover { background: rgba(255,255,255,0.04); }")
+            f"#pkgRow:hover {{ background: {Colors.OVERLAY_04}; }}")
         hl = QHBoxLayout(row)
         hl.setContentsMargins(12, 8, 12, 8)
         hl.setSpacing(8)

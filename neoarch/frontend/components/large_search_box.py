@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 import shutil
 import subprocess
 from threading import Thread
@@ -11,28 +10,13 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit,
     QLabel, QFrame, QGraphicsDropShadowEffect,
 )
-from PyQt6.QtCore import pyqtSignal, Qt, QSize, QTimer, QRectF, QEvent
-from PyQt6.QtGui import QColor, QIcon, QPixmap, QPainter
-from PyQt6.QtSvg import QSvgRenderer
+from PyQt6.QtCore import pyqtSignal, Qt, QSize, QTimer, QEvent
+from PyQt6.QtGui import QColor, QIcon, QPixmap
 
 from neoarch.frontend.components.recent_activity import RecentActivity
 from neoarch.frontend.tokens import Colors, Fonts
 from neoarch.backend.services.i18n import _
-from neoarch.resources.paths import PROJECT_ROOT
-
-_C = {
-    "bg": Colors.BG,
-    "surface": "rgba(255, 255, 255, 0.03)",
-    "card": "rgba(255, 255, 255, 0.04)",
-    "card_hover": "rgba(255, 255, 255, 0.07)",
-    "border": "rgba(255, 255, 255, 0.06)",
-    "border_hover": "rgba(255, 255, 255, 0.12)",
-    "accent": Colors.ACCENT,
-    "accent_soft": "rgba(0, 191, 174, 0.10)",
-    "text": Colors.TEXT,
-    "text_sec": Colors.TEXT_2,
-    "text_muted": Colors.TEXT_3,
-}
+from neoarch.frontend.icon_registry import icon_path, render_pixmap
 
 
 class LargeSearchBox(QWidget):
@@ -107,12 +91,12 @@ class LargeSearchBox(QWidget):
 
         title = QLabel(_("Search for packages"))
         title.setStyleSheet(
-            f"font-size: {Fonts.DISPLAY}; font-weight: 700; color: {_C['text']}; background: transparent;")
+            f"font-size: {Fonts.DISPLAY}; font-weight: 700; color: {Colors.TEXT}; background: transparent;")
         head_col.addWidget(title)
 
         sub = QLabel(_("Find anything from pacman, AUR, Flatpak and npm"))
         sub.setStyleSheet(
-            f"font-size: {Fonts.BASE}; font-weight: 400; color: {_C['text_muted']}; background: transparent;")
+            f"font-size: {Fonts.BASE}; font-weight: 400; color: {Colors.TEXT_3}; background: transparent;")
         head_col.addWidget(sub)
 
         header.addLayout(head_col)
@@ -128,8 +112,8 @@ class LargeSearchBox(QWidget):
         self.hero_container.setFixedHeight(72)
         self.hero_container.setStyleSheet(f"""
             QFrame#heroSearchCard {{
-                background-color: rgba(255, 255, 255, 0.03);
-                border: 1px solid {_C['border']};
+                background-color: {Colors.OVERLAY_03};
+                border: 1px solid {Colors.OVERLAY_06};
                 border-radius: 20px;
             }}
         """)
@@ -154,13 +138,13 @@ class LargeSearchBox(QWidget):
             QLineEdit {{
                 background: transparent;
                 border: none;
-                color: {_C['text']};
+                color: {Colors.TEXT};
                 font-size: {Fonts.CARD_TITLE};
                 font-weight: 400;
                 padding: 0;
             }}
             QLineEdit::placeholder {{
-                color: {_C['text_muted']};
+                color: {Colors.TEXT_3};
                 font-size: {Fonts.LG};
             }}
         """)
@@ -172,20 +156,20 @@ class LargeSearchBox(QWidget):
         btn.setCursor(Qt.CursorShape.PointingHandCursor)
         btn.setStyleSheet(f"""
             QPushButton {{
-                background-color: rgba(28, 30, 36, 0.85);
-                color: {_C['accent']};
-                border: 1px solid {_C['border']};
+                background-color: {Colors.GLASS};
+                color: {Colors.ACCENT};
+                border: 1px solid {Colors.OVERLAY_06};
                 border-radius: 12px;
                 font-size: {Fonts.BASE};
                 font-weight: 600;
                 padding: 0 22px;
             }}
             QPushButton:hover {{
-                background-color: rgba(34, 36, 42, 0.85);
-                border-color: rgba(0, 191, 174, 0.4);
+                background-color: {Colors.GLASS_2};
+                border-color: {Colors.ACCENT_40};
             }}
             QPushButton:pressed {{
-                background-color: rgba(38, 40, 48, 0.9);
+                background-color: {Colors.GLASS_3};
             }}
         """)
         self._shadow(btn, 16, QColor(0, 0, 0, 80))
@@ -202,15 +186,15 @@ class LargeSearchBox(QWidget):
         row.setSpacing(14)
         row.addWidget(self._make_card(
             _("Installed Packages"), "installed packages.jpeg",
-            _C["accent"], "installed_count_label",
+            Colors.ACCENT, "installed_count_label",
             _("across all sources")), 1)
         row.addWidget(self._make_card(
             _("Available Updates"), "available updates.jpeg",
-            "#FF9F43", "updates_count_label",
+            f"{Colors.ORANGE}", "updates_count_label",
             _("keep your system updated")), 1)
         row.addWidget(self._make_card(
             _("System Status"), "system states.jpeg",
-            "#A29BFE", "sources_count_label",
+            f"{Colors.PURPLE}", "sources_count_label",
             _("everything looks good")), 1)
         return row
 
@@ -219,20 +203,20 @@ class LargeSearchBox(QWidget):
         card = QFrame()
         card.setObjectName("dashCard")
         card.setFixedHeight(140)
-        card.setStyleSheet("""
-            QFrame#dashCard {
-                background-color: rgba(28, 30, 36, 0.85);
-                border-top: 1px solid rgba(255, 255, 255, 0.06);
-                border-left: 1px solid rgba(255, 255, 255, 0.06);
-                border-right: 1px solid rgba(0, 0, 0, 0.25);
-                border-bottom: 2px solid rgba(0, 0, 0, 0.35);
+        card.setStyleSheet(f"""
+            QFrame#dashCard {{
+                background-color: {Colors.GLASS};
+                border-top: 1px solid {Colors.BORDER};
+                border-left: 1px solid {Colors.BORDER};
+                border-right: 1px solid {Colors.SHADOW_25};
+                border-bottom: 2px solid {Colors.SHADOW_35};
                 border-radius: 18px;
-            }
-            QFrame#dashCard:hover {
-                background-color: rgba(34, 36, 42, 0.85);
-                border-top: 1px solid rgba(255, 255, 255, 0.09);
-                border-left: 1px solid rgba(255, 255, 255, 0.09);
-            }
+            }}
+            QFrame#dashCard:hover {{
+                background-color: {Colors.GLASS_2};
+                border-top: 1px solid {Colors.OVERLAY_09};
+                border-left: 1px solid {Colors.OVERLAY_09};
+            }}
         """)
         self._neumorphic_shadow(card)
 
@@ -245,7 +229,7 @@ class LargeSearchBox(QWidget):
 
         label = QLabel(title)
         label.setStyleSheet(
-            f"font-size: {Fonts.MD}; font-weight: 500; color: {_C['text_sec']}; background: transparent; letter-spacing: 0.3px;")
+            f"font-size: {Fonts.MD}; font-weight: 500; color: {Colors.TEXT_2}; background: transparent; letter-spacing: 0.3px;")
         hdr.addWidget(label)
         hdr.addStretch()
 
@@ -266,7 +250,7 @@ class LargeSearchBox(QWidget):
 
         sub = QLabel(subtitle)
         sub.setStyleSheet(
-            f"font-size: {Fonts.SM}; font-weight: 400; color: {_C['text_muted']}; background: transparent;")
+            f"font-size: {Fonts.SM}; font-weight: 400; color: {Colors.TEXT_3}; background: transparent;")
         lay.addWidget(sub)
 
         setattr(self, label_attr, val)
@@ -286,7 +270,7 @@ class LargeSearchBox(QWidget):
         ]
 
         for svg_rel, text, cb, primary in actions:
-            path = os.path.join(PROJECT_ROOT, "assets", "icons", svg_rel)
+            path = icon_path(svg_rel)
             btn = QPushButton(QIcon(path), f"  {text}")
             btn.setIconSize(QSize(17, 17))
             btn.setFixedHeight(44)
@@ -295,57 +279,57 @@ class LargeSearchBox(QWidget):
             if primary:
                 btn.setStyleSheet(f"""
                     QPushButton {{
-                        background-color: rgba(28, 30, 36, 0.85);
-                        color: {_C['text']};
-                        border-top: 1px solid rgba(0, 191, 174, 0.2);
-                        border-left: 1px solid rgba(0, 191, 174, 0.2);
-                        border-right: 1px solid rgba(0, 0, 0, 0.25);
-                        border-bottom: 2px solid rgba(0, 0, 0, 0.35);
+                        background-color: {Colors.GLASS};
+                        color: {Colors.TEXT};
+                        border-top: 1px solid {Colors.ACCENT_20};
+                        border-left: 1px solid {Colors.ACCENT_20};
+                        border-right: 1px solid {Colors.SHADOW_25};
+                        border-bottom: 2px solid {Colors.SHADOW_35};
                         border-radius: 14px;
                         font-size: {Fonts.BASE};
                         font-weight: 600;
                         padding: 0 28px;
                     }}
                     QPushButton:hover {{
-                        background-color: rgba(34, 36, 42, 0.85);
-                        border-top: 1px solid rgba(0, 191, 174, 0.35);
-                        border-left: 1px solid rgba(0, 191, 174, 0.35);
+                        background-color: {Colors.GLASS_2};
+                        border-top: 1px solid {Colors.ACCENT_BORDER_STRONG};
+                        border-left: 1px solid {Colors.ACCENT_BORDER_STRONG};
                     }}
                     QPushButton:pressed {{
-                        background-color: rgba(24, 26, 32, 0.9);
-                        border-top: 1px solid rgba(0, 0, 0, 0.35);
-                        border-left: 1px solid rgba(0, 0, 0, 0.35);
-                        border-right: 1px solid rgba(255, 255, 255, 0.04);
-                        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+                        background-color: {Colors.GLASS_DEEP};
+                        border-top: 1px solid {Colors.SHADOW_35};
+                        border-left: 1px solid {Colors.SHADOW_35};
+                        border-right: 1px solid {Colors.OVERLAY_04};
+                        border-bottom: 1px solid {Colors.OVERLAY_04};
                     }}
                 """)
                 self._neumorphic_shadow(btn)
             else:
                 btn.setStyleSheet(f"""
                     QPushButton {{
-                        background-color: rgba(28, 30, 36, 0.85);
-                        color: {_C['text_sec']};
-                        border-top: 1px solid rgba(255, 255, 255, 0.06);
-                        border-left: 1px solid rgba(255, 255, 255, 0.06);
-                        border-right: 1px solid rgba(0, 0, 0, 0.25);
-                        border-bottom: 2px solid rgba(0, 0, 0, 0.35);
+                        background-color: {Colors.GLASS};
+                        color: {Colors.TEXT_2};
+                        border-top: 1px solid {Colors.BORDER};
+                        border-left: 1px solid {Colors.BORDER};
+                        border-right: 1px solid {Colors.SHADOW_25};
+                        border-bottom: 2px solid {Colors.SHADOW_35};
                         border-radius: 14px;
                         font-size: {Fonts.BASE};
                         font-weight: 500;
                         padding: 0 24px;
                     }}
                     QPushButton:hover {{
-                        background-color: rgba(34, 36, 42, 0.85);
-                        color: {_C['text']};
-                        border-top: 1px solid rgba(255, 255, 255, 0.09);
-                        border-left: 1px solid rgba(255, 255, 255, 0.09);
+                        background-color: {Colors.GLASS_2};
+                        color: {Colors.TEXT};
+                        border-top: 1px solid {Colors.OVERLAY_09};
+                        border-left: 1px solid {Colors.OVERLAY_09};
                     }}
                     QPushButton:pressed {{
-                        background-color: rgba(24, 26, 32, 0.9);
-                        border-top: 1px solid rgba(0, 0, 0, 0.35);
-                        border-left: 1px solid rgba(0, 0, 0, 0.35);
-                        border-right: 1px solid rgba(255, 255, 255, 0.04);
-                        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+                        background-color: {Colors.GLASS_DEEP};
+                        border-top: 1px solid {Colors.SHADOW_35};
+                        border-left: 1px solid {Colors.SHADOW_35};
+                        border-right: 1px solid {Colors.OVERLAY_04};
+                        border-bottom: 1px solid {Colors.OVERLAY_04};
                     }}
                 """)
 
@@ -384,14 +368,14 @@ class LargeSearchBox(QWidget):
 
     def _update_hero_style(self):
         if self._focused:
-            border = "rgba(0, 191, 174, 0.5)"
+            border = f"{Colors.BORDER_FOCUS}"
         elif self._hovered:
-            border = "rgba(0, 191, 174, 0.25)"
+            border = f"{Colors.ACCENT_BORDER}"
         else:
-            border = _C['border']
+            border = Colors.OVERLAY_06
         self.hero_container.setStyleSheet(f"""
             QFrame#heroSearchCard {{
-                background-color: rgba(255, 255, 255, 0.03);
+                background-color: {Colors.OVERLAY_03};
                 border: 1px solid {border};
                 border-radius: 20px;
             }}
@@ -489,27 +473,15 @@ class LargeSearchBox(QWidget):
 
     @staticmethod
     def _set_svg_icon(label: QLabel, rel_path: str, size: int, color: str):
-        path = os.path.join(PROJECT_ROOT, "assets", "icons", rel_path)
-        try:
-            r = QSvgRenderer(path)
-            if r.isValid():
-                pm = QPixmap(size, size)
-                pm.fill(Qt.GlobalColor.transparent)
-                p = QPainter(pm)
-                p.setRenderHint(QPainter.RenderHint.Antialiasing)
-                r.render(p, QRectF(0, 0, size, size))
-                p.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
-                p.fillRect(QRectF(0, 0, size, size), QColor(color))
-                p.end()
-                label.setPixmap(pm)
-                return
-        except Exception:
-            pass
+        pixmap = render_pixmap(rel_path, size, color)
+        if not pixmap.isNull():
+            label.setPixmap(pixmap)
+            return
         label.setText("🔍")
 
     @staticmethod
     def _set_image(label: QLabel, rel_path: str, size: int):
-        path = os.path.join(PROJECT_ROOT, "assets", "icons", "screenshots", rel_path)
+        path = icon_path(f"screenshots/{rel_path}")
         try:
             pm = QPixmap(path)
             if not pm.isNull():

@@ -328,6 +328,9 @@ msgstr "Выберите «Вход» — браузер выполнит без
 msgid "Choose a theme for NeoArch. Changes apply instantly."
 msgstr "Выберите тему для NeoArch. Изменения применяются мгновенно."
 
+msgid "Reload custom themes"
+msgstr "Перезагрузить пользовательские темы"
+
 msgid "Clean Cache"
 msgstr "Очистить кэш"
 
@@ -3539,3 +3542,27 @@ msgstr "Загрузка скриншотов…"
 
 msgid "No screenshots available."
 msgstr "Скриншоты недоступны."
+
+msgid "Choose a window style and theme for NeoArch. Changes apply instantly."
+msgstr "Выберите стиль окна и тему для NeoArch. Изменения применяются мгновенно."
+
+msgid "Native system"
+msgstr "Системная"
+
+msgid "NeoArch"
+msgstr "NeoArch"
+
+msgid "Use NeoArch's custom titlebar and choose any theme below."
+msgstr "Используйте настраиваемую строку заголовка NeoArch и выберите любую тему ниже."
+
+msgid "Use your desktop titlebar and system colors. Themes are managed by your OS."
+msgstr "Используйте строку заголовка рабочего стола и системные цвета. Темы управляются вашей ОС."
+
+msgid "Window style"
+msgstr "Стиль окна"
+
+msgid "System transparency"
+msgstr "Прозрачность системы"
+
+msgid "Let the desktop show through the window body."
+msgstr "Позволить рабочему столу просвечивать сквозь тело окна."

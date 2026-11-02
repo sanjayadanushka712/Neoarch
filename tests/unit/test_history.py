@@ -1,5 +1,7 @@
 """Tests for pacman history parsing and the History page."""
 
+from datetime import datetime
+
 import pytest
 
 from neoarch.backend.services import history
@@ -194,3 +196,23 @@ def test_package_history_filters_one_package(tmp_path):
     assert entries[0]["packages"][0]["version"] == "5.3-1"
     assert entries[0]["packages"][0]["old_version"] == "5.2-1"
     assert history.package_history("", path=str(log)) == []
+
+
+def test_history_model_implements_data(qapp):
+    from PyQt6.QtCore import Qt
+
+    from neoarch.frontend.components.history_tab import _HistoryModel
+
+    row = {
+        "action": "upgrade",
+        "name": "bash",
+        "version": "5.3.0-1",
+        "old_version": "5.2.037-1",
+        "timestamp": datetime(2026, 10, 20, 10, 0, 1),
+    }
+    model = _HistoryModel()
+    model.set_rows([row])
+
+    assert model.data(model.index(0, 1)) == "bash"
+    assert model.data(model.index(0, 1), Qt.ItemDataRole.UserRole) is row
+    assert model.data(model.index(0, 2)) == "5.3.0-1"
