@@ -4,9 +4,8 @@ name: Mirror to Codeberg
 # project survives a GitHub account problem. Push mirrors are one-way:
 # Codeberg is read-only for this repo — keep working on GitHub.
 #
-# Setup (once): see docs/GITHUB_ACCOUNT_MIGRATION.md
-#   * create the Codeberg repo, then add the secrets
-#     CODEBERG_USER and CODEBERG_TOKEN to this repository.
+# Setup (once): create the Codeberg repo, then add the secrets
+# CODEBERG_USER and CODEBERG_TOKEN to this repository.
 # Until both secrets exist this job prints a notice and exits cleanly.
 
 on:

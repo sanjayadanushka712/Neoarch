@@ -1,12 +1,10 @@
 # Development Setup
 
-This page summarises how to run NeoArch from source. The canonical, always
-up-to-date version lives in the repository:
-[docs/development/setup.md](https://github.com/sanjayadanushka712/NeoArch/blob/main/docs/development/setup.md).
+This page summarises how to run NeoArch from source.
 
 ## Prerequisites
 
-- Python 3.8 or newer
+- Python 3.11 or newer
 - Git
 - PyQt6 and its system dependencies (`libegl1`, `libgl1`, `libglib2.0-0`,
   `libgtk-3-0`, `libxcb-*`, `libxkbcommon-x11-0`, `libdbus-1-3`,
@@ -20,7 +18,7 @@ cd Neoarch
 git checkout dev
 
 python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements_pyqt.txt
 
 python Neoarch.py          # GUI
 python -m neoarch.cli --help   # headless CLI

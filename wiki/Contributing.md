@@ -47,4 +47,4 @@ Please include:
 - [Development Setup](Development-Setup.md)
 - [Architecture](Architecture.md)
 - [Plugin Development](Plugin-Development.md)
-- Full guide: [docs/CONTRIBUTING.md](https://github.com/sanjayadanushka712/NeoArch/blob/main/docs/CONTRIBUTING.md)
+- Full guide: [CONTRIBUTING.md](https://github.com/sanjayadanushka712/NeoArch/blob/main/CONTRIBUTING.md)

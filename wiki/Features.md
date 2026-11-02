@@ -440,8 +440,8 @@ $ neo install 3
   sys_utils, workers, askpass), `neoarch/managers` (docker, git, plugins).
 - **Tests**: automated suite (46+ tests — installers, uninstallers, core
   helpers, release-notes, catalog coverage).
-- **Packaging**: AUR PKGBUILD (stable and `-git`), icons, desktop entries,
-  appdata; CLI binaries installed to `/usr/bin` (`neo` → `neoarch-cli`).
+- **Packaging**: AUR PKGBUILD (stable and `-git`), icons, and desktop
+  entries; CLI binaries installed to `/usr/bin` (`neo` → `neoarch-cli`).
 
 ## What's new / release notes
 

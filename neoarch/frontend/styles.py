@@ -77,13 +77,6 @@ class Styles(metaclass=_StylesMeta):
             css += f" color: {color};"
         return css
 
-    @staticmethod
-    def overline(color=None, size=Fonts.XS, weight=Fonts.SEMI):
-        """Uppercase section/sidebar labels — QSS only (use QFont for Qt)."""
-        color = color or Colors.TEXT_2
-        return (f"color: {color}; font-size: {size}; font-weight: {weight};"
-                " text-transform: uppercase; letter-spacing: 0.8px;")
-
     # ── Surfaces / cards ────────────────────────────────────────────
 
     @staticmethod
@@ -119,10 +112,6 @@ class Styles(metaclass=_StylesMeta):
                 border-radius: {radius}px;
             }}
         """
-
-    @staticmethod
-    def hairline():  # vertical / horizontal divider
-        return f"background: {Colors.BORDER}; border: none;"
 
     # ── Inputs ──────────────────────────────────────────────────────
 
@@ -182,25 +171,6 @@ class Styles(metaclass=_StylesMeta):
         """
 
     @staticmethod
-    def spinbox(padding="6px 8px", size=Fonts.BASE, radius=Radii.MD):
-        """QSpinBox."""
-        return f"""
-            QSpinBox {{
-                background-color: {Colors.INPUT_BG};
-                color: {Colors.TEXT};
-                border: 1px solid {Colors.BORDER_INPUT};
-                border-radius: {radius}px;
-                padding: {padding};
-                font-size: {size};
-            }}
-            QSpinBox:hover {{ border-color: {Colors.BORDER_HOVER}; }}
-            QSpinBox:focus {{ border: 1px solid {Colors.ACCENT}; }}
-            QSpinBox::up-button, QSpinBox::down-button {{
-                background: transparent; border: none; width: 16px;
-            }}
-        """
-
-    @staticmethod
     def checkbox(size=18, radius=6, spacing=8, label_size=Fonts.BASE):
         """QCheckBox with an SVG check mark on checked state."""
         return f"""
@@ -229,30 +199,6 @@ class Styles(metaclass=_StylesMeta):
             QCheckBox::indicator:disabled {{
                 border-color: {Colors.BORDER_INPUT};
                 background-color: transparent;
-            }}
-        """
-
-    @staticmethod
-    def plain_edit(padding="6px 8px", size=Fonts.MD, radius=Radii.MD,
-                   mono=True):
-        """QPlainTextEdit / QTextEdit (mono by default)."""
-        family = Fonts.MONO if mono else Fonts.FAMILY
-        return f"""
-            QPlainTextEdit, QTextEdit {{
-                background-color: {Colors.INPUT_BG};
-                color: {Colors.TEXT};
-                border: 1px solid {Colors.BORDER_INPUT};
-                border-radius: {radius}px;
-                padding: {padding};
-                font-size: {size};
-                font-family: {family};
-                selection-background-color: {Colors.ACCENT};
-            }}
-            QPlainTextEdit:hover, QTextEdit:hover {{
-                border-color: {Colors.BORDER_HOVER};
-            }}
-            QPlainTextEdit:focus, QTextEdit:focus {{
-                border: 1px solid {Colors.ACCENT};
             }}
         """
 
@@ -313,42 +259,6 @@ class Styles(metaclass=_StylesMeta):
                 background-color: {Colors.ACCENT_SOFT};
                 border-color: {Colors.ACCENT};
             }}
-        """
-
-    @staticmethod
-    def btn_ghost(padding="8px 16px", size=Fonts.BASE, radius=Radii.MD):
-        """Subtle bordered neutral button."""
-        return f"""
-            QPushButton {{
-                background-color: transparent;
-                color: {Colors.TEXT_2};
-                border: 1px solid {Colors.BORDER_HOVER};
-                border-radius: {radius}px;
-                padding: {padding};
-                font-size: {size};
-            }}
-            QPushButton:hover {{
-                background-color: {Colors.BORDER};
-                border-color: {Colors.BORDER_STRONG};
-                color: {Colors.TEXT};
-            }}
-        """
-
-    @staticmethod
-    def btn_primary(padding="8px 18px", size=Fonts.BASE, radius=Radii.MD):
-        """Solid accent (primary action) button."""
-        return f"""
-            QPushButton {{
-                background-color: {Colors.ACCENT};
-                color: {Colors.TEXT_ON_ACCENT};
-                border: 1px solid {Colors.ACCENT};
-                border-radius: {radius}px;
-                padding: {padding};
-                font-size: {size};
-                font-weight: {Fonts.SEMI};
-            }}
-            QPushButton:hover {{ background-color: {Colors.ACCENT_HOVER}; }}
-            QPushButton:pressed {{ background-color: {Colors.ACCENT_PRESSED}; }}
         """
 
     @staticmethod
@@ -452,26 +362,6 @@ class Styles(metaclass=_StylesMeta):
                 border-color: {border};
                 background-color: transparent;
             }}
-        """
-
-    @staticmethod
-    def btn_card(padding="8px 18px", size=Fonts.BASE, radius=Radii.LG):
-        """Default card-surface button (main-window base QPushButton)."""
-        return f"""
-            QPushButton {{
-                background-color: {Colors.CARD};
-                color: {Colors.TEXT};
-                border: 1px solid {Colors.BORDER};
-                border-radius: {radius}px;
-                padding: {padding};
-                font-weight: {Fonts.MEDIUM};
-                font-size: {size};
-            }}
-            QPushButton:hover {{
-                background-color: {Colors.CARD_HOVER};
-                border-color: {Colors.BORDER_HOVER};
-            }}
-            QPushButton:pressed {{ background-color: {Colors.SURFACE_3}; }}
         """
 
     # ── Chips / badges ──────────────────────────────────────────────
