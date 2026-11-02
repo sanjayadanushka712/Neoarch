@@ -3564,5 +3564,5 @@ msgstr "කවුළු විලාසය"
 msgid "System transparency"
 msgstr "පද්ධති විනිවිදභාවය"
 
-msgid "Let the desktop show through the window body."
-msgstr "වින්ඩෝ බොඩිය හරහා ඩෙස්ක්ටොප් දිස්වීමට ඉඩ දෙන්න."
+msgid "Let the desktop show through the window body. Uses the saved window transparency level."
+msgstr "වින්ඩෝ බොඩිය හරහා ඩෙස්ක්ටොප් දිස්වීමට ඉඩ දෙන්න. සුරකින ලද වින්ඩෝ විනිවිදභාවය මට්ටම භාවිතා කරයි."

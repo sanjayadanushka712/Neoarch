@@ -1,6 +1,8 @@
 import json
 import re
 
+import pytest
+
 from neoarch.frontend import themes
 from neoarch.frontend.themes import (
     BUILTIN_THEME_DIR,
@@ -10,6 +12,16 @@ from neoarch.frontend.themes import (
     get_theme_data,
     load_themes,
 )
+
+
+@pytest.fixture(scope="module")
+def qapp():
+    from PyQt6.QtWidgets import QApplication
+
+    app = QApplication.instance()
+    if app is None:
+        app = QApplication([])
+    return app
 
 
 def _write_theme(directory, filename, data):
@@ -210,6 +222,86 @@ def test_manager_applies_system_metrics_and_restores_defaults(
     assert tokens.Scrollbar.RADIUS == tokens.DEFAULT_SCROLLBAR["RADIUS"]
     assert tokens.Scrollbar.MARGIN == tokens.DEFAULT_SCROLLBAR["MARGIN"]
     assert tokens.Scrollbar.MIN_LEN == tokens.DEFAULT_SCROLLBAR["MIN_LEN"]
+
+
+def test_failed_theme_application_restores_tokens(
+        tmp_path, monkeypatch, qapp):
+    from neoarch.frontend import tokens
+
+    manager = ThemeManager()
+    manager._settings_path = str(tmp_path / "theme.json")
+    assert manager.apply_theme("dark")
+    baseline = {
+        "bg": tokens.Colors.BG,
+        "radii_sm": tokens.Radii.SM,
+        "spacing_sm": tokens.Spacing.SM,
+        "scrollbar": tokens.Scrollbar.WIDTH,
+    }
+
+    monkeypatch.setattr(themes, "system_theme_id", lambda: "light")
+    monkeypatch.setattr(themes, "system_metric_scale", lambda: 0.5)
+    monkeypatch.setattr(themes, "system_scrollbar_width", lambda: 14)
+
+    def _fail():
+        raise RuntimeError("stylesheet failed")
+
+    monkeypatch.setattr(tokens.QSS, "regenerate", _fail)
+    with pytest.raises(RuntimeError):
+        manager.apply_theme(SYSTEM_THEME_ID)
+
+    assert manager.current_id == "dark"
+    assert tokens.Colors.BG == baseline["bg"]
+    assert tokens.Radii.SM == baseline["radii_sm"]
+    assert tokens.Spacing.SM == baseline["spacing_sm"]
+    assert tokens.Scrollbar.WIDTH == baseline["scrollbar"]
+
+
+def test_system_change_is_debounced(tmp_path, qapp, monkeypatch):
+    manager = ThemeManager()
+    manager._settings_path = str(tmp_path / "theme.json")
+    manager._current_id = SYSTEM_THEME_ID
+    calls = []
+    monkeypatch.setattr(
+        manager, "apply_theme",
+        lambda theme_id: calls.append(theme_id) or True)
+
+    manager._on_system_color_scheme_changed()
+
+    assert calls == []
+    assert manager._system_update_timer.isActive()
+
+    manager._apply_system_update()
+
+    assert calls == [SYSTEM_THEME_ID]
+
+
+def test_system_palette_raises_low_contrast_borders(monkeypatch, qapp):
+    from PyQt6.QtGui import QColor, QPalette
+    from PyQt6.QtWidgets import QApplication
+
+    palette = QPalette()
+    palette.setColor(QPalette.ColorRole.Window, QColor("#FFFFFF"))
+    palette.setColor(QPalette.ColorRole.Base, QColor("#FFFFFF"))
+    palette.setColor(QPalette.ColorRole.AlternateBase, QColor("#FFFFFF"))
+    palette.setColor(QPalette.ColorRole.Button, QColor("#FFFFFF"))
+    palette.setColor(QPalette.ColorRole.WindowText, QColor("#EEEEEE"))
+    palette.setColor(QPalette.ColorRole.Text, QColor("#EEEEEE"))
+    palette.setColor(QPalette.ColorRole.Highlight, QColor("#3355FF"))
+    palette.setColor(QPalette.ColorRole.HighlightedText, QColor("#FFFFFF"))
+    palette.setColor(QPalette.ColorRole.PlaceholderText, QColor("#DDDDDD"))
+
+    class _App:
+        def palette(self):
+            return palette
+
+    monkeypatch.setattr(
+        QApplication, "instance", staticmethod(lambda: _App()))
+    monkeypatch.setattr(themes, "system_theme_id", lambda: "light")
+
+    border = get_theme_data(SYSTEM_THEME_ID)["colors"]["BORDER"]
+    alpha = float(re.search(r", ([0-9.]+)\)$", border).group(1))
+
+    assert alpha > 0.10
 
 
 def test_load_saved_defaults_to_system(tmp_path, monkeypatch):

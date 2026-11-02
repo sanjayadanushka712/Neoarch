@@ -3564,5 +3564,5 @@ msgstr "Style de fenêtre"
 msgid "System transparency"
 msgstr "Transparence du système"
 
-msgid "Let the desktop show through the window body."
-msgstr "Laissez le bureau apparaître à travers le corps de la fenêtre."
+msgid "Let the desktop show through the window body. Uses the saved window transparency level."
+msgstr "Laissez le bureau apparaître à travers le corps de la fenêtre. Utilise le niveau de transparence enregistré."

@@ -270,6 +270,11 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
             else:
                 self.setGeometry(geometry)
 
+    def refresh_window_mode(self):
+        """Reapply window flags and effects after appearance changes."""
+        self._apply_window_mode_flags(self._window_mode())
+        self.apply_window_effects()
+
     def set_window_mode(self, mode):
         """Apply Native system or NeoArch window styling and persist it."""
         if mode not in (WINDOW_MODE_SYSTEM, WINDOW_MODE_NEOARCH):
@@ -282,8 +287,7 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
                 self.settings['neoarch_theme'] = manager.current_id
             self.settings['window_mode'] = WINDOW_MODE_SYSTEM
             self.save_settings()
-            self._apply_window_mode_flags(WINDOW_MODE_SYSTEM)
-            self.apply_window_effects()
+            self.refresh_window_mode()
             applied = manager.apply_theme(SYSTEM_THEME_ID) if manager else False
             if not applied:
                 QTimer.singleShot(0, self.rebuild_ui)
@@ -291,8 +295,7 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
             theme_id = self.settings.get('neoarch_theme') or 'dark'
             self.settings['window_mode'] = WINDOW_MODE_NEOARCH
             self.save_settings()
-            self._apply_window_mode_flags(WINDOW_MODE_NEOARCH)
-            self.apply_window_effects()
+            self.refresh_window_mode()
             applied = manager.apply_theme(theme_id) if manager else False
             if not applied:
                 QTimer.singleShot(0, self.rebuild_ui)

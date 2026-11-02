@@ -10,6 +10,42 @@ dialog shows after an update.
 
 ---
 
+## Unreleased
+
+### New Features
+
+- **Native system appearance.** Native system mode now follows the live OS
+  palette, UI font, fixed-width font, accent color, control radii, and
+  scrollbar width. System appearance changes are applied while NeoArch is
+  running.
+
+- **System transparency.** Native system mode has an opt-in transparency
+  toggle. It uses the saved Window transparency level and remains off by
+  default.
+
+- **NeoArch window mode.** The custom frameless titlebar, decorative glow,
+  rounded corners, and selectable themes remain available in NeoArch mode.
+
+### Improvements
+
+- System appearance updates are debounced to avoid repeated full UI rebuilds
+  when the compositor emits several palette or font change events.
+
+- Theme application now restores the previous token state if stylesheet
+  regeneration fails, so a broken theme cannot leave the UI half-themed.
+
+- Dynamic system borders are checked against the live background and raised
+  when the default alpha would be too faint.
+
+### Known Limitations
+
+- Native system transparency depends on compositor support and may render
+  differently on X11, Wayland, Windows, and macOS.
+
+- System metrics currently cover control radii, spacing tokens, and
+  scrollbar width. Native window controls and other platform-specific
+  metrics are not yet replicated.
+
 ## 3.5.1 — 2026-10-31
 
 ### Bug Fixes

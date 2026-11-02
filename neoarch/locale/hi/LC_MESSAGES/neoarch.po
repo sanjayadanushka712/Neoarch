@@ -3564,5 +3564,5 @@ msgstr "विंडो शैली"
 msgid "System transparency"
 msgstr "सिस्टम पारदर्शिता"
 
-msgid "Let the desktop show through the window body."
-msgstr "डेस्कटॉप को विंडो बॉडी के माध्यम से दिखने दें।"
+msgid "Let the desktop show through the window body. Uses the saved window transparency level."
+msgstr "डेस्कटॉप को विंडो बॉडी के माध्यम से दिखने दें। सहेजी गई विंडो पारदर्शिता स्तर का उपयोग करता है।"

@@ -14,7 +14,7 @@ import json
 import os
 from pathlib import Path
 
-from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtCore import QObject, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor
 
 from neoarch.resources.paths import ASSETS_DIR
@@ -101,6 +101,58 @@ def _shift_lightness(color: QColor, amount: float) -> QColor:
     )
 
 
+def _relative_luminance(color: QColor) -> float:
+    """Return WCAG relative luminance for an opaque color."""
+    def channel(value: int) -> float:
+        value = value / 255.0
+        if value <= 0.04045:
+            return value / 12.92
+        return ((value + 0.055) / 1.055) ** 2.4
+
+    return (
+        0.2126 * channel(color.red())
+        + 0.7152 * channel(color.green())
+        + 0.0722 * channel(color.blue())
+    )
+
+
+def _contrast_ratio(first: QColor, second: QColor) -> float:
+    """Return the WCAG contrast ratio between two opaque colors."""
+    lum_a = _relative_luminance(first)
+    lum_b = _relative_luminance(second)
+    lighter = max(lum_a, lum_b)
+    darker = min(lum_a, lum_b)
+    return (lighter + 0.05) / (darker + 0.05)
+
+
+def _composite(foreground: QColor, background: QColor) -> QColor:
+    """Composite a translucent foreground over an opaque background."""
+    alpha = foreground.alphaF()
+    inverse = 1.0 - alpha
+    return QColor(
+        round(foreground.red() * alpha + background.red() * inverse),
+        round(foreground.green() * alpha + background.green() * inverse),
+        round(foreground.blue() * alpha + background.blue() * inverse),
+    )
+
+
+def _border_alpha(
+        background: QColor,
+        foreground: QColor,
+        start: float,
+        minimum_ratio: float) -> float:
+    """Raise a border alpha until it is visible against the background."""
+    alpha = start
+    while alpha < 0.50:
+        candidate = QColor(foreground)
+        candidate.setAlphaF(alpha)
+        if _contrast_ratio(
+                _composite(candidate, background), background) >= minimum_ratio:
+            return alpha
+        alpha += 0.02
+    return 0.50
+
+
 def _palette_color(palette, role_name: str, fallback: QColor) -> QColor:
     """Read a QPalette role, falling back to a theme token."""
     try:
@@ -162,6 +214,10 @@ def _system_palette_colors(base: dict) -> dict:
     light = _palette_color(
         palette, "Light", _mix(window, window_text, 0.18))
 
+    border_alpha = _border_alpha(window, window_text, 0.10, 1.28)
+    input_alpha = _border_alpha(base_bg, window_text, 0.14, 1.36)
+    hover_alpha = _border_alpha(base_bg, window_text, 0.18, 1.44)
+
     colors = dict(base_colors)
     colors.update({
         "BG": _hex(window),
@@ -174,9 +230,9 @@ def _system_palette_colors(base: dict) -> dict:
         "INPUT_BG": _hex(base_bg),
         "INPUT_BG_FOCUS": _hex(_mix(base_bg, highlight, 0.04)),
         "SIDEBAR": _hex(_mix(window, alternate, 0.35)),
-        "BORDER": tokens.alpha_css(window_text, 0.10),
-        "BORDER_INPUT": tokens.alpha_css(window_text, 0.14),
-        "BORDER_HOVER": tokens.alpha_css(window_text, 0.18),
+        "BORDER": tokens.alpha_css(window_text, border_alpha),
+        "BORDER_INPUT": tokens.alpha_css(window_text, input_alpha),
+        "BORDER_HOVER": tokens.alpha_css(window_text, hover_alpha),
         "BORDER_FOCUS": tokens.alpha_css(highlight, 0.55),
         "BORDER_STRONG": tokens.alpha_css(window_text, 0.25),
         "TEXT": _css(text if text.isValid() else window_text),
@@ -441,6 +497,36 @@ def reload_themes() -> dict[str, dict]:
     return THEMES
 
 
+def _snapshot_tokens() -> dict:
+    """Capture mutable token values before applying a theme."""
+    from neoarch.frontend import tokens
+
+    snapshot = {}
+    for name in ("Colors", "Fonts", "Radii", "Spacing", "Scrollbar"):
+        token_class = getattr(tokens, name)
+        snapshot[name] = {
+            key: value
+            for key, value in vars(token_class).items()
+            if key.isupper()
+        }
+    snapshot["SourceColors"] = dict(tokens.SourceColors)
+    return snapshot
+
+
+def _restore_tokens(snapshot: dict) -> None:
+    """Restore mutable token values after a failed theme application."""
+    from neoarch.frontend import tokens
+
+    for name, values in snapshot.items():
+        if name == "SourceColors":
+            tokens.SourceColors.clear()
+            tokens.SourceColors.update(values)
+            continue
+        token_class = getattr(tokens, name)
+        for key, value in values.items():
+            setattr(token_class, key, value)
+
+
 class ThemeManager(QObject):
     """Applies themes to the token system and emits change signals."""
 
@@ -454,6 +540,10 @@ class ThemeManager(QObject):
         self._applying_theme = False
         self._settings_path = os.path.join(
             os.path.expanduser("~"), ".config", "neoarch", "theme.json")
+        self._system_update_timer = QTimer(self)
+        self._system_update_timer.setSingleShot(True)
+        self._system_update_timer.setInterval(150)
+        self._system_update_timer.timeout.connect(self._apply_system_update)
 
     @property
     def current_id(self):
@@ -530,11 +620,14 @@ class ThemeManager(QObject):
             theme = THEMES.get(resolved_id)
         if theme is None or theme.get("coming_soon"):
             return False
+        previous_id = self._current_id
+        previous_resolved = self._resolved_id
         self._current_id = theme_id
         self._resolved_id = resolved_id
 
         from neoarch.frontend import tokens
 
+        token_snapshot = _snapshot_tokens()
         self._applying_theme = True
         try:
             for key, val in theme["colors"].items():
@@ -549,6 +642,16 @@ class ThemeManager(QObject):
 
             tokens.QSS.regenerate()
             tokens.rebuild_stylesheet()
+        except Exception:
+            _restore_tokens(token_snapshot)
+            self._current_id = previous_id
+            self._resolved_id = previous_resolved
+            try:
+                tokens.QSS.regenerate()
+                tokens.rebuild_stylesheet()
+            except Exception:
+                pass
+            raise
         finally:
             self._applying_theme = False
 
@@ -583,6 +686,12 @@ class ThemeManager(QObject):
             pass
 
     def _on_system_color_scheme_changed(self, *_args):
+        if self._applying_theme:
+            return
+        if self._current_id == SYSTEM_THEME_ID:
+            self._system_update_timer.start()
+
+    def _apply_system_update(self):
         if self._applying_theme:
             return
         if self._current_id == SYSTEM_THEME_ID:

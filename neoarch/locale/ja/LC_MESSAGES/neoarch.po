@@ -3564,5 +3564,5 @@ msgstr "ウィンドウスタイル"
 msgid "System transparency"
 msgstr "システムの透過"
 
-msgid "Let the desktop show through the window body."
-msgstr "デスクトップがウィンドウ本体に透けて表示されるようにします。"
+msgid "Let the desktop show through the window body. Uses the saved window transparency level."
+msgstr "デスクトップがウィンドウ本体に透けて表示されるようにします。保存されたウィンドウの透過レベルを使用します。"
