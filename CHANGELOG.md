@@ -10,6 +10,69 @@ dialog shows after an update.
 
 ---
 
+## 3.6.0 — 2026-11-02
+
+### New Features
+
+- **Native system appearance.** Native system mode now follows the live OS
+  palette, UI font, fixed-width font, accent color, control radii, and
+  scrollbar width. System appearance changes are applied while NeoArch is
+  running.
+
+- **System transparency.** Native system mode has an opt-in transparency
+  toggle. It uses the saved Window transparency level and remains off by
+  default.
+
+- **NeoArch window mode.** The custom frameless titlebar, decorative glow,
+  rounded corners, and selectable themes remain available in NeoArch mode.
+
+- **Solarized Dark and Forest Green themes.** Solarized Dark pairs warm
+  near-black surfaces with Solarized yellow accents; Forest Green uses deep
+  evergreen surfaces with emerald accents. Both are selectable in Appearance
+  alongside the existing themes.
+
+- **Tray lifecycle options.** Optional "Start minimized" and "Close to tray"
+  modes let NeoArch stay available in the system tray. A new `--minimized`
+  flag supports desktop autostart entries without installing autostart
+  automatically.
+
+### Improvements
+
+- System appearance updates are debounced to avoid repeated full UI rebuilds
+  when the compositor emits several palette or font change events.
+
+- Theme application now restores the previous token state if stylesheet
+  regeneration fails, so a broken theme cannot leave the UI half-themed.
+
+- Dynamic system borders are checked against the live background and raised
+  when the default alpha would be too faint.
+
+- The Discover dashboard's action buttons now use clean rounded styling
+  without rectangular drop shadows, theme-aware icon tints, and a greeting
+  gradient that stays readable on light themes.
+
+- The Appearance theme picker now lists only concrete themes; Native system
+  appearance remains available through window mode.
+
+### Bug Fixes
+
+- Update and package tables now toggle a checkbox only when the checkbox
+  itself is clicked, so clicking a row selects it without changing the
+  install marks.
+
+- Row selection now drives the detail and summary panel even when no
+  checkboxes are marked, keeping the displayed package in sync with the
+  highlighted row.
+
+### Known Limitations
+
+- Native system transparency depends on compositor support and may render
+  differently on X11, Wayland, Windows, and macOS.
+
+- System metrics currently cover control radii, spacing tokens, and
+  scrollbar width. Native window controls and other platform-specific
+  metrics are not yet replicated.
+
 ## 3.5.1 — 2026-10-31
 
 ### Bug Fixes

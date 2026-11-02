@@ -3564,5 +3564,29 @@ msgstr "ウィンドウスタイル"
 msgid "System transparency"
 msgstr "システムの透過"
 
-msgid "Let the desktop show through the window body."
-msgstr "デスクトップがウィンドウ本体に透けて表示されるようにします。"
+msgid "Let the desktop show through the window body. Uses the saved window transparency level."
+msgstr "デスクトップがウィンドウ本体に透けて表示されるようにします。保存されたウィンドウの透過レベルを使用します。"
+
+msgid "Startup & Tray"
+msgstr "起動とトレイ"
+
+msgid "Start minimized"
+msgstr "最小化して起動"
+
+msgid "Start hidden in the system tray. Useful when NeoArch is launched from your desktop's autostart entry."
+msgstr "システムトレイに隠して起動します。デスクトップの自動起動から NeoArch を起動する場合に便利です。"
+
+msgid "Close to tray"
+msgstr "トレイに閉じる"
+
+msgid "Keep NeoArch running in the system tray when the window is closed. Quit from the tray menu."
+msgstr "ウィンドウを閉じても NeoArch をシステムトレイで実行し続けます。終了はトレイメニューから行います。"
+
+msgid "System tray is not available on this desktop."
+msgstr "このデスクトップではシステムトレイを利用できません。"
+
+msgid "NeoArch is running"
+msgstr "NeoArch は実行中です"
+
+msgid "Open NeoArch from the system tray icon."
+msgstr "システムトレイのアイコンから NeoArch を開いてください。"

@@ -13,7 +13,7 @@ from neoarch.backend.services import network_latency
 from neoarch.managers.plugin_manager import PluginsManager
 from neoarch.frontend.icon_registry import icon_path
 from neoarch.frontend.styles import Styles
-from neoarch.frontend.themes import SYSTEM_THEME_ID, ThemeManager
+from neoarch.frontend.themes import SYSTEM_THEME_ID, THEMES, ThemeManager
 from neoarch.backend.services.settings import (
     DEFAULT_WINDOW_MODE,
     WINDOW_MODE_NEOARCH,
@@ -112,10 +112,20 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
         self.settings = self.load_settings()
         if self._window_mode() == WINDOW_MODE_SYSTEM:
             if self._theme_manager.current_id != SYSTEM_THEME_ID:
-                if not self.settings.get('neoarch_theme'):
+                if (not self.settings.get('neoarch_theme')
+                        and self._theme_manager.current_id in THEMES):
                     self.settings['neoarch_theme'] = self._theme_manager.current_id
                     self.save_settings()
                 self._theme_manager.apply_theme(SYSTEM_THEME_ID)
+        elif self._theme_manager.current_id == SYSTEM_THEME_ID:
+            # A NeoArch frame always needs one of its own themes; System is
+            # reserved for Native system mode.
+            theme_id = self.settings.get('neoarch_theme') or 'dark'
+            if theme_id == SYSTEM_THEME_ID or theme_id not in THEMES:
+                theme_id = 'dark'
+            self.settings['neoarch_theme'] = theme_id
+            self.save_settings()
+            self._theme_manager.apply_theme(theme_id)
         self.apply_logging_config()
         # Activate the saved UI/CLI language catalog
         try:
@@ -154,6 +164,8 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
         # Nav badges (e.g., updates count)
         self.nav_badges = {}
         self.tray_icon: Any = None
+        self._force_quit = False
+        self._tray_notice_shown = False
         # Attributes initialized in other methods
         self.settings_widgets = {}
         self.settings_content_layout: Any = None
@@ -215,6 +227,10 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
             self.tray_icon.show()
             self.tray_icon.set_update_count(
                 len(getattr(self, 'updates_all', []) or []))
+            from PyQt6.QtWidgets import QApplication
+            app = QApplication.instance()
+            if app is not None:
+                app.setQuitOnLastWindowClosed(False)
         except Exception as e:
             try:
                 self.log(f"Tray icon unavailable: {e}")
@@ -270,6 +286,11 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
             else:
                 self.setGeometry(geometry)
 
+    def refresh_window_mode(self):
+        """Reapply window flags and effects after appearance changes."""
+        self._apply_window_mode_flags(self._window_mode())
+        self.apply_window_effects()
+
     def set_window_mode(self, mode):
         """Apply Native system or NeoArch window styling and persist it."""
         if mode not in (WINDOW_MODE_SYSTEM, WINDOW_MODE_NEOARCH):
@@ -278,21 +299,22 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
             return
         manager = getattr(self, '_theme_manager', None)
         if mode == WINDOW_MODE_SYSTEM:
-            if manager is not None:
+            if manager is not None and manager.current_id in THEMES:
                 self.settings['neoarch_theme'] = manager.current_id
             self.settings['window_mode'] = WINDOW_MODE_SYSTEM
             self.save_settings()
-            self._apply_window_mode_flags(WINDOW_MODE_SYSTEM)
-            self.apply_window_effects()
+            self.refresh_window_mode()
             applied = manager.apply_theme(SYSTEM_THEME_ID) if manager else False
             if not applied:
                 QTimer.singleShot(0, self.rebuild_ui)
         else:
             theme_id = self.settings.get('neoarch_theme') or 'dark'
+            if theme_id == SYSTEM_THEME_ID or theme_id not in THEMES:
+                theme_id = 'dark'
+            self.settings['neoarch_theme'] = theme_id
             self.settings['window_mode'] = WINDOW_MODE_NEOARCH
             self.save_settings()
-            self._apply_window_mode_flags(WINDOW_MODE_NEOARCH)
-            self.apply_window_effects()
+            self.refresh_window_mode()
             applied = manager.apply_theme(theme_id) if manager else False
             if not applied:
                 QTimer.singleShot(0, self.rebuild_ui)
@@ -360,12 +382,54 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
                 finally:
                     self.save_settings()
 
+    def close_to_tray_active(self):
+        """True when closing the window should keep NeoArch in the tray."""
+        if not self.settings.get('close_to_tray', False):
+            return False
+        tray = getattr(self, 'tray_icon', None)
+        try:
+            return tray is not None and tray.isVisible()
+        except Exception:
+            return False
+
+    def show_tray_notice(self):
+        """Tell the user the app is still running in the tray (once)."""
+        if getattr(self, '_tray_notice_shown', False):
+            return
+        self._tray_notice_shown = True
+        try:
+            from neoarch.backend.services.i18n import _
+            from PyQt6.QtWidgets import QSystemTrayIcon
+            self.tray_icon.showMessage(
+                _("NeoArch is running"),
+                _("Open NeoArch from the system tray icon."),
+                QSystemTrayIcon.MessageIcon.Information, 4000)
+        except Exception:
+            pass
+
+    def request_quit(self):
+        """Quit explicitly, bypassing close-to-tray behavior."""
+        self._force_quit = True
+        tray = getattr(self, 'tray_icon', None)
+        if tray is not None:
+            try:
+                tray.hide()
+            except Exception:
+                pass
+        self.close()
+
     def closeEvent(self, event):
+        if not getattr(self, '_force_quit', False) and self.close_to_tray_active():
+            event.ignore()
+            self.hide()
+            self.show_tray_notice()
+            return
         try:
             from PyQt6.QtWidgets import QApplication
             app = QApplication.instance()
             if app is not None:
                 app.removeEventFilter(self)
+                app.setQuitOnLastWindowClosed(True)
             # Force one full synchronous repaint before accepting the close so
             # the compositor's close fade composites the complete frame
             # (content + rounded border) instead of the border lagging a few

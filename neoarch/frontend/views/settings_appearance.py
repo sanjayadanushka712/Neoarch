@@ -322,6 +322,8 @@ class AppearanceSettingsWidget(QWidget):
         neoarch_theme_id = self.app.settings.get('neoarch_theme') or 'dark'
         if manager is not None and manager.current_id != SYSTEM_THEME_ID:
             neoarch_theme_id = manager.current_id
+        if neoarch_theme_id == SYSTEM_THEME_ID or neoarch_theme_id not in THEMES:
+            neoarch_theme_id = 'dark'
 
         mode_rows = [
             (
@@ -364,7 +366,8 @@ class AppearanceSettingsWidget(QWidget):
                 self._on_system_transparency_toggled)
             mode_layout.addWidget(self._row(
                 _("System transparency"),
-                _("Let the desktop show through the window body."),
+                _("Let the desktop show through the window body. "
+                  "Uses the saved window transparency level."),
                 control=self._system_transparency_toggle,
             ))
 
@@ -375,8 +378,12 @@ class AppearanceSettingsWidget(QWidget):
 
         current = getattr(self.app, '_theme_manager', None)
         current_id = current.current_id if current else DEFAULT_THEME_ID
+        if current_id == SYSTEM_THEME_ID or current_id not in THEMES:
+            current_id = neoarch_theme_id
 
-        theme_ids = [SYSTEM_THEME_ID] + [
+        # Native system mode above already owns OS-following colors, so the
+        # NeoArch theme list only offers the concrete themes it can apply.
+        theme_ids = [
             theme_id for theme_id in THEMES if theme_id != SYSTEM_THEME_ID
         ]
         for i, theme_id in enumerate(theme_ids):
@@ -509,8 +516,11 @@ class AppearanceSettingsWidget(QWidget):
     def _on_system_transparency_toggled(self, checked):
         self.app.update_setting(
             'window_system_transparency', bool(checked))
-        self.app._apply_window_mode_flags(self.app._window_mode())
-        self.app.apply_window_effects()
+        refresh = getattr(self.app, 'refresh_window_mode', None)
+        if refresh:
+            refresh()
+        else:
+            self.app.apply_window_effects()
 
     def _on_radius_changed(self, value):
         self._update_radius_label()

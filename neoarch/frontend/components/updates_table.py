@@ -642,9 +642,25 @@ class _UpdatesHeader(QHeaderView):
         pos = event.position().toPoint() if hasattr(event, "position") else event.pos()
         return self.logicalIndexAt(pos)
 
+    @staticmethod
+    def _check_rect(rect):
+        csize = 18
+        cx = rect.left() + (rect.width() - csize) / 2
+        cy = rect.top() + (rect.height() - csize) / 2
+        return QRectF(cx, cy, csize, csize)
+
+    def _checkbox_hit(self, pos):
+        if self.logicalIndexAt(pos) != 0:
+            return False
+        rect = QRect(self.sectionViewportPosition(0), 0, self.sectionSize(0), self.height())
+        return self._check_rect(QRectF(rect)).adjusted(-3, -3, 3, 3).contains(QPointF(pos))
+
     def mousePressEvent(self, event):
+        pos = event.position().toPoint() if hasattr(event, "position") else event.pos()
         section = self._hit_section(event)
         if section == 0:
+            if not self._checkbox_hit(pos):
+                return
             new_state = not (self._checked or self._indeterminate)
             self._checked = new_state
             self._indeterminate = False
@@ -838,6 +854,7 @@ class UpdatesTable(QTableView):
         self._discover_mode = False
         self._plugins_mode = False
         self._bundles_mode = False
+        self._toggling_check = False
         self._loading_message = _DEFAULT_LOADING_MESSAGE
 
         self.model = UpdatesModel(self)
@@ -1282,6 +1299,19 @@ class UpdatesTable(QTableView):
         self.viewport().update()
         super().leaveEvent(event)
 
+    def _check_rect(self, idx):
+        rect = self.visualRect(idx)
+        size = 18
+        cx = rect.left() + (rect.width() - size) / 2
+        cy = rect.top() + (rect.height() - size) / 2
+        return QRectF(cx, cy, size, size)
+
+    def checkbox_hit(self, idx, pos):
+        """True when a left click lands on the row's drawn checkbox."""
+        if not idx.isValid() or idx.column() != 0:
+            return False
+        return self._check_rect(idx).adjusted(-3, -3, 3, 3).contains(QPointF(pos))
+
     def mousePressEvent(self, event):
         pos = event.position().toPoint() if hasattr(event, "position") else event.pos()
         if event.button() == Qt.MouseButton.RightButton:
@@ -1296,7 +1326,7 @@ class UpdatesTable(QTableView):
             if col == 7:
                 self._open_row_menu(idx.row(), pos)
                 return
-            if idx.isValid():
+            if self.checkbox_hit(idx, pos):
                 self._toggle_check(idx.row(), pos)
                 return
         super().mousePressEvent(event)
@@ -1308,6 +1338,17 @@ class UpdatesTable(QTableView):
                 self._toggle_check(current.row(), None)
                 return
         super().keyPressEvent(event)
+
+    def _select_check_row(self, idx, flag, current=False):
+        """Change the row highlight without re-routing it as a row click."""
+        self._toggling_check = True
+        try:
+            sel_model = self.selectionModel()
+            sel_model.select(idx, flag | sel_model.SelectionFlag.Rows)
+            if current:
+                self.setCurrentIndex(idx)
+        finally:
+            self._toggling_check = False
 
     def _toggle_check(self, row, pos):
         if row < 0:
@@ -1323,31 +1364,23 @@ class UpdatesTable(QTableView):
                 # Plugins mark these rows because there the row *is* the
                 # package you act on; here it would only inflate the count.
                 # The click still opens the detail card.
-                sel_model = self.selectionModel()
-                sel_model.select(idx,
-                                 sel_model.SelectionFlag.ClearAndSelect
-                                 | sel_model.SelectionFlag.Rows)
-                self.setCurrentIndex(idx)
+                self._select_check_row(
+                    idx, self.selectionModel().SelectionFlag.ClearAndSelect, current=True)
                 return
             # Installed rows have no batch-install checkbox, but the Plugins
             # list mirrors the grid cards: toggling one still marks it as
             # selected so the toolbar's Clear reacts, while Install Selected
             # ignores it. A click keeps opening the right-hand detail card.
             self.model.toggle_installed_selection(pkg)
-            sel_model = self.selectionModel()
-            sel_model.select(idx,
-                             sel_model.SelectionFlag.ClearAndSelect
-                             | sel_model.SelectionFlag.Rows)
-            self.setCurrentIndex(idx)
+            self._select_check_row(
+                idx, self.selectionModel().SelectionFlag.ClearAndSelect, current=True)
             return
         checked = self.model.is_checked(pkg)
         self.model.setData(idx, Qt.CheckState.Unchecked if checked else Qt.CheckState.Checked,
                            Qt.ItemDataRole.CheckStateRole)
-        sel_model = self.selectionModel()
-        flag = sel_model.SelectionFlag.Select if not checked else sel_model.SelectionFlag.Deselect
-        sel_model.select(idx, flag | sel_model.SelectionFlag.Rows)
-        if not checked:
-            self.setCurrentIndex(idx)
+        flag = (self.selectionModel().SelectionFlag.Deselect if checked
+                else self.selectionModel().SelectionFlag.Select)
+        self._select_check_row(idx, flag, current=not checked)
 
     @staticmethod
     def _row_has_update(pkg):
@@ -1531,6 +1564,12 @@ class UpdatesRowDelegate(QStyledItemDelegate):
     @staticmethod
     def sizeHint(option, index):
         return QSize(0, 52)
+
+    def editorEvent(self, event, model, option, index):
+        # Checkboxes are painted inside the row, not by the style, so let the
+        # table own the hit test instead of QStyledItemDelegate's indicator
+        # rectangle toggling marks from clicks that miss the box.
+        return False
 
     def _row_rect(self, option):
         """Full row rectangle across all columns (for the row highlight band)."""

@@ -456,8 +456,8 @@ class PackageCard(QFrame):
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            if self.selectable:
-                self.checkbox.toggle()
+            # Only the checkbox widget marks the card; clicking the card body
+            # opens it, matching the table's row/checkbox split.
             self.clicked.emit(self.row, self.pkg)
             event.accept()
             return

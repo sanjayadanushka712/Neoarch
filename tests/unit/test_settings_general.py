@@ -24,6 +24,8 @@ class _FakeApp(QWidget):
             "bundle_autosave": True,
             "aur_helper": "auto",
             "culture": "en",
+            "start_minimized": False,
+            "close_to_tray": False,
         }
 
     def update_setting(self, key, value):
@@ -87,6 +89,35 @@ def test_refresh_source_states_reenables_after_install(qapp, monkeypatch):
     assert widget.sw_pipx.toolTip() == ""
     for toggle in (widget.sw_firmware, widget.sw_pipx, widget.sw_npm):
         assert toggle.isEnabled()
+
+
+def test_tray_toggles_persist_when_tray_available(qapp, monkeypatch):
+    monkeypatch.setattr(
+        "neoarch.frontend.components.tray_icon.tray_available",
+        lambda: True)
+    widget = _build(monkeypatch, cmd_exists=True)
+
+    assert widget.sw_start_minimized.isEnabled()
+    assert widget.sw_close_to_tray.isEnabled()
+    assert not widget.sw_start_minimized.isChecked()
+    assert not widget.sw_close_to_tray.isChecked()
+
+    widget.sw_start_minimized.setChecked(True)
+    widget.sw_close_to_tray.setChecked(True)
+
+    assert widget.app.settings["start_minimized"] is True
+    assert widget.app.settings["close_to_tray"] is True
+
+
+def test_tray_toggles_disabled_without_tray(qapp, monkeypatch):
+    monkeypatch.setattr(
+        "neoarch.frontend.components.tray_icon.tray_available",
+        lambda: False)
+    widget = _build(monkeypatch, cmd_exists=True)
+
+    assert not widget.sw_start_minimized.isEnabled()
+    assert not widget.sw_close_to_tray.isEnabled()
+    assert "not available" in widget.sw_start_minimized.toolTip()
 
 
 def test_refresh_source_states_disables_after_removal(qapp, monkeypatch):

@@ -3564,5 +3564,29 @@ msgstr "කවුළු විලාසය"
 msgid "System transparency"
 msgstr "පද්ධති විනිවිදභාවය"
 
-msgid "Let the desktop show through the window body."
-msgstr "වින්ඩෝ බොඩිය හරහා ඩෙස්ක්ටොප් දිස්වීමට ඉඩ දෙන්න."
+msgid "Let the desktop show through the window body. Uses the saved window transparency level."
+msgstr "වින්ඩෝ බොඩිය හරහා ඩෙස්ක්ටොප් දිස්වීමට ඉඩ දෙන්න. සුරකින ලද වින්ඩෝ විනිවිදභාවය මට්ටම භාවිතා කරයි."
+
+msgid "Startup & Tray"
+msgstr "ආරම්භය සහ ට්‍රේ"
+
+msgid "Start minimized"
+msgstr "කුඩා කර ආරම්භ කරන්න"
+
+msgid "Start hidden in the system tray. Useful when NeoArch is launched from your desktop's autostart entry."
+msgstr "පද්ධති ට්‍රේ තුළ සැඟවී ආරම්භ කරන්න. NeoArch ඔබේ ඩෙස්ක්ටොප් ස්වයං ආරම්භකයෙන් විවෘත වන විට ප්‍රයෝජනවත්."
+
+msgid "Close to tray"
+msgstr "ට්‍රේ වෙත වසන්න"
+
+msgid "Keep NeoArch running in the system tray when the window is closed. Quit from the tray menu."
+msgstr "කවුළුව වසන විට NeoArch පද්ධති ට්‍රේ තුළ ධාවනය වීමට ඉඩ දෙන්න. ට්‍රේ මෙනුවෙන් ඉවත් වන්න."
+
+msgid "System tray is not available on this desktop."
+msgstr "මෙම ඩෙස්ක්ටොප් තුළ පද්ධති ට්‍රේ නොමැත."
+
+msgid "NeoArch is running"
+msgstr "NeoArch ධාවනය වෙමින් පවතී"
+
+msgid "Open NeoArch from the system tray icon."
+msgstr "පද්ධති ට්‍රේ නිරූපකයෙන් NeoArch විවෘත කරන්න."

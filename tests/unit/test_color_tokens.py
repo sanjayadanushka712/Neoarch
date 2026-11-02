@@ -39,7 +39,8 @@ def test_frontend_colors_come_from_tokens():
 def test_builtin_themes_are_selectable():
     themes = load_themes([BUILTIN_THEME_DIR])
 
-    for theme_id in ("dark", "light", "dracula", "nord"):
+    for theme_id in ("dark", "light", "dracula", "nord",
+                     "solarized-dark", "forest-green"):
         assert not themes[theme_id].get("coming_soon")
 
 
@@ -47,7 +48,8 @@ def test_theme_switch_updates_tokens_and_generated_styles(monkeypatch):
     manager = ThemeManager()
     monkeypatch.setattr(manager, "_save", lambda: None)
     try:
-        for theme_id in ("light", "dracula", "nord"):
+        for theme_id in ("light", "dracula", "nord",
+                         "solarized-dark", "forest-green"):
             assert manager.apply_theme(theme_id)
             colors = THEMES[theme_id]["colors"]
             assert tokens.Colors.BG == colors["BG"]
@@ -119,7 +121,8 @@ def test_builtin_themes_define_all_color_tokens():
         for name, value in vars(tokens.Colors).items()
         if name.isupper() and isinstance(value, str)
     }
-    for theme_id in ("dark", "light", "dracula", "nord"):
+    for theme_id in ("dark", "light", "dracula", "nord",
+                     "solarized-dark", "forest-green"):
         missing = token_names - set(THEMES[theme_id]["colors"])
         assert not missing, (theme_id, sorted(missing))
 
@@ -127,7 +130,8 @@ def test_window_background_tracks_theme(monkeypatch):
     manager = ThemeManager()
     monkeypatch.setattr(manager, "_save", lambda: None)
     try:
-        for theme_id in ("light", "dracula", "nord"):
+        for theme_id in ("light", "dracula", "nord",
+                         "solarized-dark", "forest-green"):
             assert manager.apply_theme(theme_id)
             bg = tokens.qcolor(tokens.Colors.BG)
             expected = (
@@ -159,7 +163,8 @@ def test_svg_icon_default_tint_tracks_theme(monkeypatch):
     manager = ThemeManager()
     monkeypatch.setattr(manager, "_save", lambda: None)
     try:
-        for theme_id in ("dark", "light", "dracula", "nord"):
+        for theme_id in ("dark", "light", "dracula", "nord",
+                     "solarized-dark", "forest-green"):
             assert manager.apply_theme(theme_id)
             expected = (
                 tokens.Colors.WHITE

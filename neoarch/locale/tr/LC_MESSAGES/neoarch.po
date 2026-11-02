@@ -3564,5 +3564,29 @@ msgstr "Pencere stili"
 msgid "System transparency"
 msgstr "Sistem saydamlığı"
 
-msgid "Let the desktop show through the window body."
-msgstr "Masaüstünün pencere gövdesinden görünmesine izin verin."
+msgid "Let the desktop show through the window body. Uses the saved window transparency level."
+msgstr "Masaüstünün pencere gövdesinden görünmesine izin verin. Kayıtlı pencere saydamlığı düzeyini kullanır."
+
+msgid "Startup & Tray"
+msgstr "Başlangıç ve Sistem Tepsisi"
+
+msgid "Start minimized"
+msgstr "Simge durumunda başlat"
+
+msgid "Start hidden in the system tray. Useful when NeoArch is launched from your desktop's autostart entry."
+msgstr "Sistem tepsisinde gizli başlat. NeoArch masaüstü otomatik başlatma girdisinden açıldığında kullanışlıdır."
+
+msgid "Close to tray"
+msgstr "Tepsiye kapat"
+
+msgid "Keep NeoArch running in the system tray when the window is closed. Quit from the tray menu."
+msgstr "Pencere kapatıldığında NeoArch'ı sistem tepsisinde çalıştırmaya devam et. Tepsi menüsünden çık."
+
+msgid "System tray is not available on this desktop."
+msgstr "Bu masaüstünde sistem tepsisi kullanılamıyor."
+
+msgid "NeoArch is running"
+msgstr "NeoArch çalışıyor"
+
+msgid "Open NeoArch from the system tray icon."
+msgstr "NeoArch'ı sistem tepsisi simgesinden aç."

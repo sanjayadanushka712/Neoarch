@@ -20,6 +20,7 @@ _ICON_PACKAGE = "ui/package"
 _ICON_SAVE = "ui/save"
 _ICON_SIGNAL = "ui/signal"
 _ICON_DATABASE = "ui/database"
+_ICON_TRAY = "ui/monitor"
 
 
 class _AurApiTestThread(QThread):
@@ -266,6 +267,46 @@ class GeneralSettingsWidget(QWidget):
             binary="npm", pkg="npm", tool="npm")
 
         self.layout.addWidget(basic_card)
+
+        # ── Startup & Tray ──
+        tray_card, tray_layout = self._make_card(_("Startup & Tray"), _ICON_TRAY)
+        try:
+            from neoarch.frontend.components.tray_icon import tray_available
+            tray_ok = tray_available()
+        except Exception:
+            tray_ok = False
+
+        self.sw_start_minimized = ToggleSwitch(self, _("Start minimized"))
+        self.sw_start_minimized.setChecked(bool(
+            self.app.settings.get('start_minimized', False)), animate=False)
+        self.sw_start_minimized.setEnabled(tray_ok)
+        self.sw_start_minimized.toggled.connect(
+            lambda v: self.app.update_setting('start_minimized', v))
+        tray_layout.addWidget(self._row(
+            _("Start minimized"),
+            _("Start hidden in the system tray. Useful when NeoArch is "
+              "launched from your desktop's autostart entry."),
+            control=self.sw_start_minimized))
+        tray_layout.addWidget(self._sep())
+
+        self.sw_close_to_tray = ToggleSwitch(self, _("Close to tray"))
+        self.sw_close_to_tray.setChecked(bool(
+            self.app.settings.get('close_to_tray', False)), animate=False)
+        self.sw_close_to_tray.setEnabled(tray_ok)
+        self.sw_close_to_tray.toggled.connect(
+            lambda v: self.app.update_setting('close_to_tray', v))
+        tray_layout.addWidget(self._row(
+            _("Close to tray"),
+            _("Keep NeoArch running in the system tray when the window is "
+              "closed. Quit from the tray menu."),
+            control=self.sw_close_to_tray))
+
+        if not tray_ok:
+            message = _("System tray is not available on this desktop.")
+            self.sw_start_minimized.setToolTip(message)
+            self.sw_close_to_tray.setToolTip(message)
+
+        self.layout.addWidget(tray_card)
 
         # ── Package Sources ──
         sources_card, sources_layout = self._make_card(_("Package Sources"), _ICON_PACKAGE)

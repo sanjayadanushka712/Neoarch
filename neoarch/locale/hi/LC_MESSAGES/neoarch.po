@@ -3564,5 +3564,29 @@ msgstr "विंडो शैली"
 msgid "System transparency"
 msgstr "सिस्टम पारदर्शिता"
 
-msgid "Let the desktop show through the window body."
-msgstr "डेस्कटॉप को विंडो बॉडी के माध्यम से दिखने दें।"
+msgid "Let the desktop show through the window body. Uses the saved window transparency level."
+msgstr "डेस्कटॉप को विंडो बॉडी के माध्यम से दिखने दें। सहेजी गई विंडो पारदर्शिता स्तर का उपयोग करता है।"
+
+msgid "Startup & Tray"
+msgstr "स्टार्टअप और ट्रे"
+
+msgid "Start minimized"
+msgstr "मिनिमाइज़ होकर शुरू करें"
+
+msgid "Start hidden in the system tray. Useful when NeoArch is launched from your desktop's autostart entry."
+msgstr "सिस्टम ट्रे में छिपकर शुरू करें। जब NeoArch आपके डेस्कटॉप के ऑटोस्टार्ट से शुरू हो तो उपयोगी।"
+
+msgid "Close to tray"
+msgstr "ट्रे में बंद करें"
+
+msgid "Keep NeoArch running in the system tray when the window is closed. Quit from the tray menu."
+msgstr "विंडो बंद होने पर NeoArch को सिस्टम ट्रे में चलते रखें। ट्रे मेनू से बाहर निकलें।"
+
+msgid "System tray is not available on this desktop."
+msgstr "इस डेस्कटॉप पर सिस्टम ट्रे उपलब्ध नहीं है।"
+
+msgid "NeoArch is running"
+msgstr "NeoArch चल रहा है"
+
+msgid "Open NeoArch from the system tray icon."
+msgstr "सिस्टम ट्रे आइकन से NeoArch खोलें।"

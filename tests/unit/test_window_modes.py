@@ -71,6 +71,25 @@ def test_switch_back_to_neoarch_restores_saved_theme():
     assert window.effects == 1
 
 
+def test_switch_to_native_does_not_save_system_as_a_neoarch_theme():
+    window = _fake_window(WINDOW_MODE_NEOARCH, 'dracula')
+    window._theme_manager.current_id = SYSTEM_THEME_ID
+
+    ArchPkgManagerUniGetUI.set_window_mode(window, WINDOW_MODE_SYSTEM)
+
+    assert window.settings['neoarch_theme'] == 'dracula'
+    assert window._theme_manager.applied == [SYSTEM_THEME_ID]
+
+
+def test_switch_back_to_neoarch_replaces_a_stale_system_theme():
+    window = _fake_window(WINDOW_MODE_SYSTEM, SYSTEM_THEME_ID)
+
+    ArchPkgManagerUniGetUI.set_window_mode(window, WINDOW_MODE_NEOARCH)
+
+    assert window.settings['neoarch_theme'] == 'dark'
+    assert window._theme_manager.applied == ['dark']
+
+
 def test_switch_back_without_saved_theme_uses_dark():
     window = _fake_window(WINDOW_MODE_SYSTEM, '')
 

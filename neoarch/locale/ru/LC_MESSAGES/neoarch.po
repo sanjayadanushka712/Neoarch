@@ -3564,5 +3564,29 @@ msgstr "Стиль окна"
 msgid "System transparency"
 msgstr "Прозрачность системы"
 
-msgid "Let the desktop show through the window body."
-msgstr "Позволить рабочему столу просвечивать сквозь тело окна."
+msgid "Let the desktop show through the window body. Uses the saved window transparency level."
+msgstr "Позволить рабочему столу просвечивать сквозь тело окна. Использует сохранённый уровень прозрачности окна."
+
+msgid "Startup & Tray"
+msgstr "Запуск и трей"
+
+msgid "Start minimized"
+msgstr "Запускать свёрнутым"
+
+msgid "Start hidden in the system tray. Useful when NeoArch is launched from your desktop's autostart entry."
+msgstr "Запускать скрыто в системном трее. Полезно при автозапуске NeoArch."
+
+msgid "Close to tray"
+msgstr "Закрывать в трей"
+
+msgid "Keep NeoArch running in the system tray when the window is closed. Quit from the tray menu."
+msgstr "Оставлять NeoArch работать в системном трее при закрытии окна. Выход через меню трея."
+
+msgid "System tray is not available on this desktop."
+msgstr "Системный трей недоступен в этой среде."
+
+msgid "NeoArch is running"
+msgstr "NeoArch работает"
+
+msgid "Open NeoArch from the system tray icon."
+msgstr "Откройте NeoArch через значок в системном трее."

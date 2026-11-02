@@ -3564,5 +3564,29 @@ msgstr "Fensterstil"
 msgid "System transparency"
 msgstr "Systemtransparenz"
 
-msgid "Let the desktop show through the window body."
-msgstr "Lassen Sie den Desktop durch den Fensterkörper scheinen."
+msgid "Let the desktop show through the window body. Uses the saved window transparency level."
+msgstr "Lassen Sie den Desktop durch den Fensterkörper scheinen. Nutzt die gespeicherte Fenstertransparenzstufe."
+
+msgid "Startup & Tray"
+msgstr "Start und Infobereich"
+
+msgid "Start minimized"
+msgstr "Minimiert starten"
+
+msgid "Start hidden in the system tray. Useful when NeoArch is launched from your desktop's autostart entry."
+msgstr "Startet ausgeblendet im Infobereich. Nützlich, wenn NeoArch über den Autostart gestartet wird."
+
+msgid "Close to tray"
+msgstr "In den Infobereich schließen"
+
+msgid "Keep NeoArch running in the system tray when the window is closed. Quit from the tray menu."
+msgstr "NeoArch läuft im Infobereich weiter, wenn das Fenster geschlossen wird. Beenden über das Infobereich-Menü."
+
+msgid "System tray is not available on this desktop."
+msgstr "Der Infobereich ist auf diesem Desktop nicht verfügbar."
+
+msgid "NeoArch is running"
+msgstr "NeoArch läuft"
+
+msgid "Open NeoArch from the system tray icon."
+msgstr "Öffne NeoArch über das Infobereich-Symbol."

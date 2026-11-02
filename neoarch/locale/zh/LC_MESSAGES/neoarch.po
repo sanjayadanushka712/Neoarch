@@ -3564,5 +3564,29 @@ msgstr "窗口样式"
 msgid "System transparency"
 msgstr "系统透明度"
 
-msgid "Let the desktop show through the window body."
-msgstr "让桌面透过窗口主体显示。"
+msgid "Let the desktop show through the window body. Uses the saved window transparency level."
+msgstr "让桌面透过窗口主体显示。使用已保存的窗口透明度级别。"
+
+msgid "Startup & Tray"
+msgstr "启动与托盘"
+
+msgid "Start minimized"
+msgstr "最小化启动"
+
+msgid "Start hidden in the system tray. Useful when NeoArch is launched from your desktop's autostart entry."
+msgstr "在系统托盘中隐藏启动。适用于从桌面自启动项启动 NeoArch 时。"
+
+msgid "Close to tray"
+msgstr "关闭到托盘"
+
+msgid "Keep NeoArch running in the system tray when the window is closed. Quit from the tray menu."
+msgstr "关闭窗口时让 NeoArch 继续在系统托盘中运行。可从托盘菜单退出。"
+
+msgid "System tray is not available on this desktop."
+msgstr "此桌面环境不支持系统托盘。"
+
+msgid "NeoArch is running"
+msgstr "NeoArch 正在运行"
+
+msgid "Open NeoArch from the system tray icon."
+msgstr "请从系统托盘图标打开 NeoArch。"

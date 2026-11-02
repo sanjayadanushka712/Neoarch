@@ -50,6 +50,9 @@ DEFAULT_SETTINGS = {
     'window_radius': 8,
     'window_opacity': 0.75,
     'window_system_transparency': False,
+    # Tray / startup
+    'start_minimized': False,
+    'close_to_tray': False,
     # Console output strip (pixels)
     'console_height': 150,
     # Notifications

@@ -3564,5 +3564,29 @@ msgstr "Estilo da janela"
 msgid "System transparency"
 msgstr "Transparência do sistema"
 
-msgid "Let the desktop show through the window body."
-msgstr "Permita que a área de trabalho apareça através do corpo da janela."
+msgid "Let the desktop show through the window body. Uses the saved window transparency level."
+msgstr "Permita que a área de trabalho apareça através do corpo da janela. Usa o nível de transparência salvo."
+
+msgid "Startup & Tray"
+msgstr "Inicialização e bandeja"
+
+msgid "Start minimized"
+msgstr "Iniciar minimizado"
+
+msgid "Start hidden in the system tray. Useful when NeoArch is launched from your desktop's autostart entry."
+msgstr "Inicia oculto na bandeja do sistema. Útil quando o NeoArch é iniciado pela entrada de inicialização automática."
+
+msgid "Close to tray"
+msgstr "Fechar para a bandeja"
+
+msgid "Keep NeoArch running in the system tray when the window is closed. Quit from the tray menu."
+msgstr "Mantenha o NeoArch em execução na bandeja do sistema ao fechar a janela. Saia pelo menu da bandeja."
+
+msgid "System tray is not available on this desktop."
+msgstr "A bandeja do sistema não está disponível neste ambiente."
+
+msgid "NeoArch is running"
+msgstr "O NeoArch está em execução"
+
+msgid "Open NeoArch from the system tray icon."
+msgstr "Abra o NeoArch pelo ícone da bandeja do sistema."

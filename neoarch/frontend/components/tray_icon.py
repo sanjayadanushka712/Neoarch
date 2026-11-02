@@ -133,6 +133,10 @@ class TrayIcon(QSystemTrayIcon):
             cleanup_session()
         except Exception:
             pass
+        request_quit = getattr(self._app, 'request_quit', None)
+        if request_quit is not None:
+            request_quit()
+            return
         self.hide()
         app = QApplication.instance()
         if app is not None:

@@ -41,7 +41,8 @@ REPO_STATS_CACHE = os.path.join(
     os.path.expanduser("~"), ".cache", "neoarch", "repo-stats.json")
 _STATS_TTL = 24 * 60 * 60
 
-SECTION_LABELS = ("New Features", "Bug Fixes", "Improvements")
+SECTION_LABELS = (
+    "New Features", "Bug Fixes", "Improvements", "Known Limitations")
 
 _VERSION_TOKEN_RE = re.compile(r"\d+")
 

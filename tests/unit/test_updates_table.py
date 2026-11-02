@@ -3,8 +3,9 @@
 import time
 
 import pytest
-from PyQt6.QtCore import QItemSelectionModel, QPointF, Qt
+from PyQt6.QtCore import QItemSelectionModel, QPoint, QPointF, Qt
 from PyQt6.QtGui import QMouseEvent
+from PyQt6.QtTest import QTest
 from PyQt6.QtWidgets import QApplication
 
 from neoarch.frontend.components.updates_table import UpdatesTable
@@ -41,6 +42,70 @@ def _click_header(header, section=0):
                      QPointF(x, 10), Qt.MouseButton.LeftButton,
                      Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
     header.mousePressEvent(ev)
+
+
+@pytest.fixture
+def shown_table(qapp):
+    table = _make_table()
+    table.resize(960, 420)
+    table.show()
+    qapp.processEvents()
+    yield table
+    table.close()
+    qapp.processEvents()
+
+
+def _row_point(table, row, column):
+    idx = table.model.index(row, column)
+    return table.visualRect(idx).center()
+
+
+def test_clicking_the_checkbox_marks_the_row(qapp, shown_table):
+    table = shown_table
+
+    QTest.mouseClick(table.viewport(), Qt.MouseButton.LeftButton,
+                     Qt.KeyboardModifier.NoModifier, _row_point(table, 0, 0))
+    qapp.processEvents()
+
+    assert table.model.checked_names() == {("pkg-0", "pacman")}
+
+
+def test_clicking_outside_the_checkbox_does_not_mark_the_row(qapp, shown_table):
+    table = shown_table
+    idx = table.model.index(0, 0)
+    edge = QPoint(table.visualRect(idx).left() + 2, table.visualRect(idx).center().y())
+
+    QTest.mouseClick(table.viewport(), Qt.MouseButton.LeftButton,
+                     Qt.KeyboardModifier.NoModifier, edge)
+    qapp.processEvents()
+
+    assert table.model.checked_names() == set()
+    assert [p["id"] for p in table.selected_packages()] == ["pkg-0"]
+
+
+def test_clicking_a_row_body_selects_without_marking(qapp, shown_table):
+    table = shown_table
+
+    QTest.mouseClick(table.viewport(), Qt.MouseButton.LeftButton,
+                     Qt.KeyboardModifier.NoModifier, _row_point(table, 1, 1))
+    qapp.processEvents()
+
+    assert table.model.checked_names() == set()
+    assert [p["id"] for p in table.selected_packages()] == ["pkg-1"]
+
+
+def test_header_click_outside_checkbox_does_not_select_all(shown_table):
+    table = shown_table
+    header = table.horizontalHeader()
+    x = header.sectionViewportPosition(0) + 2
+    ev = QMouseEvent(QMouseEvent.Type.MouseButtonPress, QPointF(x, 10),
+                     QPointF(x, 10), Qt.MouseButton.LeftButton,
+                     Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
+
+    header.mousePressEvent(ev)
+
+    assert table.model.checked_names() == set()
+    assert header._checked is False
 
 
 def test_header_select_all_toggles_off(qapp):
@@ -397,7 +462,7 @@ def test_highlight_and_checkbox_are_independent(qapp):
 
 
 def _click_row(table, row):
-    """Click a row the way a left click does: toggles the row's mark."""
+    """Mark a row via the checkbox toggle path."""
     table._toggle_check(row, None)
 
 

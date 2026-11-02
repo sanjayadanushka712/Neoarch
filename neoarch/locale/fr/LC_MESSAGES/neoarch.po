@@ -3564,5 +3564,29 @@ msgstr "Style de fenêtre"
 msgid "System transparency"
 msgstr "Transparence du système"
 
-msgid "Let the desktop show through the window body."
-msgstr "Laissez le bureau apparaître à travers le corps de la fenêtre."
+msgid "Let the desktop show through the window body. Uses the saved window transparency level."
+msgstr "Laissez le bureau apparaître à travers le corps de la fenêtre. Utilise le niveau de transparence enregistré."
+
+msgid "Startup & Tray"
+msgstr "Démarrage et zone de notification"
+
+msgid "Start minimized"
+msgstr "Démarrer réduit"
+
+msgid "Start hidden in the system tray. Useful when NeoArch is launched from your desktop's autostart entry."
+msgstr "Démarre masqué dans la zone de notification. Utile lorsque NeoArch est lancé par votre entrée de démarrage automatique."
+
+msgid "Close to tray"
+msgstr "Fermer dans la zone de notification"
+
+msgid "Keep NeoArch running in the system tray when the window is closed. Quit from the tray menu."
+msgstr "Gardez NeoArch en cours d'exécution dans la zone de notification lorsque la fenêtre est fermée. Quittez depuis le menu de la zone de notification."
+
+msgid "System tray is not available on this desktop."
+msgstr "La zone de notification n'est pas disponible sur ce bureau."
+
+msgid "NeoArch is running"
+msgstr "NeoArch est en cours d'exécution"
+
+msgid "Open NeoArch from the system tray icon."
+msgstr "Ouvrez NeoArch depuis l'icône de la zone de notification."

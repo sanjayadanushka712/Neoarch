@@ -11,12 +11,12 @@ from PyQt6.QtWidgets import (
     QLabel, QFrame, QGraphicsDropShadowEffect,
 )
 from PyQt6.QtCore import pyqtSignal, Qt, QSize, QTimer, QEvent
-from PyQt6.QtGui import QColor, QIcon, QPixmap
+from PyQt6.QtGui import QColor, QPixmap
 
 from neoarch.frontend.components.recent_activity import RecentActivity
 from neoarch.frontend.tokens import Colors, Fonts
 from neoarch.backend.services.i18n import _
-from neoarch.frontend.icon_registry import icon_path, render_pixmap
+from neoarch.frontend.icon_registry import icon_path, render_icon, render_pixmap
 
 
 class LargeSearchBox(QWidget):
@@ -270,8 +270,8 @@ class LargeSearchBox(QWidget):
         ]
 
         for svg_rel, text, cb, primary in actions:
-            path = icon_path(svg_rel)
-            btn = QPushButton(QIcon(path), f"  {text}")
+            tint = Colors.TEXT if primary else Colors.TEXT_2
+            btn = QPushButton(render_icon(svg_rel, 17, tint), f"  {text}")
             btn.setIconSize(QSize(17, 17))
             btn.setFixedHeight(44)
             btn.setCursor(Qt.CursorShape.PointingHandCursor)

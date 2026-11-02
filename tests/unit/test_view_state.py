@@ -14,7 +14,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 import pytest
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QApplication, QLabel
 
 from neoarch.backend.services.i18n import set_language
 from neoarch.frontend.components.updates_table import UpdatesTable
@@ -74,6 +75,47 @@ def test_restore_checked_rechecks_matching_rows(qapp):
 
     mixin._restore_checked({key})
     assert model.checked_names() == {key}
+
+
+def test_discover_greeting_uses_readable_text_in_light_theme(qapp, monkeypatch):
+    from neoarch.frontend.themes import ThemeManager
+
+    manager = ThemeManager()
+    monkeypatch.setattr(manager, "_save", lambda: None)
+    try:
+        assert manager.apply_theme("light")
+        obj = _ViewsMixin.__new__(_ViewsMixin)
+        obj.current_view = "discover"
+        obj._greeting_label = QLabel()
+        obj._update_nav_greeting()
+
+        image = obj._greeting_label.pixmap().toImage()
+        luminance = []
+        for y in range(image.height()):
+            for x in range(max(1, image.width() // 3)):
+                color = image.pixelColor(x, y)
+                if color.alpha() > 200:
+                    luminance.append(
+                        0.2126 * color.red()
+                        + 0.7152 * color.green()
+                        + 0.0722 * color.blue()
+                    )
+        assert luminance
+        assert sum(luminance) / len(luminance) < 128
+    finally:
+        manager.apply_theme("dark")
+
+
+def test_toolbar_buttons_have_no_rectangular_drop_shadow(qapp):
+    obj = _ViewsMixin.__new__(_ViewsMixin)
+    obj.get_svg_icon = lambda path, size: QIcon()
+    obj.get_fallback_icon = lambda path: ""
+
+    button = obj.create_toolbar_button(
+        "toolbar/news", "Arch News", lambda: None)
+
+    assert button.graphicsEffect() is None
+    assert button.width() == button.height() == 42
 
 
 def test_restore_checked_skips_installed_rows(qapp):
@@ -953,6 +995,17 @@ def test_one_checked_row_shows_that_detail_card(qapp):
     assert card._multi_mode is False
     assert card.name_label.text() == "bash"
     assert card.update_btn.isVisible() is True
+
+
+def test_row_click_without_marks_opens_that_detail_card(qapp):
+    mixin = _panel_mixin()
+    pkg = mixin.updates_table.model.package_at(0)
+
+    mixin._on_updates_table_row_selected(pkg)
+
+    card = mixin.package_detail_card
+    assert card._multi_mode is False
+    assert card.name_label.text() == "bash"
 
 
 def test_two_checked_rows_show_the_summary_card(qapp):

@@ -512,12 +512,6 @@ class _ViewsMixin:
             }}
         """)
 
-        glow = QGraphicsDropShadowEffect(btn)
-        glow.setBlurRadius(20)
-        glow.setColor(QColor(0, 0, 0, 160))
-        glow.setOffset(3, 4)
-        btn.setGraphicsEffect(glow)
-
         # Try to load SVG icon, fallback to emoji
         icon = self.get_svg_icon(icon_path, icon_size)
         if not icon.isNull():
@@ -695,7 +689,7 @@ class _ViewsMixin:
         p = QPainter(pm)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         grad = QLinearGradient(0, 0, pw, 0)
-        grad.setColorAt(0.0, qcolor(Colors.WHITE))
+        grad.setColorAt(0.0, qcolor(Colors.TEXT))
         grad.setColorAt(1.0, qcolor(Colors.BLUE))
         p.setFont(font)
         p.setPen(QPen(grad, 1))
@@ -3472,10 +3466,14 @@ class _ViewsMixin:
             self.updates_table.set_loading(False)
 
     def _on_updates_table_row_selected(self, pkg):
-        # A left click toggled this row's check, so the check-driven panel is
-        # already correct on every page; re-rendering the single row here would
-        # throw away the summary for a multi-package selection.
-        self._sync_panel_for_checks()
+        # Clicking a row opens it; clicking its checkbox marks it for a batch.
+        # Marks still own the summary while one exists, so a row click cannot
+        # silently replace a multi-package selection.
+        table = getattr(self, 'updates_table', None)
+        if (table is not None and getattr(table, '_toggling_check', False)) or self._panel_packages():
+            self._sync_panel_for_checks()
+            return
+        self._show_panel_detail(pkg)
 
     def _show_detail_for_discover(self, pkg):
         """Open the detail card for a Discover result row."""
@@ -3702,13 +3700,29 @@ class _ViewsMixin:
         return total
 
     def _on_rows_multi_selected(self, pkgs):
-        """Row highlight covers several packages (keyboard selection).
+        """Row highlight covers several packages (Ctrl/Shift or keyboard).
 
-        A left click toggles the row's check instead, so the marked set drives
-        the panel; this path only serves a multi-row highlight that the
-        keyboard can still produce.
+        Marks still win while any exist; otherwise the highlight itself is the
+        selection the user is building, so summarise it.
         """
-        self._sync_panel_for_checks()
+        table = getattr(self, 'updates_table', None)
+        if (table is not None and getattr(table, '_toggling_check', False)) or self._panel_packages():
+            self._sync_panel_for_checks()
+            return
+        card = getattr(self, 'package_detail_card', None)
+        if card is None:
+            return
+        if not pkgs:
+            card.clear()
+            return
+        if len(pkgs) == 1:
+            self._show_panel_detail(pkgs[0])
+            return
+        card.show_selection(
+            pkgs, download_size=self._sum_download_size(pkgs),
+            action=self._panel_action_kind(),
+            updatable=any(self._pkg_has_update(p) for p in pkgs),
+            allow_uninstall=self._panel_allows_uninstall())
 
     def _clear_panel_selection(self):
         """Clear the marked selection the panel summarises."""
