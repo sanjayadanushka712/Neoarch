@@ -6,11 +6,11 @@ actions (open, check for updates, quit) from a context menu.
 """
 
 from PyQt6.QtCore import QRectF, Qt
-from PyQt6.QtGui import QColor, QFont, QIcon, QPainter, QPixmap
+from PyQt6.QtGui import QFont, QIcon, QPainter, QPixmap
 from PyQt6.QtWidgets import QApplication, QMenu, QSystemTrayIcon
 
 from neoarch.backend.services.i18n import _
-from neoarch.frontend.tokens import Colors
+from neoarch.frontend.tokens import Colors, qcolor
 
 __all__ = ["badge_pixmap", "TrayIcon", "tray_available"]
 
@@ -49,7 +49,7 @@ def badge_pixmap(base, count):
         _ICON_SIZE - _BADGE_DIAMETER - 1,
         _BADGE_DIAMETER, _BADGE_DIAMETER)
     painter.setPen(Qt.PenStyle.NoPen)
-    painter.setBrush(QColor(Colors.RED))
+    painter.setBrush(qcolor(Colors.RED))
     painter.drawEllipse(rect)
 
     text = "99+" if count > 99 else str(count)
@@ -57,7 +57,7 @@ def badge_pixmap(base, count):
     font.setBold(True)
     font.setPixelSize(15 if len(text) < 3 else 11)
     painter.setFont(font)
-    painter.setPen(QColor("#FFFFFF"))
+    painter.setPen(qcolor(Colors.WHITE))
     painter.drawText(rect, Qt.AlignmentFlag.AlignCenter, text)
     painter.end()
     return canvas

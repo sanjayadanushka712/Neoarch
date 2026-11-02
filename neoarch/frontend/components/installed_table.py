@@ -13,9 +13,8 @@ abort a PyQt app at exit.
 from PyQt6.QtWidgets import QTableWidget
 
 from neoarch.frontend.components.updates_table import (
-    _SOURCE_COLORS,
-    _TEXT_SEC,
     _make_fallback_pixmap,
+    _source_color,
 )
 
 
@@ -56,4 +55,4 @@ class HoverTableWidget(QTableWidget):
         delegate = self.itemDelegate()
         if delegate is not None and hasattr(delegate, "source_pixmap"):
             return delegate.source_pixmap(source, size)
-        return _make_fallback_pixmap(size, _SOURCE_COLORS.get(source or "", _TEXT_SEC))
+        return _make_fallback_pixmap(size, _source_color(source or ""))

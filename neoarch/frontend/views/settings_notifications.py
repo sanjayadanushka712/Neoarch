@@ -6,21 +6,9 @@ from neoarch.backend.services.i18n import _
 from neoarch.frontend.components.toggle_switch import ToggleSwitch
 from neoarch.frontend.views._settings_kit import make_card, row, sep, Stepper
 
-_ICON_BELL = (
-    '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>'
-    '<path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'
-)
-_ICON_BELL_RING = (
-    '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>'
-    '<path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'
-    '<path d="M4 2a10.2 10.2 0 0 0-2 5.5"/>'
-    '<path d="M22 2a10.2 10.2 0 0 1 2 5.5"/>'
-)
-_ICON_TIMER = (
-    '<line x1="10" x2="14" y1="2" y2="2"/>'
-    '<line x1="12" x2="15" y1="14" y2="11"/>'
-    '<circle cx="12" cy="14" r="8"/>'
-)
+_ICON_BELL = "ui/bell"
+_ICON_BELL_RING = "ui/bell-ring"
+_ICON_TIMER = "ui/timer"
 
 
 class NotificationsSettingsWidget(QWidget):

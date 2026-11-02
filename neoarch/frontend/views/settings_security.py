@@ -10,48 +10,33 @@ import math
 import webbrowser
 
 from PyQt6.QtCore import QEasingCurve, QVariantAnimation
-from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QFrame, QWidget, QVBoxLayout, QLabel
 
-from neoarch.frontend.tokens import Colors, Fonts, Radii
+from neoarch.frontend.tokens import Colors, Fonts, Radii, qcolor
 from neoarch.backend.services.i18n import _
 from neoarch.frontend.components.toggle_switch import ToggleSwitch
 from neoarch.frontend.views._settings_kit import (
     make_card, row, sep, btn, actions_row, chip, advice)
 
-# ── Inline stroke icons (24x24 viewBox, lucide-style) ──────────────
-_ICON_BOX = (
-    '<path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3 8l9 5 9-5"/>'
-    '<path d="M12 13v8"/>'
-)
-_ICON_UPDATE = (
-    '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>'
-    '<polyline points="17 6 23 6 23 12"/>'
-)
-_ICON_HABITS = (
-    '<path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/>'
-    '<path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/>'
-)
-_ICON_KEY = (
-    '<circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 8.3-8.3"/>'
-    '<path d="m15 8 3 3"/>'
-)
+# ── Card icons (assets/icons/ui) ───────────────────────────────────
+_ICON_BOX = "ui/box"
+_ICON_UPDATE = "ui/trending-up"
+_ICON_HABITS = "ui/list-checks"
+_ICON_KEY = "ui/key"
 
-_AMBER = Colors.ORANGE
-_GREEN = Colors.GREEN
 
 
 def _warned_row(title, desc):
     """Row with an amber WARNED chip — the 'flagged but not blocked' look."""
-    return row(title, desc, subtitle_color=_AMBER,
-               control=chip(_("WARNED"), _AMBER))
+    return row(title, desc, subtitle_color=Colors.ORANGE,
+               control=chip(_("WARNED"), Colors.ORANGE))
 
 
 def _pulse(widget, pulses=2, duration=1100):
     """Smoothly blink a widget's background to draw the eye, then restore."""
     if widget is None:
         return
-    accent = QColor(Colors.ACCENT)
+    accent = qcolor(Colors.ACCENT)
     original = widget.styleSheet()
     anim = QVariantAnimation(widget)
     anim.setStartValue(0.0)
@@ -142,7 +127,7 @@ def _updates_card(block_row=None):
 def _advice_card():
     card, lay = make_card(
         _("Quick Reference \u2014 Do's & Don'ts"), _ICON_HABITS,
-        icon_color=_AMBER)
+        icon_color=Colors.ORANGE)
 
     lay.addWidget(advice(
         "do",
@@ -197,7 +182,7 @@ def _advice_card():
 
 def _protection_card():
     card, lay = make_card(
-        _("System Protection & Habits"), _ICON_KEY, icon_color=_GREEN)
+        _("System Protection & Habits"), _ICON_KEY, icon_color=Colors.GREEN)
 
     lay.addWidget(row(
         _("GUI sudo prompt (SUDO_ASKPASS)"),

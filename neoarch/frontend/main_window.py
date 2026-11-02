@@ -10,10 +10,15 @@ from PyQt6.QtWidgets import QMainWindow, QSizePolicy, QWidget
 from PyQt6.QtCore import Qt, QTimer, QEvent, QPoint, pyqtSignal
 
 from neoarch.backend.services import network_latency
-from neoarch.resources.paths import PROJECT_ROOT
 from neoarch.managers.plugin_manager import PluginsManager
+from neoarch.frontend.icon_registry import icon_path
 from neoarch.frontend.styles import Styles
-from neoarch.frontend.themes import ThemeManager
+from neoarch.frontend.themes import SYSTEM_THEME_ID, ThemeManager
+from neoarch.backend.services.settings import (
+    DEFAULT_WINDOW_MODE,
+    WINDOW_MODE_NEOARCH,
+    WINDOW_MODE_SYSTEM,
+)
 from neoarch.frontend.components.title_bar import _get_brand_icon_path
 from neoarch.frontend.mixins.icons import _IconsMixin, _build_window_icon
 from neoarch.frontend.mixins.auth import _AuthMixin
@@ -24,9 +29,6 @@ from neoarch.frontend.mixins.search import _SearchMixin
 from neoarch.frontend.mixins.filters import _FiltersMixin
 from neoarch.frontend.mixins.views import _ViewsMixin
 from neoarch.frontend.mixins.operations import _OperationsMixin
-
-_BASE_DIR = str(PROJECT_ROOT)
-_SOURCES_ICON_DIR = os.path.join(_BASE_DIR, "assets", "icons", "sources")
 
 network_latency.install()
 network_latency.start_probing()
@@ -51,17 +53,28 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
         self.setGeometry(100, 100, 1600, 900)  # Increased width to accommodate sidebar
         self.setMinimumSize(1280, 850)  # Set minimum size (fits Discover dashboard without scroll)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self._windowed_flags = (
+            Qt.WindowType.Window
+            | Qt.WindowType.WindowTitleHint
+            | Qt.WindowType.WindowSystemMenuHint
+            | Qt.WindowType.WindowMinimizeButtonHint
+            | Qt.WindowType.WindowMaximizeButtonHint
+            | Qt.WindowType.WindowCloseButtonHint
+        )
+        self._frameless_flags = (
+            self._windowed_flags | Qt.WindowType.FramelessWindowHint
+        )
         self.setStyleSheet(Styles.get_dark_stylesheet())
+        self._ui_ready = False
         self._theme_manager = ThemeManager(self)
         self._theme_manager.theme_changed.connect(self._on_theme_changed)
+        self._theme_manager.enable_system_tracking()
         self._theme_manager.load_saved()
         # Re-apply stylesheet after theme load
         self.setStyleSheet(Styles.get_dark_stylesheet())
-        icon_path = _get_brand_icon_path()
-        if os.path.exists(icon_path):
-            self.setWindowIcon(_build_window_icon(icon_path))
+        brand_path = _get_brand_icon_path()
+        if os.path.exists(brand_path):
+            self.setWindowIcon(_build_window_icon(brand_path))
         # self.set_minimal_icon()
         self._resize_margin = 6
         self._resize_edge = None
@@ -97,6 +110,12 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
         self._active_bundle_key = ""
         # Settings state
         self.settings = self.load_settings()
+        if self._window_mode() == WINDOW_MODE_SYSTEM:
+            if self._theme_manager.current_id != SYSTEM_THEME_ID:
+                if not self.settings.get('neoarch_theme'):
+                    self.settings['neoarch_theme'] = self._theme_manager.current_id
+                    self.save_settings()
+                self._theme_manager.apply_theme(SYSTEM_THEME_ID)
         self.apply_logging_config()
         # Activate the saved UI/CLI language catalog
         try:
@@ -111,8 +130,8 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
         self.plugin_timer.timeout.connect(self.run_plugin_tick)
         self._icon_cache = {}
         self._source_icon_cache = {}
-        self._discover_name_icon = self.get_svg_icon(os.path.join(_SOURCES_ICON_DIR, "packagename.svg"), 20)
-        self._discover_version_icon = self.get_svg_icon(os.path.join(_SOURCES_ICON_DIR, "version.svg"), 18)
+        self._discover_name_icon = self.get_svg_icon(icon_path("sources/packagename"), 20)
+        self._discover_version_icon = self.get_svg_icon(icon_path("sources/version"), 18)
         self._flathub_checked = False
         self.plugins_manager = PluginsManager(self)
         self.packages_ready.connect(self.on_packages_loaded)
@@ -147,6 +166,7 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
         self._cloud_auth = CloudAuthManager()
         self._cloud_auth.login_changed.connect(self._on_cloud_user_changed)
 
+        self._apply_window_mode_flags(self._window_mode(), initial=True)
         self.setup_ui()
         self.apply_window_effects()
         # Set initial nav button state
@@ -156,7 +176,8 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
         
         # Initialize the default view (UI only, no data loading — deferred to auth flow)
         self.switch_view(self.current_view, load=False)
-        
+        self._ui_ready = True
+
         self._setup_tray()
 
         # Show welcome animation in console on first launch
@@ -217,10 +238,77 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
         if hasattr(self, '_update_bundle_buttons'):
             self._update_bundle_buttons()
 
+    def _window_mode(self):
+        """Return the saved window mode, falling back to the system default."""
+        mode = str(self.settings.get('window_mode', DEFAULT_WINDOW_MODE))
+        if mode in (WINDOW_MODE_SYSTEM, WINDOW_MODE_NEOARCH):
+            return mode
+        return DEFAULT_WINDOW_MODE
+
+    def _apply_window_mode_flags(self, mode, initial=False):
+        """Switch between native OS decorations and the NeoArch frame."""
+        native = mode == WINDOW_MODE_SYSTEM
+        flags = self._windowed_flags if native else self._frameless_flags
+        was_visible = self.isVisible()
+        was_maximized = self.isMaximized()
+        geometry = self.geometry()
+        if flags != self.windowFlags():
+            self.setWindowFlags(flags)
+        transparent = (
+            not native
+            or bool(self.settings.get('window_system_transparency', False))
+        )
+        self.setAttribute(
+            Qt.WidgetAttribute.WA_TranslucentBackground, transparent)
+        title_bar = getattr(self, '_title_bar', None)
+        if title_bar is not None:
+            title_bar.setVisible(not native)
+        if not initial and was_visible:
+            self.show()
+            if was_maximized:
+                self.showMaximized()
+            else:
+                self.setGeometry(geometry)
+
+    def set_window_mode(self, mode):
+        """Apply Native system or NeoArch window styling and persist it."""
+        if mode not in (WINDOW_MODE_SYSTEM, WINDOW_MODE_NEOARCH):
+            return
+        if mode == self._window_mode():
+            return
+        manager = getattr(self, '_theme_manager', None)
+        if mode == WINDOW_MODE_SYSTEM:
+            if manager is not None:
+                self.settings['neoarch_theme'] = manager.current_id
+            self.settings['window_mode'] = WINDOW_MODE_SYSTEM
+            self.save_settings()
+            self._apply_window_mode_flags(WINDOW_MODE_SYSTEM)
+            self.apply_window_effects()
+            applied = manager.apply_theme(SYSTEM_THEME_ID) if manager else False
+            if not applied:
+                QTimer.singleShot(0, self.rebuild_ui)
+        else:
+            theme_id = self.settings.get('neoarch_theme') or 'dark'
+            self.settings['window_mode'] = WINDOW_MODE_NEOARCH
+            self.save_settings()
+            self._apply_window_mode_flags(WINDOW_MODE_NEOARCH)
+            self.apply_window_effects()
+            applied = manager.apply_theme(theme_id) if manager else False
+            if not applied:
+                QTimer.singleShot(0, self.rebuild_ui)
+
     def _on_theme_changed(self, theme_id):
-        """Reapply the main stylesheet when the theme changes."""
-        from neoarch.frontend.tokens import DARK_STYLESHEET
-        self.setStyleSheet(DARK_STYLESHEET)
+        """Reapply the stylesheet and rebuild widgets that cache colors."""
+        from neoarch.frontend import tokens
+        self.setStyleSheet(tokens.DARK_STYLESHEET)
+        try:
+            from neoarch.frontend.components.dark_dialogs import refresh_open_dialogs
+            refresh_open_dialogs()
+        except Exception:
+            pass
+        if getattr(self, '_ui_ready', False):
+            from PyQt6.QtCore import QTimer
+            QTimer.singleShot(0, self.rebuild_ui)
 
     def _check_release_notes(self):
         """Show 'What's New' once after the app updates.

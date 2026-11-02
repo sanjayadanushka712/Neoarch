@@ -7,26 +7,11 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import QHBoxLayout, QLabel, QMenu, QPushButton, QWidget
 
-from neoarch.resources.paths import PROJECT_ROOT
-
-_BASE_DIR = str(PROJECT_ROOT)
+from neoarch.frontend.icon_registry import brand_icon_path
 
 
 def _get_brand_icon_path():
-    base_dir = _BASE_DIR
-    candidates = [
-        os.path.join(base_dir, "assets", "icons", "app", "icon.png"),
-        os.path.join(base_dir, "assets", "icons", "NeoarchLogo.svg"),
-        os.path.join(base_dir, "assets", "icons", "brand", "neoarch.svg"),
-        os.path.join(base_dir, "assets", "icons", "brand", "neoarch.png"),
-        os.path.join(base_dir, "assets", "icons", "discover", "logo.svg"),
-        os.path.join(base_dir, "assets", "icons", "discover", "logo1.svg"),
-        os.path.join(base_dir, "assets", "icons", "discover", "logo1.png"),
-    ]
-    for p in candidates:
-        if os.path.exists(p):
-            return p
-    return candidates[-1]
+    return brand_icon_path()
 
 
 class _TitleBar(QWidget):

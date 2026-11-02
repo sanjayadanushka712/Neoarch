@@ -162,15 +162,15 @@ class _OperationsMixin:
             padding="8px 18px", size=Fonts.BASE, radius=Radii.XL))
         cancel_btn.setStyleSheet(
             f"QPushButton {{"
-            f" background-color: rgba(255, 255, 255, 0.06);"
+            f" background-color: {Colors.BORDER};"
             f" color: {Colors.TEXT};"
-            f" border: 1px solid rgba(255, 255, 255, 0.1);"
+            f" border: 1px solid {Colors.BORDER_HOVER};"
             f" border-radius: 10px; padding: 8px 18px;"
             f" font-size: {Fonts.BASE}; font-weight: 500;"
             f" }}"
             f"QPushButton:hover {{"
-            f" background-color: rgba(255, 255, 255, 0.1);"
-            f" border-color: rgba(0, 191, 174, 0.4);"
+            f" background-color: {Colors.BORDER_HOVER};"
+            f" border-color: {Colors.ACCENT_40};"
             f" }}")
         dlg.exec()
         if dlg.clickedButton() != remove_btn:

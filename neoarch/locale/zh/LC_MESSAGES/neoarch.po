@@ -328,6 +328,9 @@ msgstr "选择“登录” — 你的浏览器处理安全登录，然后 NeoArc
 msgid "Choose a theme for NeoArch. Changes apply instantly."
 msgstr "为 NeoArch 选择主题。更改立即生效。"
 
+msgid "Reload custom themes"
+msgstr "重新加载自定义主题"
+
 msgid "Clean Cache"
 msgstr "清理缓存"
 
@@ -3539,3 +3542,27 @@ msgstr "正在加载截图…"
 
 msgid "No screenshots available."
 msgstr "暂无截图。"
+
+msgid "Choose a window style and theme for NeoArch. Changes apply instantly."
+msgstr "为 NeoArch 选择窗口样式和主题。更改会立即生效。"
+
+msgid "Native system"
+msgstr "原生系统"
+
+msgid "NeoArch"
+msgstr "NeoArch"
+
+msgid "Use NeoArch's custom titlebar and choose any theme below."
+msgstr "使用 NeoArch 自定义标题栏，并在下方选择任意主题。"
+
+msgid "Use your desktop titlebar and system colors. Themes are managed by your OS."
+msgstr "使用桌面标题栏和系统颜色。主题由操作系统管理。"
+
+msgid "Window style"
+msgstr "窗口样式"
+
+msgid "System transparency"
+msgstr "系统透明度"
+
+msgid "Let the desktop show through the window body."
+msgstr "让桌面透过窗口主体显示。"

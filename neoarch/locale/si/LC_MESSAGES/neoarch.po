@@ -328,6 +328,9 @@ msgstr "පිවිසීම තෝරන්න — ඔබේ බ්‍රව�
 msgid "Choose a theme for NeoArch. Changes apply instantly."
 msgstr "NeoArch සඳහා තේමාවක් තෝරන්න. වෙනස්කම් ක්ෂණිකව අදාළ වේ."
 
+msgid "Reload custom themes"
+msgstr "අභිරුචි තේමා නැවත පූරණය කරන්න"
+
 msgid "Clean Cache"
 msgstr "හැඹිලිය පිරිසිදු කරන්න"
 
@@ -3539,3 +3542,27 @@ msgstr "තිර රුව පූරණය වෙමින්…"
 
 msgid "No screenshots available."
 msgstr "තිර රුවක් නොමැත."
+
+msgid "Choose a window style and theme for NeoArch. Changes apply instantly."
+msgstr "NeoArch සඳහා කවුළු විලාසය සහ තේමාව තෝරන්න. වෙනස්කම් වහාම යෙදේ."
+
+msgid "Native system"
+msgstr "දේශීය පද්ධතිය"
+
+msgid "NeoArch"
+msgstr "NeoArch"
+
+msgid "Use NeoArch's custom titlebar and choose any theme below."
+msgstr "NeoArch හි අභිරුචි මාතෘකා තීරුව භාවිතා කර පහතින් ඕනෑම තේමාවක් තෝරන්න."
+
+msgid "Use your desktop titlebar and system colors. Themes are managed by your OS."
+msgstr "ඔබේ ඩෙස්ක්ටොප් මාතෘකා තීරුව සහ පද්ධති වර්ණ භාවිතා කරන්න. තේමා ඔබේ OS මගින් කළමනාකරණය වේ."
+
+msgid "Window style"
+msgstr "කවුළු විලාසය"
+
+msgid "System transparency"
+msgstr "පද්ධති විනිවිදභාවය"
+
+msgid "Let the desktop show through the window body."
+msgstr "වින්ඩෝ බොඩිය හරහා ඩෙස්ක්ටොප් දිස්වීමට ඉඩ දෙන්න."

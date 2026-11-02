@@ -2,45 +2,26 @@ from typing import Any
 from threading import Thread
 
 from PyQt6.QtCore import Qt, QRectF, QTimer, pyqtSignal
-from PyQt6.QtGui import QPixmap, QPainter, QIcon, QColor, QPen
-from PyQt6.QtSvg import QSvgRenderer
+from PyQt6.QtGui import QPainter, QIcon, QColor, QPen
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QFrame,
                              QLabel, QPushButton)
 
-from neoarch.frontend.tokens import QSS, Colors, Fonts, Radii
+from neoarch.frontend.icon_registry import render_pixmap
+from neoarch.frontend.tokens import QSS, Colors, Fonts, Radii, qcolor
 from neoarch.backend.services.i18n import _
 from neoarch.frontend.components.toggle_switch import ToggleSwitch
 
-# ── Inline stroke icons (24x24 viewBox, lucide-style) ──────────────
-_ICON_REFRESH = (
-    '<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>'
-    '<path d="M21 3v5h-5"/>'
-)
-_ICON_CALENDAR = (
-    '<rect x="3" y="4" width="18" height="18" rx="2"/>'
-    '<line x1="16" y1="2" x2="16" y2="6"/>'
-    '<line x1="8" y1="2" x2="8" y2="6"/>'
-    '<line x1="3" y1="10" x2="21" y2="10"/>'
-)
-_ICON_SHIELD = (
-    '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'
-)
-_ICON_CAMERA = (
-    '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0'
-    ' 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>'
-)
-_ICON_LAYERS = (
-    '<path d="M12 2 2 7l10 5 10-5-10-5z"/>'
-    '<path d="M2 17l10 5 10-5"/>'
-    '<path d="M2 12l10 5 10-5"/>'
-)
-_ICON_MINUS = '<line x1="5" y1="12" x2="19" y2="12"/>'
-_ICON_PLUS = (
-    '<line x1="12" y1="5" x2="12" y2="19"/>'
-    '<line x1="5" y1="12" x2="19" y2="12"/>'
-)
+# ── Card icons (assets/icons/ui) ───────────────────────────────────
+_ICON_REFRESH = "ui/refresh-cw"
+_ICON_CALENDAR = "ui/calendar"
+_ICON_SHIELD = "ui/shield"
+_ICON_CAMERA = "ui/camera"
+_ICON_LAYERS = "ui/layers"
+_ICON_MINUS = "ui/minus"
+_ICON_PLUS = "ui/plus"
 
-_STEPPER_QSS = f"""
+def _stepper_qss():
+    return f"""
     QFrame#stepper {{
         background-color: {Colors.INPUT_BG};
         border: 1px solid {Colors.BORDER_INPUT};
@@ -53,14 +34,15 @@ _STEPPER_QSS = f"""
         padding: 0;
     }}
     QFrame#stepper QPushButton#stepBtn:hover {{
-        background-color: rgba(255, 255, 255, 0.08);
+        background-color: {Colors.BORDER_INPUT};
     }}
     QFrame#stepper QPushButton#stepBtn:pressed {{
-        background-color: rgba(255, 255, 255, 0.15);
+        background-color: {Colors.OVERLAY_15};
     }}
 """
 
-_DAY_DOT_QSS = f"""
+def _day_dot_qss():
+    return f"""
     QPushButton {{
         background-color: transparent;
         color: {Colors.TEXT_2};
@@ -71,20 +53,20 @@ _DAY_DOT_QSS = f"""
         padding: 0;
     }}
     QPushButton:hover {{
-        background-color: rgba(255, 255, 255, 0.05);
+        background-color: {Colors.OVERLAY_05};
         border-color: {Colors.BORDER_HOVER};
         color: {Colors.TEXT};
     }}
     QPushButton:checked {{
         background-color: {Colors.ACCENT};
         border: 1px solid {Colors.ACCENT};
-        color: #06201C;
+        color: {Colors.TEXT_ON_ACCENT};
         font-weight: {Fonts.BOLD};
     }}
     QPushButton:checked:hover {{
         background-color: {Colors.ACCENT_HOVER};
         border-color: {Colors.ACCENT_HOVER};
-        color: #06201C;
+        color: {Colors.TEXT_ON_ACCENT};
     }}
     QPushButton:disabled {{
         color: {Colors.TEXT_3};
@@ -93,7 +75,8 @@ _DAY_DOT_QSS = f"""
     }}
 """
 
-_DAY_PANEL_QSS = f"""
+def _day_panel_qss():
+    return f"""
     QFrame#dayPanel {{
         background-color: {Colors.INPUT_BG};
         border: 1px solid {Colors.BORDER};
@@ -105,23 +88,8 @@ _DAY_PANEL_QSS = f"""
 _DAY_SHORT = [_("Mo"), _("Tu"), _("We"), _("Th"), _("Fr"), _("Sa"), _("Su")]
 
 
-def _icon(svg_body, size=12, color=None):
-    color = color or Colors.TEXT_2
-    svg = (
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"'
-        ' fill="none" stroke="{c}" stroke-width="2"'
-        ' stroke-linecap="round" stroke-linejoin="round">{b}</svg>'
-    ).format(c=color, b=svg_body)
-    renderer = QSvgRenderer(svg.encode("utf-8"))
-    pm = QPixmap(size, size)
-    pm.fill(Qt.GlobalColor.transparent)
-    if renderer.isValid():
-        painter = QPainter(pm)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        renderer.render(painter, QRectF(0, 0, size, size))
-        painter.end()
-    return pm
+def _icon(icon_name, size=12, color=None):
+    return render_pixmap(icon_name, size, color or Colors.TEXT_2)
 
 
 class _Stepper(QFrame):
@@ -139,7 +107,7 @@ class _Stepper(QFrame):
         self._value = minimum
 
         self.setObjectName("stepper")
-        self.setStyleSheet(_STEPPER_QSS)
+        self.setStyleSheet(_stepper_qss())
         self.setFixedHeight(34)
 
         lay = QHBoxLayout(self)
@@ -219,9 +187,9 @@ class _Dot(QFrame):
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         if self._active:
             p.setPen(QPen(QColor(0, 0, 0, 60), 1))
-            p.setBrush(QColor(Colors.ACCENT))
+            p.setBrush(qcolor(Colors.ACCENT))
         else:
-            p.setPen(QPen(QColor(Colors.BORDER), 1.5))
+            p.setPen(QPen(qcolor(Colors.BORDER), 1.5))
             p.setBrush(Qt.BrushStyle.NoBrush)
         p.drawEllipse(QRectF(1.5, 1.5, 13, 13))
         p.end()
@@ -289,11 +257,11 @@ class _EngineRow(QFrame):
 
     def _update_style(self):
         if self._selected:
-            bg = "rgba(255, 255, 255, 0.03)"
-            border = "#3A3D44"
+            bg = f"{Colors.OVERLAY_03}"
+            border = f"{Colors.SURFACE_3}"
         elif self._hovered:
-            bg = "rgba(255, 255, 255, 0.05)"
-            border = "rgba(255, 255, 255, 0.10)"
+            bg = f"{Colors.OVERLAY_05}"
+            border = f"{Colors.BORDER_HOVER}"
         else:
             bg = "transparent"
             border = "transparent"
@@ -331,8 +299,8 @@ class AutoUpdateSettingsWidget(QWidget):
     # ── building blocks (About-page pattern) ────────────────────────
 
     @staticmethod
-    def _icon_pixmap(svg_body, size=14, color="#EDEDEF"):
-        return _icon(svg_body, size=size, color=color)
+    def _icon_pixmap(svg_body, size=14, color=None):
+        return _icon(svg_body, size=size, color=color or Colors.TEXT)
 
     @staticmethod
     def _make_card(title_text, svg_body=None):
@@ -415,20 +383,20 @@ class AutoUpdateSettingsWidget(QWidget):
         btn.setCursor(Qt.CursorShape.PointingHandCursor)
         btn.setStyleSheet(f"""
             QPushButton {{
-                background-color: rgba(255, 255, 255, 0.06);
+                background-color: {Colors.BORDER};
                 color: {Colors.TEXT};
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                border: 1px solid {Colors.BORDER_HOVER};
                 border-radius: 10px;
                 padding: 8px 18px;
                 font-size: {Fonts.BASE};
                 font-weight: {Fonts.MEDIUM};
             }}
             QPushButton:hover {{
-                background-color: rgba(255, 255, 255, 0.1);
-                border-color: rgba(0, 191, 174, 0.4);
+                background-color: {Colors.BORDER_HOVER};
+                border-color: {Colors.ACCENT_40};
             }}
             QPushButton:pressed {{
-                background-color: rgba(255, 255, 255, 0.14);
+                background-color: {Colors.OVERLAY_14};
             }}
             QPushButton:disabled {{
                 color: {Colors.TEXT_3};
@@ -529,7 +497,7 @@ class AutoUpdateSettingsWidget(QWidget):
             int(d) for d in self.app.settings.get('schedule_days', [0, 1, 2, 3, 4, 5, 6]))
         chips = QFrame()
         chips.setObjectName("dayPanel")
-        chips.setStyleSheet(_DAY_PANEL_QSS)
+        chips.setStyleSheet(_day_panel_qss())
         chip_row = QHBoxLayout(chips)
         chip_row.setContentsMargins(4, 4, 4, 4)
         chip_row.setSpacing(8)
@@ -538,7 +506,7 @@ class AutoUpdateSettingsWidget(QWidget):
             cb.setCheckable(True)
             cb.setCursor(Qt.CursorShape.PointingHandCursor)
             cb.setFixedSize(28, 28)
-            cb.setStyleSheet(_DAY_DOT_QSS)
+            cb.setStyleSheet(_day_dot_qss())
             cb.setChecked(idx in current_days)
             cb.toggled.connect(self.on_schedule_changed)
             self.day_cbs.append(cb)

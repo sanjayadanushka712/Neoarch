@@ -5,7 +5,6 @@ Git repositories.  Follows the NeoArch visual identity established by
 PluginsView and the Updates/Installed table pages.
 """
 
-import os
 import time
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFrame, QLabel,
@@ -15,58 +14,26 @@ from PyQt6.QtCore import (
     Qt, pyqtSignal, QRectF, QPoint,
 )
 from PyQt6.QtGui import (
-    QColor, QPainter, QCursor, QIcon, QPixmap,
+    QColor, QPainter, QCursor,
 )
-from PyQt6.QtSvg import QSvgRenderer
-from neoarch.resources.paths import PROJECT_ROOT
-from neoarch.frontend.tokens import Colors, Fonts, Radii
+from neoarch.frontend.icon_registry import render_icon
+from neoarch.frontend.tokens import Colors, Fonts, Radii, qcolor, icon_tint
 from neoarch.frontend.styles import Styles
 from neoarch.backend.services.i18n import _
 
 __all__ = ["GitTab"]
 
 # ── design tokens (from centralized tokens.py) ─────────────────────
-_BG = Colors.BG_SECONDARY
-_SURFACE = Colors.SURFACE
-_SURFACE_2 = Colors.SURFACE_2
-_TEXT = Colors.TEXT
-_TEXT2 = Colors.TEXT_2
-_TEXT3 = Colors.TEXT_3
-_ACCENT = Colors.ACCENT
-_BORDER = Colors.BORDER
-_BORDER_HOVER = Colors.BORDER_HOVER
 _RADIUS_SM = int(Radii.SM)
 _RADIUS_MD = int(Radii.MD)
 _RADIUS_LG = int(Radii.LG)
 _RADIUS_CARD = int(Radii.XL)
 
 # Semantic colors
-_TEAL = Colors.TEAL
-_ORANGE = Colors.ORANGE
-_PURPLE = Colors.PURPLE
-_BLUE = Colors.BLUE
-_GREEN = Colors.GREEN
-_RED = Colors.RED
-_YELLOW = Colors.YELLOW
 
 
-def _svg_icon(rel_path, size, color="#FFFFFF"):
-    path = os.path.join(str(PROJECT_ROOT), "assets", "icons", rel_path)
-    try:
-        r = QSvgRenderer(path)
-        if r.isValid():
-            pm = QPixmap(size, size)
-            pm.fill(Qt.GlobalColor.transparent)
-            p = QPainter(pm)
-            p.setRenderHint(QPainter.RenderHint.Antialiasing)
-            r.render(p, QRectF(0, 0, size, size))
-            p.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
-            p.fillRect(QRectF(0, 0, size, size), QColor(color))
-            p.end()
-            return QIcon(pm)
-    except Exception:
-        pass
-    return QIcon()
+def _svg_icon(rel_path, size, color=None):
+    return render_icon(rel_path, size, color or icon_tint())
 
 
 def _relative_time(ts):
@@ -125,8 +92,8 @@ class _StatCard(QFrame):
 
         self.setStyleSheet(f"""
             QFrame#gitStatCard {{
-                background: {_SURFACE};
-                border: 1px solid {_BORDER};
+                background: {Colors.SURFACE};
+                border: 1px solid {Colors.BORDER};
                 border-radius: {_RADIUS_LG}px;
             }}
         """)
@@ -137,7 +104,7 @@ class _StatCard(QFrame):
 
         self._title_lbl = QLabel(title)
         self._title_lbl.setStyleSheet(
-            f"color: {_TEXT2}; font-size: {Fonts.SM}; font-weight: 500;"
+            f"color: {Colors.TEXT_2}; font-size: {Fonts.SM}; font-weight: 500;"
             "background: transparent; border: none;")
         layout.addWidget(self._title_lbl)
 
@@ -149,7 +116,7 @@ class _StatCard(QFrame):
 
         self._sub_lbl = QLabel(subtitle)
         self._sub_lbl.setStyleSheet(
-            f"color: {_TEXT3}; font-size: {Fonts.XS}; font-weight: 400;"
+            f"color: {Colors.TEXT_3}; font-size: {Fonts.XS}; font-weight: 400;"
             "background: transparent; border: none;")
         layout.addWidget(self._sub_lbl)
 
@@ -166,8 +133,10 @@ class _StatCard(QFrame):
 class _Badge(QLabel):
     """Small inline badge for build system / language."""
 
-    def __init__(self, text, bg="rgba(255,255,255,0.06)", color=_TEXT2, parent=None):
+    def __init__(self, text, bg=None, color=None, parent=None):
         super().__init__(text, parent)
+        bg = bg or Colors.BORDER
+        color = color or Colors.TEXT_2
         self.setStyleSheet(
             f"color: {color}; font-size: {Fonts.XS}; font-weight: 600;"
             f"background: {bg}; border-radius: 4px; padding: 2px 7px;"
@@ -201,7 +170,7 @@ class _DonutChart(QWidget):
 
         # Track
         p.setPen(Qt.PenStyle.NoPen)
-        p.setBrush(QColor("rgba(255,255,255,0.04)"))
+        p.setBrush(qcolor(Colors.OVERLAY_04))
         p.drawEllipse(QRectF(cx - r, cy - r, r * 2, r * 2))
 
         # Segments
@@ -217,7 +186,7 @@ class _DonutChart(QWidget):
             start += span
 
         # Cut out center
-        p.setBrush(QColor(_BG))
+        p.setBrush(qcolor(Colors.BG_SECONDARY))
         p.setPen(Qt.PenStyle.NoPen)
         p.drawEllipse(QRectF(cx - inner, cy - inner, inner * 2, inner * 2))
         p.end()
@@ -241,13 +210,13 @@ class _ProjectRow(QFrame):
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setStyleSheet(f"""
             QFrame#gitProjectRow {{
-                background: {_SURFACE};
-                border: 1px solid {_BORDER};
+                background: {Colors.SURFACE};
+                border: 1px solid {Colors.BORDER};
                 border-radius: {_RADIUS_MD}px;
             }}
             QFrame#gitProjectRow:hover {{
-                border-color: {_BORDER_HOVER};
-                background: {_SURFACE_2};
+                border-color: {Colors.BORDER_HOVER};
+                background: {Colors.SURFACE_2};
             }}
         """)
 
@@ -267,25 +236,25 @@ class _ProjectRow(QFrame):
         # Name
         name_lbl = QLabel(repo.get("name", ""))
         name_lbl.setStyleSheet(
-            f"color: {_TEXT}; font-size: {Fonts.BASE}; font-weight: 600;"
+            f"color: {Colors.TEXT}; font-size: {Fonts.BASE}; font-weight: 600;"
             "background: transparent; border: none;")
         top_row.addWidget(name_lbl)
 
         # Build system badge
         bs = repo.get("build_system", "")
         if bs:
-            bs_bg = "rgba(0,191,174,0.12)" if bs == "PKGBUILD" else "rgba(255,255,255,0.06)"
-            bs_color = _ACCENT if bs == "PKGBUILD" else _TEXT2
+            bs_bg = f"{Colors.ACCENT_SOFT}" if bs == "PKGBUILD" else f"{Colors.BORDER}"
+            bs_color = Colors.ACCENT if bs == "PKGBUILD" else Colors.TEXT_2
             top_row.addWidget(_Badge(bs, bs_bg, bs_color))
 
         # Language badge
         lang = repo.get("language", "")
         if lang:
-            top_row.addWidget(_Badge(lang, "rgba(139,124,255,0.12)", _PURPLE))
+            top_row.addWidget(_Badge(lang, f"{Colors.PURPLE_SOFT_12}", Colors.PURPLE))
 
         # PKGBUILD badge
         if repo.get("has_pkgbuild") and bs != "PKGBUILD":
-            top_row.addWidget(_Badge("PKGBUILD", "rgba(0,191,174,0.12)", _ACCENT))
+            top_row.addWidget(_Badge("PKGBUILD", f"{Colors.ACCENT_SOFT}", Colors.ACCENT))
 
         top_row.addStretch(1)
         left.addLayout(top_row)
@@ -295,7 +264,7 @@ class _ProjectRow(QFrame):
         if url:
             url_lbl = QLabel(url)
             url_lbl.setStyleSheet(
-                f"color: {_TEXT3}; font-size: {Fonts.XS};"
+                f"color: {Colors.TEXT_3}; font-size: {Fonts.XS};"
                 "background: transparent; border: none;")
             left.addWidget(url_lbl)
 
@@ -323,7 +292,7 @@ class _ProjectRow(QFrame):
         info_parts.append(f"Updated {updated}")
         info_lbl = QLabel(" · ".join(info_parts))
         info_lbl.setStyleSheet(
-            f"color: {_TEXT3}; font-size: {Fonts.XS};"
+            f"color: {Colors.TEXT_3}; font-size: {Fonts.XS};"
             "background: transparent; border: none;")
         middle.addWidget(info_lbl, 0, Qt.AlignmentFlag.AlignLeft)
 
@@ -338,23 +307,23 @@ class _ProjectRow(QFrame):
         modified = repo.get("modified_count", 0)
 
         if behind > 0:
-            pull_btn = self._action_btn(f"Update ({behind})", _ORANGE)
+            pull_btn = self._action_btn(f"Update ({behind})", Colors.ORANGE)
             pull_btn.clicked.connect(lambda: self.pull_requested.emit(repo["path"]))
             right.addWidget(pull_btn)
         elif modified > 0:
-            pull_btn = self._action_btn("Status", _TEXT2)
+            pull_btn = self._action_btn("Status", Colors.TEXT_2)
             pull_btn.clicked.connect(lambda: self.pull_requested.emit(repo["path"]))
             right.addWidget(pull_btn)
         else:
-            pull_btn = self._action_btn("Pull", _TEXT2)
+            pull_btn = self._action_btn("Pull", Colors.TEXT_2)
             pull_btn.clicked.connect(lambda: self.pull_requested.emit(repo["path"]))
             right.addWidget(pull_btn)
 
-        build_btn = self._action_btn("Build", _TEXT2)
+        build_btn = self._action_btn("Build", Colors.TEXT_2)
         build_btn.clicked.connect(lambda: self.build_requested.emit(repo["path"]))
         right.addWidget(build_btn)
 
-        open_btn = self._action_btn("Open", _ACCENT)
+        open_btn = self._action_btn("Open", Colors.ACCENT)
         open_btn.clicked.connect(lambda: self.open_requested.emit(repo["path"]))
         right.addWidget(open_btn)
 
@@ -364,12 +333,12 @@ class _ProjectRow(QFrame):
         menu_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         menu_btn.setStyleSheet(f"""
             QPushButton {{
-                background: transparent; color: {_TEXT3};
-                border: 1px solid {_BORDER}; border-radius: 6px;
+                background: transparent; color: {Colors.TEXT_3};
+                border: 1px solid {Colors.BORDER}; border-radius: 6px;
                 font-size: {Fonts.LG}; font-weight: 700; padding: 0;
             }}
             QPushButton:hover {{
-                background: rgba(255,255,255,0.06); color: {_TEXT2};
+                background: {Colors.BORDER}; color: {Colors.TEXT_2};
             }}
         """)
         menu_btn.clicked.connect(
@@ -383,10 +352,10 @@ class _ProjectRow(QFrame):
         modified = repo.get("modified_count", 0)
         behind = repo.get("behind", 0)
         if behind > 0:
-            return _("↓ {count} commits behind").format(count=behind), _ORANGE
+            return _("↓ {count} commits behind").format(count=behind), Colors.ORANGE
         if modified > 0:
-            return _("● Modified ({count})").format(count=modified), _YELLOW
-        return _("● Clean"), _GREEN
+            return _("● Modified ({count})").format(count=modified), Colors.YELLOW
+        return _("● Clean"), Colors.GREEN
 
     @staticmethod
     def _action_btn(text, color):
@@ -395,16 +364,16 @@ class _ProjectRow(QFrame):
         btn.setCursor(Qt.CursorShape.PointingHandCursor)
         btn.setStyleSheet(f"""
             QPushButton {{
-                background: rgba(255,255,255,0.04);
+                background: {Colors.OVERLAY_04};
                 color: {color};
-                border: 1px solid rgba(255,255,255,0.08);
+                border: 1px solid {Colors.BORDER_INPUT};
                 border-radius: 6px;
                 padding: 0 12px;
                 font-size: {Fonts.SM}; font-weight: 600;
             }}
             QPushButton:hover {{
-                background: rgba(255,255,255,0.08);
-                border-color: rgba(255,255,255,0.14);
+                background: {Colors.BORDER_INPUT};
+                border-color: {Colors.OVERLAY_14};
             }}
         """)
         return btn
@@ -421,7 +390,7 @@ class _BuildRow(QWidget):
         layout.setSpacing(8)
 
         icon = "✓" if entry.get("success") else "✕"
-        color = _GREEN if entry.get("success") else _RED
+        color = Colors.GREEN if entry.get("success") else Colors.RED
 
         icon_lbl = QLabel(icon)
         icon_lbl.setFixedWidth(14)
@@ -432,7 +401,7 @@ class _BuildRow(QWidget):
 
         name_lbl = QLabel(entry.get("name", ""))
         name_lbl.setStyleSheet(
-            f"color: {_TEXT}; font-size: {Fonts.SM}; font-weight: 600;"
+            f"color: {Colors.TEXT}; font-size: {Fonts.SM}; font-weight: 600;"
             "background: transparent; border: none;")
         layout.addWidget(name_lbl)
 
@@ -441,14 +410,14 @@ class _BuildRow(QWidget):
             msg = msg[:30] + "…"
         msg_lbl = QLabel(msg)
         msg_lbl.setStyleSheet(
-            f"color: {_TEXT2}; font-size: {Fonts.SM};"
+            f"color: {Colors.TEXT_2}; font-size: {Fonts.SM};"
             "background: transparent; border: none;")
         layout.addWidget(msg_lbl, 1)
 
         ts = entry.get("time", 0)
         time_lbl = QLabel(time.strftime("%I:%M %p", time.localtime(ts)) if ts else "")
         time_lbl.setStyleSheet(
-            f"color: {_TEXT3}; font-size: {Fonts.XS};"
+            f"color: {Colors.TEXT_3}; font-size: {Fonts.XS};"
             "background: transparent; border: none;")
         layout.addWidget(time_lbl)
 
@@ -520,13 +489,13 @@ class GitTab(QWidget):
 
         title = QLabel(_("Git Projects"))
         title.setStyleSheet(
-            f"color: {_TEXT}; font-size: {Fonts.HERO}; font-weight: 700;"
+            f"color: {Colors.TEXT}; font-size: {Fonts.HERO}; font-weight: 700;"
             "background: transparent; border: none;")
         left.addWidget(title)
 
         subtitle = QLabel(_("Clone, build, update, and manage Git projects"))
         subtitle.setStyleSheet(
-            f"color: {_TEXT2}; font-size: {Fonts.MD};"
+            f"color: {Colors.TEXT_2}; font-size: {Fonts.MD};"
             "background: transparent; border: none;")
         left.addWidget(subtitle)
 
@@ -534,7 +503,7 @@ class GitTab(QWidget):
 
         # Clone button
         clone_btn = QPushButton(_(" Clone Repository"))
-        clone_btn.setIcon(_svg_icon("sources/git.svg", 16, f"{Colors.TEXT_ON_ACCENT}"))
+        clone_btn.setIcon(_svg_icon("sources/git.svg", 16, f"{Colors.TEXT_ON_WHITE}"))
         clone_btn.setIconSize(QRectF(0, 0, 16, 16).toRect().size())
         clone_btn.setFixedHeight(34)
         clone_btn.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -550,10 +519,10 @@ class GitTab(QWidget):
         self._stats_row.setSpacing(10)
         self._stats_row.setContentsMargins(0, 0, 0, 0)
 
-        self._stat_total = _StatCard(_("Total Projects"), "0", _("All Git projects"), _TEAL)
-        self._stat_updates = _StatCard(_("Updates Available"), "0", _("Projects to update"), _ORANGE)
-        self._stat_builds = _StatCard(_("Builds Today"), "0", _("Successful builds"), _PURPLE)
-        self._stat_disk = _StatCard(_("Disk Usage"), "—", _("Across all projects"), _BLUE)
+        self._stat_total = _StatCard(_("Total Projects"), "0", _("All Git projects"), Colors.TEAL)
+        self._stat_updates = _StatCard(_("Updates Available"), "0", _("Projects to update"), Colors.ORANGE)
+        self._stat_builds = _StatCard(_("Builds Today"), "0", _("Successful builds"), Colors.PURPLE)
+        self._stat_disk = _StatCard(_("Disk Usage"), "—", _("Across all projects"), Colors.BLUE)
 
         for card in (self._stat_total, self._stat_updates,
                      self._stat_builds, self._stat_disk):
@@ -570,8 +539,8 @@ class GitTab(QWidget):
 
         _frame_qss = f"""
             QFrame {{
-                background: {_SURFACE};
-                border: 1px solid {_BORDER};
+                background: {Colors.SURFACE};
+                border: 1px solid {Colors.BORDER};
                 border-radius: {_RADIUS_LG}px;
             }}
         """
@@ -589,7 +558,7 @@ class GitTab(QWidget):
         bh.setContentsMargins(0, 0, 0, 0)
         bh_title = QLabel(_("Build Activity"))
         bh_title.setStyleSheet(
-            f"color: {_TEXT}; font-size: {Fonts.MD}; font-weight: 600;"
+            f"color: {Colors.TEXT}; font-size: {Fonts.MD}; font-weight: 600;"
             "background: transparent; border: none;")
         bh.addWidget(bh_title)
         bh.addStretch(1)
@@ -619,7 +588,7 @@ class GitTab(QWidget):
 
         sl_title = QLabel(_("Repository Storage"))
         sl_title.setStyleSheet(
-            f"color: {_TEXT}; font-size: {Fonts.MD}; font-weight: 600;"
+            f"color: {Colors.TEXT}; font-size: {Fonts.MD}; font-weight: 600;"
             "background: transparent; border: none;")
         sl.addWidget(sl_title)
 
@@ -631,7 +600,7 @@ class GitTab(QWidget):
 
         self._disk_total = QLabel("—")
         self._disk_total.setStyleSheet(
-            f"color: {_TEXT}; font-size: {Fonts.LG}; font-weight: 700;"
+            f"color: {Colors.TEXT}; font-size: {Fonts.LG}; font-weight: 700;"
             "background: transparent; border: none;")
         top.addWidget(self._disk_total, 0, Qt.AlignmentFlag.AlignTop)
         top.addStretch(1)
@@ -672,37 +641,37 @@ class GitTab(QWidget):
 
         t1 = QLabel(_("No Git projects yet"))
         t1.setStyleSheet(
-            f"color: {_TEXT}; font-size: {Fonts.XL}; font-weight: 600;"
+            f"color: {Colors.TEXT}; font-size: {Fonts.XL}; font-weight: 600;"
             "background: transparent; border: none;")
         t1.setAlignment(Qt.AlignmentFlag.AlignCenter)
         el.addWidget(t1)
 
         t2 = QLabel(_("Clone a repository to build and manage software projects."))
         t2.setStyleSheet(
-            f"color: {_TEXT2}; font-size: {Fonts.MD};"
+            f"color: {Colors.TEXT_2}; font-size: {Fonts.MD};"
             "background: transparent; border: none;")
         t2.setAlignment(Qt.AlignmentFlag.AlignCenter)
         el.addWidget(t2)
 
         empty_clone = QPushButton(_(" Clone Repository"))
-        empty_clone.setIcon(_svg_icon("sources/git.svg", 16, "#FFFFFF"))
+        empty_clone.setIcon(_svg_icon("sources/git.svg", 16, f"{Colors.WHITE}"))
         empty_clone.setIconSize(QRectF(0, 0, 16, 16).toRect().size())
         empty_clone.setFixedHeight(36)
         empty_clone.setCursor(Qt.CursorShape.PointingHandCursor)
         empty_clone.setStyleSheet(f"""
             QPushButton {{
-                background: {_ACCENT}; color: {Colors.TEXT_ON_ACCENT};
+                background: {Colors.ACCENT}; color: {Colors.TEXT_ON_ACCENT};
                 border: none; border-radius: {_RADIUS_SM}px;
                 padding: 0 20px; font-size: {Fonts.MD}; font-weight: 600;
             }}
-            QPushButton:hover {{ background: #00D4C1; }}
+            QPushButton:hover {{ background: {Colors.ACCENT_HOVER}; }}
         """)
         empty_clone.clicked.connect(self._on_clone)
         el.addWidget(empty_clone, 0, Qt.AlignmentFlag.AlignCenter)
 
         t3 = QLabel(_("Supports Cargo · CMake · Make · Meson · Go · npm · PKGBUILD"))
         t3.setStyleSheet(
-            f"color: {_TEXT3}; font-size: {Fonts.XS};"
+            f"color: {Colors.TEXT_3}; font-size: {Fonts.XS};"
             "background: transparent; border: none;")
         t3.setAlignment(Qt.AlignmentFlag.AlignCenter)
         el.addWidget(t3)
@@ -763,7 +732,7 @@ class GitTab(QWidget):
 
         label = QLabel(_("Your Projects"))
         label.setStyleSheet(
-            f"color: {_TEXT}; font-size: {Fonts.LG}; font-weight: 600;"
+            f"color: {Colors.TEXT}; font-size: {Fonts.LG}; font-weight: 600;"
             "background: transparent; border: none;")
         hrow.addWidget(label)
         hrow.addStretch(1)
@@ -773,11 +742,11 @@ class GitTab(QWidget):
         self._sort_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._sort_btn.setStyleSheet(f"""
             QPushButton {{
-                background: transparent; color: {_TEXT2};
-                border: 1px solid {_BORDER}; border-radius: 6px;
+                background: transparent; color: {Colors.TEXT_2};
+                border: 1px solid {Colors.BORDER}; border-radius: 6px;
                 padding: 0 10px; font-size: {Fonts.SM}; font-weight: 500;
             }}
-            QPushButton:hover {{ color: {_TEXT}; border-color: {_BORDER_HOVER}; }}
+            QPushButton:hover {{ color: {Colors.TEXT}; border-color: {Colors.BORDER_HOVER}; }}
         """)
         self._sort_btn.clicked.connect(self._cycle_sort)
         hrow.addWidget(self._sort_btn)
@@ -810,7 +779,7 @@ class GitTab(QWidget):
         if not history:
             lbl = QLabel(_("No recent builds"))
             lbl.setStyleSheet(
-                f"color: {_TEXT3}; font-size: {Fonts.SM};"
+                f"color: {Colors.TEXT_3}; font-size: {Fonts.SM};"
                 "background: transparent; border: none; padding: 8px 0;")
             self._build_list_layout.addWidget(lbl)
         else:
@@ -830,7 +799,7 @@ class GitTab(QWidget):
         self._disk_total.setText(_fmt_size(total))
 
         # Donut segments
-        colors = [_TEAL, _PURPLE, _BLUE, _ORANGE, _YELLOW, _RED, "#6EE7B7", "#C084FC"]
+        colors = [Colors.TEAL, Colors.PURPLE, Colors.BLUE, Colors.ORANGE, Colors.YELLOW, Colors.RED, f"{Colors.GREEN_BRIGHT}", f"{Colors.PURPLE_BRIGHT}"]
         segments = []
         for i, repo in enumerate(sorted(self._repos, key=lambda r: r.get("disk_usage", 0), reverse=True)):
             size = repo.get("disk_usage", 0)
@@ -851,13 +820,13 @@ class GitTab(QWidget):
 
             name = QLabel(repo.get("name", ""))
             name.setStyleSheet(
-                f"color: {_TEXT}; font-size: {Fonts.SM};"
+                f"color: {Colors.TEXT}; font-size: {Fonts.SM};"
                 "background: transparent; border: none;")
             row.addWidget(name, 1)
 
             size = QLabel(_fmt_size(repo.get("disk_usage", 0)))
             size.setStyleSheet(
-                f"color: {_TEXT2}; font-size: {Fonts.SM};"
+                f"color: {Colors.TEXT_2}; font-size: {Fonts.SM};"
                 "background: transparent; border: none;")
             row.addWidget(size)
 
@@ -883,7 +852,7 @@ class GitTab(QWidget):
         menu = QMenu(self)
         menu.setStyleSheet(Styles.menu() + f"""
             QMenu::separator {{
-                height: 1px; background: {_BORDER};
+                height: 1px; background: {Colors.BORDER};
                 margin: 4px 8px;
             }}
         """)

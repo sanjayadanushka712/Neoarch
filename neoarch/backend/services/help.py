@@ -12,7 +12,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QIcon, QPixmap
 
-from neoarch.resources.paths import ASSETS_DIR, APP_VERSION, APP_EDITION
+from neoarch.resources.paths import APP_VERSION, APP_EDITION
+from neoarch.frontend.icon_registry import brand_icon_path, icon_path
 
 __all__ = ["_make_text_tab", "show_help", "show_about"]
 
@@ -36,9 +37,9 @@ def show_help(parent, current_view: str):
     dlg.setModal(True)
     dlg.setMinimumSize(780, 560)
 
-    icon_path = ASSETS_DIR / "icons" / "about.svg"
-    if icon_path.exists():
-        dlg.setWindowIcon(QIcon(str(icon_path)))
+    help_icon = QPixmap(icon_path("about"))
+    if not help_icon.isNull():
+        dlg.setWindowIcon(QIcon(help_icon))
 
     root = QVBoxLayout(dlg)
     tabs = QTabWidget()
@@ -159,9 +160,9 @@ def show_about(parent):
     layout.setContentsMargins(24, 24, 24, 24)
     layout.setSpacing(12)
 
-    logo_path = ASSETS_DIR / "icons" / "NeoarchLogo.svg"
-    if logo_path.exists():
-        pixmap = QPixmap(str(logo_path))
+    logo_path = brand_icon_path()
+    if logo_path:
+        pixmap = QPixmap(logo_path)
         if not pixmap.isNull():
             logo_label = QLabel()
             logo_label.setPixmap(pixmap.scaled(128, 128, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))

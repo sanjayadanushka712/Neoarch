@@ -1,7 +1,7 @@
 """PackagesGridView - Card-based grid view alternative to the table.
 
 Cards follow the same design language as the UpdatesTable: dark glass
-surfaces, mint accent #00BFAE, source tiles, stacked version arrow and
+surfaces, mint accent, source tiles, stacked version arrow and
 colored-dot status chips.
 """
 
@@ -19,21 +19,22 @@ from PyQt6.QtGui import (
 )
 
 from neoarch.frontend.components.updates_table import _EmptyOverlay
-from neoarch.frontend.tokens import Colors, SourceColors
+from neoarch.frontend.tokens import Colors, SourceColors, qcolor
 
 # ── theme (matches updates_table.py) ──────────────────────────────────
-_TEXT = QColor(238, 240, 244)
-_TEXT_SEC = QColor(139, 141, 151)
-_GREEN = QColor(88, 202, 143)
 
 _STATUS_COLORS = {
-    "Security": QColor(248, 113, 113),
-    "Feature": QColor(96, 165, 250),
-    "Bug Fix": QColor(93, 199, 139),
-    "Maintenance": QColor(163, 166, 176),
-    "Installed": QColor(93, 199, 139),
-    "Available": QColor(163, 166, 176),
+    "Security": Colors.RED,
+    "Feature": Colors.BLUE,
+    "Bug Fix": Colors.GREEN,
+    "Maintenance": Colors.TEXT_2,
+    "Installed": Colors.GREEN,
+    "Available": Colors.TEXT_2,
 }
+
+
+def _status_color(status):
+    return qcolor(_STATUS_COLORS.get(status, Colors.TEXT_3))
 
 _STATUS_TEXT = {
     "Security": "Security", "Feature": "Feature", "Bug Fix": "Bug Fix",
@@ -56,38 +57,38 @@ _STATUS_TEXT = {
 
 def _card_qss(checked: bool) -> str:
     """Dark black glass gradient, matching the updates table glass
-    (#16171A → #0D0D0F). Rendered by Qt's style engine (safe with
+    (surface → background). Rendered by Qt's style engine (safe with
     translucent colors, unlike QPainter gradient fills)."""
     if checked:
-        body = """
+        body = f"""
     background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-        stop:0 rgba(24, 45, 45, 0.96),
-        stop:0.5 rgba(17, 34, 36, 0.94),
-        stop:1 rgba(12, 20, 24, 0.97));
-    border: 1px solid rgba(0, 191, 174, 0.5);
-    border-top: 1px solid rgba(0, 191, 174, 0.72);"""
-        hover = """
+        stop:0 {Colors.GLASS_22_25_92},
+        stop:0.5 {Colors.GLASS_22_25_92},
+        stop:1 {Colors.GLASS_DARK});
+    border: 1px solid {Colors.BORDER_FOCUS};
+    border-top: 1px solid {Colors.ACCENT_72};"""
+        hover = f"""
     background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-        stop:0 rgba(29, 53, 53, 0.97),
-        stop:0.5 rgba(21, 41, 43, 0.95),
-        stop:1 rgba(15, 24, 29, 0.97));
-    border: 1px solid rgba(0, 191, 174, 0.68);
-    border-top: 1px solid rgba(0, 191, 174, 0.9);"""
+        stop:0 {Colors.GLASS_22_25_92},
+        stop:0.5 {Colors.GLASS_22_25_92},
+        stop:1 {Colors.GLASS_DARK});
+    border: 1px solid {Colors.ACCENT_70};
+    border-top: 1px solid {Colors.ACCENT_90};"""
     else:
-        body = """
+        body = f"""
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-        stop:0 rgba(24, 25, 29, 0.94),
-        stop:0.5 rgba(18, 19, 22, 0.92),
-        stop:1 rgba(12, 13, 15, 0.96));
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-top: 1px solid rgba(255, 255, 255, 0.14);"""
-        hover = """
+        stop:0 {Colors.GLASS_2_90},
+        stop:0.5 {Colors.GLASS_22_92},
+        stop:1 {Colors.GLASS_DARK});
+    border: 1px solid {Colors.BORDER_INPUT};
+    border-top: 1px solid {Colors.OVERLAY_14};"""
+        hover = f"""
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-        stop:0 rgba(31, 33, 38, 0.96),
-        stop:0.5 rgba(23, 24, 28, 0.94),
-        stop:1 rgba(15, 16, 19, 0.97));
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    border-top: 1px solid rgba(255, 255, 255, 0.26);"""
+        stop:0 {Colors.GLASS_3_95},
+        stop:0.5 {Colors.GLASS_2_90},
+        stop:1 {Colors.GLASS_DARK});
+    border: 1px solid {Colors.OVERLAY_18};
+    border-top: 1px solid {Colors.OVERLAY_26};"""
     return f"""
 QFrame#packageCard {{
 {body}
@@ -110,9 +111,9 @@ def _make_glow_pixmap(size: QSize) -> QPixmap:
     p.setRenderHint(QPainter.RenderHint.Antialiasing)
     w, h = size.width(), size.height()
     g = QRadialGradient(w * 0.08, h * 0.06, max(w, h) * 0.7)
-    g.setColorAt(0.0, QColor(59, 130, 246, 42))
-    g.setColorAt(0.5, QColor(59, 130, 246, 8))
-    g.setColorAt(1.0, QColor(59, 130, 246, 0))
+    g.setColorAt(0.0, qcolor(Colors.BLUE_STRONG, 42))
+    g.setColorAt(0.5, qcolor(Colors.BLUE_STRONG, 8))
+    g.setColorAt(1.0, qcolor(Colors.BLUE_STRONG, 0))
     p.fillRect(0, 0, w, h, g)
     p.end()
     return pm
@@ -189,15 +190,15 @@ class _CheckBox(QWidget):
         path = QPainterPath()
         path.addRoundedRect(r, 5, 5)
         if self._checked:
-            p.fillPath(path, QColor(Colors.ACCENT))
-            pen = QPen(QColor(255, 255, 255), 1.9)
+            p.fillPath(path, qcolor(Colors.ACCENT))
+            pen = QPen(qcolor(Colors.WHITE), 1.9)
             pen.setCapStyle(Qt.PenCapStyle.RoundCap)
             p.setPen(pen)
             p.drawLine(QPointF(r.left() + 4, r.center().y()), QPointF(r.center().x() - 1, r.bottom() - 4))
             p.drawLine(QPointF(r.center().x() - 1, r.bottom() - 4), QPointF(r.right() - 3, r.top() + 4))
         else:
-            p.setPen(QPen(QColor(255, 255, 255, 90), 1.5))
-            p.fillPath(path, QColor(255, 255, 255, 14))
+            p.setPen(QPen(qcolor(Colors.OVERLAY_90, 90), 1.5))
+            p.fillPath(path, qcolor(Colors.OVERLAY_90, 14))
             p.drawPath(path)
         p.end()
 
@@ -239,7 +240,7 @@ class _SourceLogo(QWidget):
         path.addRoundedRect(r, r.width() / 4, r.width() / 4)
         p.fillPath(path, grad)
         p.setFont(_small_font(int(self._size / 2.6), QFont.Weight.Bold))
-        p.setPen(QColor(12, 12, 14))
+        p.setPen(qcolor(Colors.TEXT_ON_ACCENT))
         p.drawText(r, Qt.AlignmentFlag.AlignCenter, (self._source or "?")[0].upper())
         p.end()
 
@@ -261,14 +262,14 @@ class _Chip(QWidget):
         chip = QRectF(0, (self.height() - 22) / 2, self.width(), 22)
         path = QPainterPath()
         path.addRoundedRect(chip, 11, 11)
-        p.setPen(QPen(QColor(255, 255, 255, 40), 1))
-        p.fillPath(path, QColor(255, 255, 255, 10))
+        p.setPen(QPen(qcolor(Colors.OVERLAY_40), 1))
+        p.fillPath(path, qcolor(Colors.OVERLAY_10))
         p.drawPath(path)
         p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(self._color)
         p.drawEllipse(QPointF(chip.left() + 13, chip.center().y()), 3, 3)
         p.setFont(_small_font(8, QFont.Weight.DemiBold))
-        p.setPen(_TEXT)
+        p.setPen(qcolor(Colors.TEXT))
         p.drawText(QRectF(chip.left() + 13 + 6 + 6, chip.top(), self.width() - 25, chip.height()),
                    Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft,
                    self._text)
@@ -282,7 +283,7 @@ class _SmallLabel(QLabel):
         super().__init__(text, parent)
         f = _small_font(pt, weight)
         self.setFont(f)
-        self._color = QColor(color)
+        self._color = qcolor(color)
         self.setStyleSheet(f"color: {color}; background: transparent; border: none;")
         self.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
         self.setWordWrap(False)
@@ -384,7 +385,7 @@ class PackageCard(QFrame):
         new = self.pkg.get("new_version") or current
         has_update = bool(new) and new != current
 
-        self.cur_label = _SmallLabel(current or "\u2014", 8.5, QFont.Weight.Normal, "#9AA0AB")
+        self.cur_label = _SmallLabel(current or "\u2014", 8.5, QFont.Weight.Normal, f"{Colors.TEXT_2}")
         bottom.addWidget(self.cur_label)
 
         self.arrow_label = None
@@ -392,7 +393,7 @@ class PackageCard(QFrame):
         if has_update:
             self.arrow_label = _SmallLabel("\u2192", 8.5, QFont.Weight.Normal, Colors.TEXT_3)
             bottom.addWidget(self.arrow_label)
-            self.new_label = _SmallLabel(new, 8.5, QFont.Weight.DemiBold, "#58CA8D")
+            self.new_label = _SmallLabel(new, 8.5, QFont.Weight.DemiBold, f"{Colors.GREEN}")
             self.new_label.setToolTip(new)
             bottom.addWidget(self.new_label)
         else:
@@ -414,7 +415,7 @@ class PackageCard(QFrame):
             status = "Installed"
         else:
             status = "Available"
-        self.status_chip = _Chip(_(_STATUS_TEXT.get(status, status)), QColor(_STATUS_COLORS.get(status, Colors.TEXT_3)))
+        self.status_chip = _Chip(_(_STATUS_TEXT.get(status, status)), _status_color(status))
         bottom.addWidget(self.status_chip, alignment=Qt.AlignmentFlag.AlignBottom)
 
         layout.addLayout(bottom)
@@ -444,7 +445,7 @@ class PackageCard(QFrame):
             bar_path = QPainterPath()
             bar_path.addRoundedRect(bar, 1.5, 1.5)
             p.setPen(Qt.PenStyle.NoPen)
-            p.fillPath(bar_path, QColor(Colors.ACCENT))
+            p.fillPath(bar_path, qcolor(Colors.ACCENT))
 
         p.end()
 
@@ -488,24 +489,24 @@ class PackagesGridView(QScrollArea):
         self.setFrameShape(QFrame.Shape.NoFrame)
         self.verticalScrollBar().valueChanged.connect(self._on_scroll)
         self._loading_more = False
-        self.setStyleSheet("""
-            QScrollArea { background: transparent; border: none; }
-            QScrollBar:vertical {
-                background: rgba(255,255,255,0.03);
+        self.setStyleSheet(f"""
+            QScrollArea {{ background: transparent; border: none; }}
+            QScrollBar:vertical {{
+                background: {Colors.OVERLAY_03};
                 width: 8px;
                 border-radius: 4px;
-            }
-            QScrollBar::handle:vertical {
-                background: rgba(255,255,255,0.1);
+            }}
+            QScrollBar::handle:vertical {{
+                background: {Colors.BORDER_HOVER};
                 border-radius: 4px;
                 min-height: 30px;
-            }
-            QScrollBar::handle:vertical:hover {
-                background: rgba(255,255,255,0.15);
-            }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+            }}
+            QScrollBar::handle:vertical:hover {{
+                background: {Colors.OVERLAY_15};
+            }}
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{
                 height: 0px;
-            }
+            }}
         """)
 
         self._container = QWidget()

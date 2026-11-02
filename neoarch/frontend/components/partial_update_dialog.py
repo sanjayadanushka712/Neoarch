@@ -14,15 +14,13 @@ from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QFrame,
 )
 
+from neoarch.frontend.icon_registry import render_pixmap
 from neoarch.frontend.tokens import Colors, Fonts
 from neoarch.backend.services.i18n import _
 from neoarch.frontend.styles import Styles
-from neoarch.frontend.views._settings_kit import btn, icon_pixmap
+from neoarch.frontend.views._settings_kit import btn
 
-_ICON_SHIELD = (
-    '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'
-    '<path d="M12 8v4"/><path d="M12 16h.01"/>'
-)
+_ICON_SHIELD = "ui/shield-alert"
 
 
 def _canonical_name(pkg):
@@ -76,7 +74,7 @@ class PartialUpdateDialog(QDialog):
         self.setWindowTitle(_("Partial Update Warning"))
         self.setMinimumWidth(560)
         self.setStyleSheet(
-            "QDialog { background-color: rgba(22, 23, 26, 235); }")
+            f"QDialog {{ background-color: {Colors.GLASS_22_92}; }}")
         self.choice = None
         self.blocked = blocked
         self.settings_btn = None
@@ -192,8 +190,8 @@ class PartialUpdateDialog(QDialog):
         notice.setObjectName("blockNotice")
         notice.setStyleSheet(
             "QFrame#blockNotice {"
-            " background-color: rgba(255, 159, 28, 0.07);"
-            " border: 1px solid rgba(255, 159, 28, 0.25);"
+            f" background-color: {Colors.ORANGE_07};"
+            f" border: 1px solid {Colors.ORANGE_25};"
             " border-radius: 12px; }")
         h = QHBoxLayout(notice)
         h.setContentsMargins(14, 13, 14, 13)
@@ -203,9 +201,9 @@ class PartialUpdateDialog(QDialog):
         badge.setFixedSize(30, 30)
         badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
         badge.setStyleSheet(
-            "background: rgba(255, 159, 28, 0.14); border: none;"
+            f"background: {Colors.ORANGE_14}; border: none;"
             " border-radius: 9px;")
-        badge.setPixmap(icon_pixmap(_ICON_SHIELD, 16, color=Colors.ORANGE))
+        badge.setPixmap(render_pixmap(_ICON_SHIELD, 16, color=Colors.ORANGE))
         h.addWidget(badge, 0, Qt.AlignmentFlag.AlignTop)
 
         col = QVBoxLayout()

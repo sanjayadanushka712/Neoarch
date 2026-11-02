@@ -9,8 +9,9 @@ from PyQt6.QtWidgets import (
 )
 
 from neoarch.frontend.tokens import Colors, Fonts
+from neoarch.frontend.styles import Styles
 from neoarch.frontend.components.dark_dialogs import (
-    _DIALOG_STYLE, _DialogTitleBar, _apply_dialog_flags, _BTN_SECONDARY,
+    _dialog_style, _DialogTitleBar, _apply_dialog_flags,
 )
 from neoarch.backend.services.i18n import _
 
@@ -56,7 +57,7 @@ class PackageHistoryDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(_("History"))
         self.setMinimumWidth(540)
-        self.setStyleSheet(_DIALOG_STYLE)
+        self.setStyleSheet(_dialog_style())
         _apply_dialog_flags(self)
 
         rows = _history_rows(entries)
@@ -123,7 +124,7 @@ class PackageHistoryDialog(QDialog):
         btn_row = QHBoxLayout()
         btn_row.addStretch()
         close = QPushButton(_("Close"))
-        close.setStyleSheet(_BTN_SECONDARY)
+        close.setStyleSheet(Styles.btn_secondary())
         close.clicked.connect(self.accept)
         btn_row.addWidget(close)
         layout.addLayout(btn_row)
@@ -142,7 +143,7 @@ class PackageHistoryDialog(QDialog):
         row = QWidget()
         row.setStyleSheet(
             "background: transparent;"
-            " border-bottom: 1px solid rgba(255,255,255,0.06);")
+            f" border-bottom: 1px solid {Colors.BORDER};")
         hl = QHBoxLayout(row)
         hl.setContentsMargins(10, 8, 10, 8)
         hl.setSpacing(12)

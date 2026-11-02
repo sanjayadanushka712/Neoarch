@@ -17,20 +17,10 @@ from neoarch.frontend.components.toggle_switch import ToggleSwitch
 from neoarch.frontend.views._settings_kit import (
     make_card, row, sep, advice, Stepper)
 
-# ── Inline stroke icons (24x24 viewBox, lucide-style) ──────────────
-_ICON_TERMINAL = (
-    '<polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>'
-)
-_ICON_FILE = (
-    '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>'
-    '<polyline points="14 2 14 8 20 8"/>'
-    '<line x1="8" y1="13" x2="16" y2="13"/>'
-    '<line x1="8" y1="17" x2="13" y2="17"/>'
-)
-_ICON_BOOK = (
-    '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>'
-    '<path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>'
-)
+# ── Card icons (assets/icons/ui) ───────────────────────────────────
+_ICON_TERMINAL = "ui/terminal-line"
+_ICON_FILE = "ui/file-text"
+_ICON_BOOK = "ui/book"
 
 
 def _level_combo(app):

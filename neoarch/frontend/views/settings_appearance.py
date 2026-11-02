@@ -3,38 +3,41 @@
 from typing import Any
 
 from PyQt6.QtCore import Qt, QRectF
-from PyQt6.QtGui import QColor, QPainter, QPen, QPixmap, QPainterPath
+from PyQt6.QtGui import QColor, QPainter, QPen, QPainterPath
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QSlider,
 )
-from PyQt6.QtSvg import QSvgRenderer
 
-from neoarch.frontend.tokens import Colors, Fonts, Radii, QSS
+from neoarch.frontend.icon_registry import render_pixmap
+from neoarch.frontend.tokens import Colors, Fonts, Radii, QSS, qcolor
 from neoarch.backend.services.i18n import _
-from neoarch.frontend.themes import THEMES
+from neoarch.backend.services.settings import (
+    DEFAULT_WINDOW_MODE,
+    WINDOW_MODE_NEOARCH,
+    WINDOW_MODE_SYSTEM,
+)
+from neoarch.frontend.themes import (
+    DEFAULT_THEME_ID,
+    SYSTEM_THEME_ID,
+    THEMES,
+    get_theme_data,
+)
 from neoarch.frontend.components.toggle_switch import ToggleSwitch
+from neoarch.frontend.views._settings_kit import btn
 
-# ── Inline stroke icons (24x24 viewBox, lucide-style) ──────────────
-_ICON_PALETTE = (
-    '<path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688'
-    ' 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668'
-    'h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>'
-    '<circle cx="13.5" cy="6.5" r=".75"/><circle cx="17.5" cy="10.5" r=".75"/>'
-    '<circle cx="8.5" cy="7.5" r=".75"/><circle cx="6.5" cy="12.5" r=".75"/>'
-)
-_ICON_MONITOR = (
-    '<rect x="2" y="3" width="20" height="14" rx="2"/>'
-    '<line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>'
-)
+# ── Card icons (assets/icons/ui) ───────────────────────────────────
+_ICON_PALETTE = "ui/palette"
+_ICON_MONITOR = "ui/monitor"
 
-_SLIDER_QSS = f"""
+def _slider_qss():
+    return f"""
     QSlider {{
         background: transparent;
         height: 22px;
     }}
     QSlider::groove:horizontal {{
         height: 4px;
-        background: rgba(255, 255, 255, 0.12);
+        background: {Colors.OVERLAY_12};
         border-radius: 2px;
     }}
     QSlider::sub-page:horizontal {{
@@ -46,14 +49,14 @@ _SLIDER_QSS = f"""
         height: 14px;
         margin: -5px 0;
         border-radius: 7px;
-        background: #FFFFFF;
+        background: {Colors.WHITE};
         border: none;
     }}
     QSlider::handle:horizontal:hover {{
-        background: #D9F2EF;
+        background: {Colors.WHITE_HOVER};
     }}
     QSlider::handle:horizontal:pressed {{
-        background: #C6E7E3;
+        background: {Colors.WHITE_PRESSED};
     }}
 """
 
@@ -112,9 +115,9 @@ class _SelectionDot(QFrame):
             return
         if self._active:
             p.setPen(QPen(QColor(0, 0, 0, 60), 1))
-            p.setBrush(QColor(Colors.ACCENT))
+            p.setBrush(qcolor(Colors.ACCENT))
         else:
-            p.setPen(QPen(QColor(Colors.BORDER), 1.5))
+            p.setPen(QPen(qcolor(Colors.BORDER), 1.5))
             p.setBrush(Qt.BrushStyle.NoBrush)
         p.drawEllipse(QRectF(1.5, 1.5, 13, 13))
         p.end()
@@ -181,8 +184,8 @@ class _ThemeRow(QFrame):
     def _set_hover(self, hovered):
         if self._disabled:
             return
-        bg = "rgba(255, 255, 255, 0.05)" if hovered else "transparent"
-        border = "rgba(255, 255, 255, 0.10)" if hovered else "transparent"
+        bg = f"{Colors.OVERLAY_05}" if hovered else "transparent"
+        border = f"{Colors.BORDER_HOVER}" if hovered else "transparent"
         self.setStyleSheet(
             f"QFrame {{ background: {bg}; border: 1px solid {border};"
             " border-radius: 10px; }")
@@ -212,27 +215,14 @@ class AppearanceSettingsWidget(QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(24)
         self._cards = {}
+        self._mode_cards = {}
         self.setup_ui()
 
     # ── building blocks (About-page pattern) ────────────────────────
 
     @staticmethod
-    def _icon_pixmap(svg_body, size=14, color="#EDEDEF"):
-        svg = (
-            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"'
-            ' fill="none" stroke="{c}" stroke-width="2"'
-            ' stroke-linecap="round" stroke-linejoin="round">{b}</svg>'
-        ).format(c=color, b=svg_body)
-        renderer = QSvgRenderer(svg.encode("utf-8"))
-        pm = QPixmap(size, size)
-        pm.fill(Qt.GlobalColor.transparent)
-        if renderer.isValid():
-            painter = QPainter(pm)
-            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-            painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-            renderer.render(painter, QRectF(0, 0, size, size))
-            painter.end()
-        return pm
+    def _icon_pixmap(icon_name, size=14, color=None):
+        return render_pixmap(icon_name, size, color or Colors.TEXT)
 
     def _make_card(self, title_text, svg_body=None):
         """A flat settings card, exactly like the General tab / About page."""
@@ -315,31 +305,99 @@ class AppearanceSettingsWidget(QWidget):
             f" color: {Colors.TEXT}; letter-spacing: -0.5px;")
         self.layout.addWidget(title)
 
-        subtitle = QLabel(_("Choose a theme for NeoArch. Changes apply instantly."))
+        subtitle = QLabel(_(
+            "Choose a window style and theme for NeoArch. Changes apply instantly."))
         subtitle.setStyleSheet(
             f"font-size: {Fonts.BASE}; color: {Colors.TEXT_2};"
             " border: none; background: transparent;")
         self.layout.addWidget(subtitle)
 
+        # ── Window style ──
+        mode = self.app.settings.get('window_mode', DEFAULT_WINDOW_MODE)
+        if mode not in (WINDOW_MODE_SYSTEM, WINDOW_MODE_NEOARCH):
+            mode = DEFAULT_WINDOW_MODE
+        mode_card, mode_layout = self._make_card(_("Window style"), _ICON_MONITOR)
+
+        manager = getattr(self.app, '_theme_manager', None)
+        neoarch_theme_id = self.app.settings.get('neoarch_theme') or 'dark'
+        if manager is not None and manager.current_id != SYSTEM_THEME_ID:
+            neoarch_theme_id = manager.current_id
+
+        mode_rows = [
+            (
+                WINDOW_MODE_SYSTEM,
+                _("Native system"),
+                _("Use your desktop titlebar and system colors. Themes are managed by your OS."),
+                get_theme_data(SYSTEM_THEME_ID),
+            ),
+            (
+                WINDOW_MODE_NEOARCH,
+                _("NeoArch"),
+                _("Use NeoArch's custom titlebar and choose any theme below."),
+                get_theme_data(neoarch_theme_id),
+            ),
+        ]
+        for i, (mode_id, title, description, data) in enumerate(mode_rows):
+            if i > 0:
+                mode_layout.addWidget(self._sep())
+            if data is None:
+                data = THEMES.get('dark', {})
+            row = _ThemeRow(
+                mode_id,
+                {**data, "name": title, "description": description},
+                selected=(mode_id == mode),
+                on_select=self._apply_window_mode,
+            )
+            self._mode_cards[mode_id] = row
+            mode_layout.addWidget(row)
+
+        if mode == WINDOW_MODE_SYSTEM:
+            mode_layout.addWidget(self._sep())
+            self._system_transparency_toggle = ToggleSwitch(
+                self, _("System transparency"))
+            self._system_transparency_toggle.setChecked(
+                bool(self.app.settings.get(
+                    'window_system_transparency', False)),
+                animate=False,
+            )
+            self._system_transparency_toggle.toggled.connect(
+                self._on_system_transparency_toggled)
+            mode_layout.addWidget(self._row(
+                _("System transparency"),
+                _("Let the desktop show through the window body."),
+                control=self._system_transparency_toggle,
+            ))
+
+        self.layout.addWidget(mode_card)
+
         # ── Themes ──
         theme_card, theme_layout = self._make_card(_("Themes"), _ICON_PALETTE)
 
         current = getattr(self.app, '_theme_manager', None)
-        current_id = current.current_id if current else "dark"
+        current_id = current.current_id if current else DEFAULT_THEME_ID
 
-        theme_ids = list(THEMES.keys())
+        theme_ids = [SYSTEM_THEME_ID] + [
+            theme_id for theme_id in THEMES if theme_id != SYSTEM_THEME_ID
+        ]
         for i, theme_id in enumerate(theme_ids):
             if i > 0:
                 theme_layout.addWidget(self._sep())
+            theme_data = get_theme_data(theme_id)
+            if theme_data is None:
+                continue
             option = _ThemeRow(
-                theme_id, THEMES[theme_id],
+                theme_id, theme_data,
                 selected=(theme_id == current_id),
                 on_select=self._apply_theme,
-                disabled=THEMES[theme_id].get("coming_soon", False),
+                disabled=theme_data.get("coming_soon", False),
             )
             self._cards[theme_id] = option
             theme_layout.addWidget(option)
 
+        theme_layout.addWidget(self._sep())
+        theme_layout.addWidget(btn(_("Reload custom themes"), self._reload_themes))
+
+        theme_card.setVisible(mode != WINDOW_MODE_SYSTEM)
         self.layout.addWidget(theme_card)
 
         # ── Window frame ──
@@ -366,7 +424,7 @@ class AppearanceSettingsWidget(QWidget):
         self._radius_slider.setRange(4, 14)
         self._radius_slider.setSingleStep(2)
         self._radius_slider.setPageStep(2)
-        self._radius_slider.setStyleSheet(_SLIDER_QSS)
+        self._radius_slider.setStyleSheet(_slider_qss())
         self._radius_slider.setCursor(Qt.CursorShape.PointingHandCursor)
         slider_lay.addWidget(self._radius_slider, 1)
         self._radius_value = QLabel()
@@ -402,7 +460,7 @@ class AppearanceSettingsWidget(QWidget):
         self._opacity_slider.setRange(20, 100)
         self._opacity_slider.setSingleStep(5)
         self._opacity_slider.setPageStep(5)
-        self._opacity_slider.setStyleSheet(_SLIDER_QSS)
+        self._opacity_slider.setStyleSheet(_slider_qss())
         self._opacity_slider.setCursor(Qt.CursorShape.PointingHandCursor)
         opacity_lay.addWidget(self._opacity_slider, 1)
         self._opacity_value = QLabel()
@@ -425,6 +483,7 @@ class AppearanceSettingsWidget(QWidget):
             _("How much the desktop shows through the window body."),
             control=opacity_box))
 
+        window_card.setVisible(mode != WINDOW_MODE_SYSTEM)
         self.layout.addWidget(window_card)
 
         self.layout.addStretch()
@@ -447,6 +506,12 @@ class AppearanceSettingsWidget(QWidget):
         self.app.update_setting('window_glow', bool(checked))
         self.app.apply_window_effects()
 
+    def _on_system_transparency_toggled(self, checked):
+        self.app.update_setting(
+            'window_system_transparency', bool(checked))
+        self.app._apply_window_mode_flags(self.app._window_mode())
+        self.app.apply_window_effects()
+
     def _on_radius_changed(self, value):
         self._update_radius_label()
         self.app.update_setting('window_radius', int(value))
@@ -454,9 +519,17 @@ class AppearanceSettingsWidget(QWidget):
     def _on_radius_released(self):
         self.app.apply_window_effects()
 
+    def _apply_window_mode(self, mode):
+        setter = getattr(self.app, 'set_window_mode', None)
+        if setter:
+            setter(mode)
+
     def _apply_theme(self, theme_id):
         manager = getattr(self.app, '_theme_manager', None)
         if manager:
             manager.apply_theme(theme_id)
-            # Rebuild settings UI to reflect new theme
-            self.app.build_settings_ui()
+
+    def _reload_themes(self):
+        manager = getattr(self.app, '_theme_manager', None)
+        if manager:
+            manager.reload()

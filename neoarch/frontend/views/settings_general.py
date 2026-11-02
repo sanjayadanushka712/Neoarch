@@ -4,42 +4,22 @@ import json
 import functools
 from typing import Any
 from PyQt6.QtCore import QThread, pyqtSignal, QTimer, Qt
-from PyQt6.QtGui import QPixmap, QPainter
-from PyQt6.QtCore import QRectF
-from PyQt6.QtSvg import QSvgRenderer
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
                              QLabel, QLineEdit, QPushButton, QFileDialog, QComboBox,
                              QFrame)
 
 from neoarch.backend import sys_utils
 from neoarch.backend.services.i18n import _, language_label, available_languages, set_language, detect_system_language
+from neoarch.frontend.icon_registry import render_pixmap
 from neoarch.frontend.tokens import QSS, Colors, Fonts, Radii
 from neoarch.frontend.components.toggle_switch import ToggleSwitch
 
-# ── Inline stroke icons (24x24 viewBox, lucide-style) ──────────────
-_ICON_SLIDERS = (
-    '<line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/>'
-    '<line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/>'
-    '<line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/>'
-    '<line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/>'
-)
-_ICON_PACKAGE = (
-    '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8'
-    'a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>'
-    '<path d="M3.27 6.96 12 12.01l8.73-5.05"/><path d="M12 22.08V12"/>'
-)
-_ICON_SAVE = (
-    '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>'
-    '<polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>'
-)
-_ICON_SIGNAL = (
-    '<path d="M2 20h.01"/><path d="M7 20v-4"/><path d="M12 20v-8"/>'
-    '<path d="M17 20V8"/><path d="M22 4v16"/>'
-)
-_ICON_DATABASE = (
-    '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/>'
-    '<path d="M3 12A9 3 0 0 0 21 12"/>'
-)
+# ── Card icons (assets/icons/ui) ───────────────────────────────────
+_ICON_SLIDERS = "ui/sliders"
+_ICON_PACKAGE = "ui/package"
+_ICON_SAVE = "ui/save"
+_ICON_SIGNAL = "ui/signal"
+_ICON_DATABASE = "ui/database"
 
 
 class _AurApiTestThread(QThread):
@@ -76,22 +56,8 @@ class GeneralSettingsWidget(QWidget):
     # ── building blocks (About-page pattern) ────────────────────────
 
     @staticmethod
-    def _icon_pixmap(svg_body, size=14, color="#EDEDEF"):
-        svg = (
-            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"'
-            ' fill="none" stroke="{c}" stroke-width="2"'
-            ' stroke-linecap="round" stroke-linejoin="round">{b}</svg>'
-        ).format(c=color, b=svg_body)
-        renderer = QSvgRenderer(svg.encode("utf-8"))
-        pm = QPixmap(size, size)
-        pm.fill(Qt.GlobalColor.transparent)
-        if renderer.isValid():
-            painter = QPainter(pm)
-            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-            painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-            renderer.render(painter, QRectF(0, 0, size, size))
-            painter.end()
-        return pm
+    def _icon_pixmap(icon_name, size=14, color=None):
+        return render_pixmap(icon_name, size, color or Colors.TEXT)
 
     @staticmethod
     def _make_card(title_text, svg_body=None):
@@ -218,20 +184,20 @@ class GeneralSettingsWidget(QWidget):
         btn.setCursor(Qt.CursorShape.PointingHandCursor)
         btn.setStyleSheet(f"""
             QPushButton {{
-                background-color: rgba(255, 255, 255, 0.06);
+                background-color: {Colors.BORDER};
                 color: {Colors.TEXT};
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                border: 1px solid {Colors.BORDER_HOVER};
                 border-radius: 10px;
                 padding: 8px 18px;
                 font-size: {Fonts.BASE};
                 font-weight: {Fonts.MEDIUM};
             }}
             QPushButton:hover {{
-                background-color: rgba(255, 255, 255, 0.1);
-                border-color: rgba(0, 191, 174, 0.4);
+                background-color: {Colors.BORDER_HOVER};
+                border-color: {Colors.ACCENT_40};
             }}
             QPushButton:pressed {{
-                background-color: rgba(255, 255, 255, 0.14);
+                background-color: {Colors.OVERLAY_14};
             }}
             QPushButton:disabled {{
                 color: {Colors.TEXT_3};

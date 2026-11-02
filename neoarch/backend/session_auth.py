@@ -581,23 +581,9 @@ def setup_session_auth(parent_widget=None) -> bool:
 
 def _find_logo() -> str | None:
     """Find an app logo icon file."""
-    from neoarch.resources.paths import ASSETS_DIR
-    candidates = [
-        ASSETS_DIR / "icons" / "app" / "logo.png",
-        ASSETS_DIR / "icons" / "app" / "icon.png",
-        ASSETS_DIR / "icons" / "logo.png",
-        ASSETS_DIR / "icons" / "NeoarchLogo.svg",
-        ASSETS_DIR / "icons" / "icon.png",
-        ASSETS_DIR / "icons" / "app.png",
-        ASSETS_DIR / "icons" / "brand" / "neoarch.svg",
-        ASSETS_DIR / "icons" / "brand" / "neoarch.png",
-        ASSETS_DIR / "icons" / "discover" / "logo.svg",
-        ASSETS_DIR / "icons" / "discover" / "logo1.svg",
-    ]
-    for p in candidates:
-        if p.exists():
-            return str(p)
-    return None
+    from neoarch.frontend.icon_registry import brand_icon_path
+    path = brand_icon_path()
+    return path if os.path.exists(path) else None
 
 
 def is_session_active() -> bool:

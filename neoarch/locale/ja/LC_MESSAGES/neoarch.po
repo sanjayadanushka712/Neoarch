@@ -328,6 +328,9 @@ msgstr "「サインイン」を選択 — ブラウザが安全なログイン�
 msgid "Choose a theme for NeoArch. Changes apply instantly."
 msgstr "NeoArch のテーマを選択します。変更は即座に適用されます。"
 
+msgid "Reload custom themes"
+msgstr "カスタムテーマを再読み込み"
+
 msgid "Clean Cache"
 msgstr "キャッシュをクリーンアップ"
 
@@ -3539,3 +3542,27 @@ msgstr "スクリーンショットを読み込み中…"
 
 msgid "No screenshots available."
 msgstr "利用可能なスクリーンショットはありません。"
+
+msgid "Choose a window style and theme for NeoArch. Changes apply instantly."
+msgstr "NeoArch のウィンドウスタイルとテーマを選択します。変更はすぐに適用されます。"
+
+msgid "Native system"
+msgstr "ネイティブシステム"
+
+msgid "NeoArch"
+msgstr "NeoArch"
+
+msgid "Use NeoArch's custom titlebar and choose any theme below."
+msgstr "NeoArch のカスタムタイトルバーを使用し、下からテーマを選択します。"
+
+msgid "Use your desktop titlebar and system colors. Themes are managed by your OS."
+msgstr "デスクトップのタイトルバーとシステムカラーを使用します。テーマは OS によって管理されます。"
+
+msgid "Window style"
+msgstr "ウィンドウスタイル"
+
+msgid "System transparency"
+msgstr "システムの透過"
+
+msgid "Let the desktop show through the window body."
+msgstr "デスクトップがウィンドウ本体に透けて表示されるようにします。"

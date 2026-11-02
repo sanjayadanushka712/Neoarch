@@ -15,12 +15,13 @@ from neoarch.frontend.tokens import Colors, Fonts
 from neoarch.backend.services.i18n import _
 
 
-_ACTION_STYLES = {
-    "installed": ("+", Colors.ACCENT),
-    "upgraded": ("↑", "#FF9F43"),
-    "removed": ("−", Colors.RED),
-    "downgraded": ("↓", "#A29BFE"),
-}
+def _action_style(action):
+    return {
+        "installed": ("+", Colors.ACCENT),
+        "upgraded": ("↑", Colors.ORANGE),
+        "removed": ("−", Colors.RED),
+        "downgraded": ("↓", Colors.PURPLE),
+    }.get(action, ("•", Colors.TEXT_2))
 
 _PACMAN_RE = re.compile(
     r"\[(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})[^\]]*\] \[ALPM\] "
@@ -41,15 +42,15 @@ class RecentActivity(QFrame):
         QTimer.singleShot(0, self._load)
 
     def _setup_style(self):
-        self.setStyleSheet("""
-            QFrame#recentActivity {
-                background-color: rgba(28, 30, 36, 0.85);
-                border-top: 1px solid rgba(255, 255, 255, 0.06);
-                border-left: 1px solid rgba(255, 255, 255, 0.06);
-                border-right: 1px solid rgba(0, 0, 0, 0.25);
-                border-bottom: 2px solid rgba(0, 0, 0, 0.35);
+        self.setStyleSheet(f"""
+            QFrame#recentActivity {{
+                background-color: {Colors.GLASS};
+                border-top: 1px solid {Colors.BORDER};
+                border-left: 1px solid {Colors.BORDER};
+                border-right: 1px solid {Colors.SHADOW_25};
+                border-bottom: 2px solid {Colors.SHADOW_35};
                 border-radius: 18px;
-            }
+            }}
         """)
         s = QGraphicsDropShadowEffect()
         s.setBlurRadius(22)
@@ -142,7 +143,7 @@ class RecentActivity(QFrame):
         self.items_layout.addWidget(lbl)
 
     def _add_row(self, action: str, pkg: str, timestamp: str):
-        symbol, color = _ACTION_STYLES.get(action, ("•", Colors.TEXT_2))
+        symbol, color = _action_style(action)
 
         row = QHBoxLayout()
         row.setSpacing(10)

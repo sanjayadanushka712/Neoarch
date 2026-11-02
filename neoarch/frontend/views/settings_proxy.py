@@ -15,22 +15,10 @@ from neoarch.backend.services.i18n import _
 from neoarch.frontend.components.toggle_switch import ToggleSwitch
 from neoarch.frontend.views._settings_kit import make_card, row, sep, Stepper
 
-# ── Inline stroke icons (24x24 viewBox, lucide-style) ──────────────
-_ICON_GLOBE = (
-    '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/>'
-    '<path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10'
-    ' 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>'
-)
-_ICON_TIMER = (
-    '<line x1="10" x2="14" y1="2" y2="2"/>'
-    '<line x1="12" x2="15" y1="14" y2="11"/>'
-    '<circle cx="12" cy="14" r="8"/>'
-)
-_ICON_WRENCH = (
-    '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77'
-    'a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91'
-    'a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>'
-)
+# ── Card icons (assets/icons/ui) ───────────────────────────────────
+_ICON_GLOBE = "ui/globe"
+_ICON_TIMER = "ui/timer"
+_ICON_WRENCH = "ui/wrench"
 
 
 def _type_combo(app):

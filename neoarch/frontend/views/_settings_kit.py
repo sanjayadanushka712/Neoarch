@@ -8,22 +8,20 @@ without duplicating the private helpers.
 """
 
 from PyQt6.QtCore import QRectF, Qt, pyqtSignal
-from PyQt6.QtGui import QColor, QIcon, QPainter, QPen, QPixmap
-from PyQt6.QtSvg import QSvgRenderer
+from PyQt6.QtGui import QColor, QIcon, QPainter, QPen
 from PyQt6.QtWidgets import (QFrame, QHBoxLayout, QLabel, QPushButton,
                              QVBoxLayout, QWidget)
 
-from neoarch.frontend.tokens import Colors, Fonts, QSS, Radii
+from neoarch.frontend.icon_registry import render_pixmap
+from neoarch.frontend.tokens import Colors, Fonts, QSS, Radii, qcolor
 from neoarch.backend.services.i18n import _
 
-# ── Inline stroke icons (24x24 viewBox, lucide-style) ──────────────
-_ICON_MINUS = '<line x1="5" y1="12" x2="19" y2="12"/>'
-_ICON_PLUS = (
-    '<line x1="12" y1="5" x2="12" y2="19"/>'
-    '<line x1="5" y1="12" x2="19" y2="12"/>'
-)
+# ── Stepper icons (assets/icons/ui) ────────────────────────────────
+_ICON_MINUS = "ui/minus"
+_ICON_PLUS = "ui/plus"
 
-_STEPPER_QSS = f"""
+def _stepper_qss():
+    return f"""
     QFrame#stepper {{
         background-color: {Colors.INPUT_BG};
         border: 1px solid {Colors.BORDER_INPUT};
@@ -36,36 +34,21 @@ _STEPPER_QSS = f"""
         padding: 0;
     }}
     QFrame#stepper QPushButton#stepBtn:hover {{
-        background-color: rgba(255, 255, 255, 0.08);
+        background-color: {Colors.BORDER_INPUT};
     }}
     QFrame#stepper QPushButton#stepBtn:pressed {{
-        background-color: rgba(255, 255, 255, 0.15);
+        background-color: {Colors.OVERLAY_15};
     }}
 """
 
 
-def icon(svg_body, size=12, color=None):
-    """Render a lucide-style stroke path to a QPixmap."""
-    color = color or Colors.TEXT_2
-    svg = (
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"'
-        ' fill="none" stroke="{c}" stroke-width="2"'
-        ' stroke-linecap="round" stroke-linejoin="round">{b}</svg>'
-    ).format(c=color, b=svg_body)
-    renderer = QSvgRenderer(svg.encode("utf-8"))
-    pm = QPixmap(size, size)
-    pm.fill(Qt.GlobalColor.transparent)
-    if renderer.isValid():
-        painter = QPainter(pm)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        renderer.render(painter, QRectF(0, 0, size, size))
-        painter.end()
-    return pm
+def icon(icon_name, size=12, color=None):
+    """Render a registered stroke icon to a QPixmap."""
+    return render_pixmap(icon_name, size, color or Colors.TEXT_2)
 
 
-def icon_pixmap(svg_body, size=14, color="#EDEDEF"):
-    return icon(svg_body, size=size, color=color)
+def icon_pixmap(icon_name, size=14, color=None):
+    return icon(icon_name, size=size, color=color or Colors.TEXT)
 
 
 def make_card(title_text, svg_body=None, icon_color=None):
@@ -86,7 +69,7 @@ def make_card(title_text, svg_body=None, icon_color=None):
         badge.setStyleSheet(
             f"background: {Colors.SURFACE_2}; border: none;"
             f" border-radius: {Radii.SM}px;")
-        badge.setPixmap(icon_pixmap(svg_body, 15, color=icon_color or "#EDEDEF"))
+        badge.setPixmap(icon_pixmap(svg_body, 15, color=icon_color or f"{Colors.TEXT}"))
         header.addWidget(badge)
     title = QLabel(title_text)
     title.setStyleSheet(
@@ -170,20 +153,20 @@ def btn(text, on_click=None):
     button.setCursor(Qt.CursorShape.PointingHandCursor)
     button.setStyleSheet(f"""
         QPushButton {{
-            background-color: rgba(255, 255, 255, 0.06);
+            background-color: {Colors.BORDER};
             color: {Colors.TEXT};
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid {Colors.BORDER_HOVER};
             border-radius: 10px;
             padding: 8px 18px;
             font-size: {Fonts.BASE};
             font-weight: {Fonts.MEDIUM};
         }}
         QPushButton:hover {{
-            background-color: rgba(255, 255, 255, 0.1);
-            border-color: rgba(0, 191, 174, 0.4);
+            background-color: {Colors.BORDER_HOVER};
+            border-color: {Colors.ACCENT_40};
         }}
         QPushButton:pressed {{
-            background-color: rgba(255, 255, 255, 0.14);
+            background-color: {Colors.OVERLAY_14};
         }}
         QPushButton:disabled {{
             color: {Colors.TEXT_3};
@@ -227,9 +210,9 @@ class Dot(QFrame):
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         if self._active:
             p.setPen(QPen(QColor(0, 0, 0, 60), 1))
-            p.setBrush(QColor(Colors.ACCENT))
+            p.setBrush(qcolor(Colors.ACCENT))
         else:
-            p.setPen(QPen(QColor(Colors.BORDER), 1.5))
+            p.setPen(QPen(qcolor(Colors.BORDER), 1.5))
             p.setBrush(Qt.BrushStyle.NoBrush)
         p.drawEllipse(QRectF(1.5, 1.5, 13, 13))
         p.end()
@@ -250,7 +233,7 @@ class Stepper(QFrame):
         self._value = minimum
 
         self.setObjectName("stepper")
-        self.setStyleSheet(_STEPPER_QSS)
+        self.setStyleSheet(_stepper_qss())
         self.setFixedHeight(34)
 
         lay = QHBoxLayout(self)

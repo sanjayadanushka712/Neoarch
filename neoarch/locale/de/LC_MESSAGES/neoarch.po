@@ -328,6 +328,9 @@ msgstr "Wählen Sie Anmelden — Ihr Browser übernimmt die sichere Anmeldung, d
 msgid "Choose a theme for NeoArch. Changes apply instantly."
 msgstr "Wählen Sie ein Design für NeoArch. Änderungen werden sofort angewendet."
 
+msgid "Reload custom themes"
+msgstr "Eigene Themes neu laden"
+
 msgid "Clean Cache"
 msgstr "Cache bereinigen"
 
@@ -3539,3 +3542,27 @@ msgstr "Screenshots werden geladen…"
 
 msgid "No screenshots available."
 msgstr "Keine Screenshots verfügbar."
+
+msgid "Choose a window style and theme for NeoArch. Changes apply instantly."
+msgstr "Wählen Sie einen Fensterstil und ein Thema für NeoArch. Änderungen werden sofort übernommen."
+
+msgid "Native system"
+msgstr "Natives System"
+
+msgid "NeoArch"
+msgstr "NeoArch"
+
+msgid "Use NeoArch's custom titlebar and choose any theme below."
+msgstr "Verwenden Sie die benutzerdefinierte Titelleiste von NeoArch und wählen Sie unten ein Thema."
+
+msgid "Use your desktop titlebar and system colors. Themes are managed by your OS."
+msgstr "Verwenden Sie die Titelleiste Ihres Desktops und die Systemfarben. Themen werden vom Betriebssystem verwaltet."
+
+msgid "Window style"
+msgstr "Fensterstil"
+
+msgid "System transparency"
+msgstr "Systemtransparenz"
+
+msgid "Let the desktop show through the window body."
+msgstr "Lassen Sie den Desktop durch den Fensterkörper scheinen."

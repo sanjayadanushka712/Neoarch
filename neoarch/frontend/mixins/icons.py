@@ -8,16 +8,11 @@ import os
 import shutil
 import subprocess
 
-from PyQt6.QtCore import Qt, QRectF
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor, QPixmap, QPainter, QIcon, QImage
-from PyQt6.QtSvg import QSvgRenderer
 
-from neoarch.resources.paths import PROJECT_ROOT
-from neoarch.frontend.tokens import Colors, Fonts, SourceColors
-
-_BASE_DIR = str(PROJECT_ROOT)
-_SOURCES_ICON_DIR = os.path.join(_BASE_DIR, "assets", "icons", "sources")
-_UI_ICON_DIR = os.path.join(_BASE_DIR, "assets", "icons", "ui")
+from neoarch.frontend.icon_registry import render_icon, render_pixmap, source_icon_path
+from neoarch.frontend.tokens import Colors, Fonts, SourceColors, icon_tint
 
 
 def _build_window_icon(icon_path: str) -> QIcon:
@@ -27,17 +22,11 @@ def _build_window_icon(icon_path: str) -> QIcon:
             return icon
         ext = os.path.splitext(icon_path)[1].lower()
         if ext == ".svg":
-            renderer = QSvgRenderer(icon_path)
-            if renderer.isValid():
-                for sz in (32, 64, 256):
-                    pm = QPixmap(sz, sz)
-                    pm.fill(Qt.GlobalColor.transparent)
-                    p = QPainter(pm)
-                    renderer.render(p)
-                    p.end()
+            for sz in (32, 64, 256):
+                pm = render_pixmap(icon_path, sz)
+                if not pm.isNull():
                     icon.addPixmap(pm)
-                return icon
-            return QIcon(icon_path)
+            return icon if not icon.isNull() else QIcon(icon_path)
         base = QPixmap(icon_path)
         if base.isNull():
             return QIcon(icon_path)
@@ -81,18 +70,8 @@ class _IconsMixin:
             return "\U0001f4e6"
 
     def get_source_icon(self, source, size=18):
-        icon_dir = _SOURCES_ICON_DIR
         source_colors = SourceColors
-        mapping = {
-            "pacman": "pacman.svg",
-            "AUR": "aur.svg",
-            "Flatpak": "flatpack.svg",
-            "npm": "node.svg",
-            "Firmware": "firmware.svg",
-            "pipx": "pipx.svg",
-        }
-        filename = mapping.get(source, "packagename.svg")
-        icon_path = os.path.join(icon_dir, filename)
+        icon_path = source_icon_path(source)
         try:
             cache = getattr(self, "_source_icon_cache", None)
             if isinstance(cache, dict):
@@ -104,23 +83,8 @@ class _IconsMixin:
             pass
 
         try:
-            pixmap = QPixmap(size, size)
-            if pixmap.isNull() or not pixmap.size().isValid():
-                return QIcon()
-
-            pixmap.fill(Qt.GlobalColor.transparent)
-
-            renderer = QSvgRenderer(icon_path)
-            if renderer.isValid():
-                painter = QPainter(pixmap)
-                if not painter.isActive():
-                    return QIcon()
-                painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-                painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-                renderer.render(painter, QRectF(pixmap.rect()))
-                painter.end()
-                icon = QIcon(pixmap)
-            else:
+            icon = render_icon(icon_path, size)
+            if icon.isNull():
                 color = source_colors.get(source, Colors.TEXT_2)
                 pm = QPixmap(size, size)
                 pm.fill(Qt.GlobalColor.transparent)
@@ -143,10 +107,11 @@ class _IconsMixin:
             return QIcon()
 
     def get_svg_icon(self, icon_path, size=18, tint=None):
+        resolved_tint = tint or icon_tint()
+        key = (os.path.abspath(icon_path), int(size), str(resolved_tint))
         try:
             cache = getattr(self, "_icon_cache", None)
             if isinstance(cache, dict):
-                key = (os.path.abspath(icon_path), int(size), str(tint))
                 cached = cache.get(key)
                 if cached is not None and not cached.isNull():
                     return cached
@@ -154,37 +119,11 @@ class _IconsMixin:
             pass
 
         try:
-            ext = os.path.splitext(icon_path)[1].lower()
-            if ext != ".svg":
-                icon = QIcon(icon_path)
-            else:
-                pixmap = QPixmap(size, size)
-                if pixmap.isNull() or not pixmap.size().isValid():
-                    return QIcon()
-
-                pixmap.fill(Qt.GlobalColor.transparent)
-
-                painter = QPainter(pixmap)
-                if not painter.isActive():
-                    return QIcon()
-
-                painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-                painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-
-                renderer = QSvgRenderer(icon_path)
-                if renderer.isValid():
-                    renderer.render(painter, QRectF(pixmap.rect()))
-                    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
-                    painter.fillRect(pixmap.rect(), QColor(tint) if tint else QColor("white"))
-                    painter.end()
-                    icon = QIcon(pixmap)
-                else:
-                    painter.end()
-                    icon = QIcon(icon_path)
+            icon = render_icon(icon_path, size, resolved_tint)
 
             try:
                 if isinstance(getattr(self, "_icon_cache", None), dict):
-                    self._icon_cache[(os.path.abspath(icon_path), int(size), str(tint))] = icon
+                    self._icon_cache[key] = icon
             except Exception:
                 pass
             return icon
@@ -201,7 +140,7 @@ class _IconsMixin:
         checkbox.setStyleSheet(
             f"""
             QCheckBox#tableCheckbox {{
-                color: #F0F0F0;
+                color: {Colors.TEXT};
                 font-size: {Fonts.BASE};
                 font-weight: 500;
                 spacing: 8px;
@@ -212,8 +151,8 @@ class _IconsMixin:
                 border-radius: 11px;
                 border: 2px solid rgba({r}, {g}, {b}, 0.35);
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 rgba(40, 42, 48, 0.9),
-                    stop:1 rgba(28, 30, 36, 0.9));
+                    stop:0 {Colors.GLASS_40_90},
+                    stop:1 {Colors.GLASS_2_90});
             }}
             QCheckBox#tableCheckbox::indicator:checked {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
@@ -224,8 +163,8 @@ class _IconsMixin:
             QCheckBox#tableCheckbox::indicator:hover {{
                 border-color: rgba({r}, {g}, {b}, 0.8);
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 rgba(50, 52, 58, 0.9),
-                    stop:1 rgba(34, 36, 42, 0.9));
+                    stop:0 {Colors.GLASS_50_90},
+                    stop:1 {Colors.GLASS_2_90});
             }}
             """
         )

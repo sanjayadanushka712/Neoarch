@@ -18,13 +18,6 @@ from PyQt6.QtWidgets import (
 from neoarch.backend.services.i18n import _
 from neoarch.frontend.tokens import Colors, Fonts
 
-_SEVERITY_COLOR = {
-    "critical": Colors.RED,
-    "warning": Colors.ORANGE,
-    "info": Colors.TEXT_3,
-}
-
-
 class SecurityScanDialog(QDialog):
     """Modal review of pre-install security findings for AUR packages."""
 
@@ -116,8 +109,8 @@ class SecurityScanDialog(QDialog):
         self.continue_btn.setMinimumWidth(150)
         self.continue_btn.setStyleSheet(
             f"QPushButton {{ background-color: {Colors.WHITE};"
-            f" color: {Colors.TEXT_ON_ACCENT};"
-            f" border: 1px solid rgba(255, 255, 255, 0.9);"
+            f" color: {Colors.TEXT_ON_WHITE};"
+            f" border: 1px solid {Colors.OVERLAY_90};"
             f" border-radius: 10px; padding: 8px 18px;"
             f" font-size: {Fonts.BASE}; font-weight: 600; }}"
             f"QPushButton:hover {{ background-color: {Colors.WHITE_HOVER}; }}"
@@ -150,7 +143,7 @@ class SecurityScanDialog(QDialog):
 
         for f in findings:
             sev = f.get("severity", "info")
-            color = _SEVERITY_COLOR.get(sev, Colors.TEXT_3)
+            color = {"critical": Colors.RED, "warning": Colors.ORANGE}.get(sev, Colors.TEXT_3)
             rule = QLabel(f"{sev.upper()}  ·  {f.get('rule', '')}")
             rule.setStyleSheet(
                 f"color: {color}; font-size: {Fonts.BASE};"

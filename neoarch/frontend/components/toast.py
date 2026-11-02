@@ -6,16 +6,16 @@ notification dispatch in the views mixin (desktop + in-app channels).
 """
 
 from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve
-from PyQt6.QtGui import QColor, QPainter, QPen
+from PyQt6.QtGui import QPainter, QPen
 from PyQt6.QtWidgets import QWidget, QLabel, QHBoxLayout
 
-from neoarch.frontend.tokens import Colors
+from neoarch.frontend.tokens import Colors, qcolor
 
 _LEVEL_COLORS = {
-    "info": QColor(0, 191, 174),
-    "success": QColor(88, 202, 143),
-    "error": QColor(248, 113, 113),
-    "warning": QColor(251, 191, 36),
+    "info": Colors.ACCENT,
+    "success": Colors.GREEN,
+    "error": Colors.RED,
+    "warning": Colors.YELLOW,
 }
 
 
@@ -116,15 +116,15 @@ class Toast(QWidget):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
         r = self.rect().adjusted(1, 1, -1, -1)
-        painter.setPen(QPen(QColor(255, 255, 255, 30), 1))
-        painter.setBrush(QColor(24, 26, 32, 235))
+        painter.setPen(QPen(qcolor(Colors.OVERLAY_30), 1))
+        painter.setBrush(qcolor(Colors.GLASS_DEEP, 235))
         painter.drawRoundedRect(r, 12, 12)
 
         dot = 8
         cx = 18 + dot // 2
         cy = self.height() // 2
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(_LEVEL_COLORS.get(self._level, _LEVEL_COLORS["info"]))
+        painter.setBrush(qcolor(_LEVEL_COLORS.get(self._level, _LEVEL_COLORS["info"])))
         painter.drawEllipse(cx - dot // 2, cy - dot // 2, dot, dot)
 
         painter.end()

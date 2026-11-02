@@ -20,20 +20,9 @@ from neoarch.frontend.tokens import Colors, Fonts, QSS
 from neoarch.frontend.views import _settings_kit as kit
 from neoarch.frontend.components.source_item import ToggleSwitch
 
-_ICON_REPO = (
-    '<circle cx="5" cy="6" r="3"/>'
-    '<path d="M12 6h8"/>'
-    '<path d="M5 9v9"/>'
-    '<path d="M19 9v6"/>'
-    '<circle cx="5" cy="18" r="3"/>'
-    '<circle cx="19" cy="18" r="3"/>'
-    '<path d="M12 15h7"/>'
-)
+_ICON_REPO = "ui/repo"
 
-_ICON_PLUS_STROKE = (
-    '<line x1="12" y1="5" x2="12" y2="19"/>'
-    '<line x1="5" y1="12" x2="19" y2="12"/>'
-)
+_ICON_PLUS_STROKE = "ui/plus"
 
 
 class _AddRepoDialog(QDialog):
@@ -43,7 +32,7 @@ class _AddRepoDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(_("Add Repository"))
         self.setMinimumWidth(380)
-        self.setStyleSheet(_DIALOG_QSS)
+        self.setStyleSheet(_dialog_qss())
         self.setWindowFlags(
             Qt.WindowType.Dialog | Qt.WindowType.FramelessWindowHint)
 
@@ -366,7 +355,8 @@ class RepositoriesSettingsWidget(QWidget):
 
 
 # ── small repro of the dark-dialog look for the add form ────────────
-_DIALOG_QSS = f"""
+def _dialog_qss():
+    return f"""
 QDialog {{
     background-color: {Colors.SURFACE};
     border: 1px solid {Colors.BORDER_STRONG};

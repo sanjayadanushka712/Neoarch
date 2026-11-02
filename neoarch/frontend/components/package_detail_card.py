@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor, QFont, QPainter, QBrush
 
-from neoarch.frontend.tokens import Colors, Fonts, SourceColors
+from neoarch.frontend.tokens import Colors, Fonts, SourceColors, qcolor
 from neoarch.frontend.components.screenshot_carousel import (
     ScreenshotCarousel)
 from neoarch.backend.services.i18n import _
@@ -39,7 +39,7 @@ class _Avatar(QLabel):
         p.setBrush(QBrush(QColor(self._color)))
         p.setPen(Qt.PenStyle.NoPen)
         p.drawRoundedRect(r, 10, 10)
-        p.setPen(QColor(Colors.TEXT))
+        p.setPen(qcolor(Colors.TEXT))
         f = QFont()
         f.setPointSize(17)
         f.setBold(True)
@@ -103,26 +103,27 @@ def _make_sep() -> QFrame:
 
 
 def _close_btn_stylesheet() -> str:
-    return """
-        QPushButton {
-            background-color: #FF5F57;
+    return f"""
+        QPushButton {{
+            background-color: {Colors.TRAFFIC_RED};
             color: transparent;
             border: none;
             border-radius: 9px;
             font-size: {Fonts.SM};
             font-weight: 700;
-        }
-        QPushButton:hover {
-            background-color: #FF5F57;
-            color: rgba(80, 20, 20, 0.7);
-        }
-        QPushButton:pressed {
-            background-color: #E0554E;
-        }
+        }}
+        QPushButton:hover {{
+            background-color: {Colors.TRAFFIC_RED};
+            color: {Colors.TRAFFIC_RED_TEXT};
+        }}
+        QPushButton:pressed {{
+            background-color: {Colors.RED_STRONG};
+        }}
     """
 
 
-def _nav_btn_stylesheet(color: str = Colors.TEXT_2) -> str:
+def _nav_btn_stylesheet(color: str | None = None) -> str:
+    color = color or Colors.TEXT_2
     return f"""
         QPushButton {{
             background-color: transparent;
@@ -135,11 +136,11 @@ def _nav_btn_stylesheet(color: str = Colors.TEXT_2) -> str:
             border-radius: 8px;
         }}
         QPushButton:hover {{
-            background-color: rgba(255, 255, 255, 0.04);
+            background-color: {Colors.OVERLAY_04};
             color: {Colors.TEXT};
         }}
         QPushButton:pressed {{
-            background-color: rgba(255, 255, 255, 0.08);
+            background-color: {Colors.BORDER_INPUT};
         }}
     """
 
@@ -187,8 +188,8 @@ class PackageDetailCard(QFrame):
         self.setStyleSheet(f"""
             QFrame#packageDetailCard {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 rgba(28, 30, 36, 0.55),
-                    stop:1 rgba(20, 22, 26, 0.40));
+                    stop:0 {Colors.GLASS_SOFT},
+                    stop:1 {Colors.GLASS_FAINT});
                 border: 1px solid {Colors.BORDER_INPUT};
                 border-top: 1px solid {Colors.BORDER_HOVER};
                 border-radius: 16px;
@@ -384,7 +385,7 @@ class PackageDetailCard(QFrame):
         self.files_filter.setClearButtonEnabled(True)
         self.files_filter.setFixedHeight(26)
         self.files_filter.setStyleSheet(
-            f"QLineEdit {{ background: rgba(255,255,255,0.04);"
+            f"QLineEdit {{ background: {Colors.OVERLAY_04};"
             f" border: 1px solid {Colors.BORDER}; border-radius: 6px;"
             f" padding: 0 8px; color: {Colors.TEXT}; font-size: {Fonts.SM}; }}"
             f"QLineEdit:focus {{ border-color: {Colors.ACCENT}; }}"
@@ -401,12 +402,12 @@ class PackageDetailCard(QFrame):
         self.files_list.setHorizontalScrollBarPolicy(
             Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.files_list.setStyleSheet(
-            f"QListWidget {{ background: rgba(255,255,255,0.03);"
+            f"QListWidget {{ background: {Colors.OVERLAY_03};"
             f" border: 1px solid {Colors.BORDER}; border-radius: 8px;"
             f" padding: 4px; color: {Colors.TEXT_2};"
             f" font-size: {Fonts.SM}; outline: none; }}"
             f"QListWidget::item {{ padding: 3px 6px; border-radius: 4px; }}"
-            f"QListWidget::item:hover {{ background: rgba(255,255,255,0.05); }}"
+            f"QListWidget::item:hover {{ background: {Colors.OVERLAY_05}; }}"
         )
         self.files_list.setToolTip(_("Double-click a file to copy its path"))
         self.files_list.itemDoubleClicked.connect(self._copy_file_path)
@@ -454,7 +455,7 @@ class PackageDetailCard(QFrame):
         self.update_btn.setMinimumHeight(40)
         self.update_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.update_btn.setStyleSheet(
-            _nav_btn_stylesheet("#FF8A65")
+            _nav_btn_stylesheet(f"{Colors.SRC_AUR}")
         )
         self.update_btn.clicked.connect(self.update_requested.emit)
         self.action_layout.addWidget(self.update_btn)
@@ -481,15 +482,15 @@ class PackageDetailCard(QFrame):
         self.check_updates_btn.setMinimumHeight(40)
         self.check_updates_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.check_updates_btn.setStyleSheet(
-            _nav_btn_stylesheet("#FF8A65")
+            _nav_btn_stylesheet(f"{Colors.SRC_AUR}")
         )
         self.action_layout.addWidget(self.check_updates_btn)
 
         self.up_to_date_label = QLabel(_("✓  Up to date"))
         self.up_to_date_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.up_to_date_label.setStyleSheet(
-            f"color: #10B981; font-size: {Fonts.MD}; font-weight: 600; "
-            "background: rgba(16,185,129,0.08); border-radius: 8px; padding: 8px;"
+            f"color: {Colors.GREEN_BRIGHT}; font-size: {Fonts.MD}; font-weight: 600; "
+            f"background: {Colors.GREEN_SOFT}; border-radius: 8px; padding: 8px;"
         )
         self.action_layout.addWidget(self.up_to_date_label)
 
@@ -534,7 +535,7 @@ class PackageDetailCard(QFrame):
         self.selection_update_btn.setMinimumHeight(40)
         self.selection_update_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.selection_update_btn.setStyleSheet(
-            _nav_btn_stylesheet("#FF8A65")
+            _nav_btn_stylesheet(f"{Colors.SRC_AUR}")
         )
         self.selection_update_btn.clicked.connect(self.selection_update_requested.emit)
         self.action_layout.addWidget(self.selection_update_btn)
@@ -605,19 +606,19 @@ class PackageDetailCard(QFrame):
             if has_update:
                 self.status_badge.setText(_("◉  Update Available"))
                 self.status_badge.setStyleSheet(
-                    f"background: rgba(255,138,101,0.12); color: #FF8A65;"
+                    f"background: {Colors.AUR_SOFT}; color: {Colors.SRC_AUR};"
                     f" font-size: {Fonts.SM}; font-weight: 600; border-radius: 6px; padding: 3px 10px;"
                 )
             else:
                 self.status_badge.setText(_("◉  Installed"))
                 self.status_badge.setStyleSheet(
-                    f"background: rgba(16,185,129,0.12); color: #10B981;"
+                    f"background: {Colors.GREEN_BORDER}; color: {Colors.GREEN_BRIGHT};"
                     f" font-size: {Fonts.SM}; font-weight: 600; border-radius: 6px; padding: 3px 10px;"
                 )
         else:
             self.status_badge.setText(_("○  Not Installed"))
             self.status_badge.setStyleSheet(
-                f"background: rgba(92,94,102,0.12); color: {Colors.TEXT_3};"
+                f"background: {Colors.TEXT_3_SOFT}; color: {Colors.TEXT_3};"
                 f" font-size: {Fonts.SM}; font-weight: 600; border-radius: 6px; padding: 3px 10px;"
             )
         self.status_badge.setVisible(True)

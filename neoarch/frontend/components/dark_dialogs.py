@@ -11,7 +11,8 @@ from neoarch.frontend.styles import Styles
 from neoarch.backend.services.i18n import _
 
 
-_DIALOG_STYLE = f"""
+def _dialog_style():
+    return f"""
 QDialog {{
     background-color: {Colors.SURFACE};
     border: 1px solid {Colors.BORDER_STRONG};
@@ -56,12 +57,25 @@ QComboBox QAbstractItemView {{
     selection-color: {Colors.TEXT};
     padding: 4px;
 }}
+QLabel#dialogTitleLabel {{
+    color: {Colors.TEXT_3};
+    font-size: {Fonts.MD};
+    font-weight: 500;
+    background: transparent;
+    border: none;
+}}
+QPushButton#dlgCloseBtn {{
+    background: {Colors.TRAFFIC_RED};
+    color: transparent;
+    border: none;
+    border-radius: 7px;
+    font-size: 0px;
+}}
+QPushButton#dlgCloseBtn:hover {{
+    color: {Colors.SHADOW_60};
+    font-size: {Fonts.MICRO};
+}}
 """
-
-
-_BTN_PRIMARY = Styles.btn_white()
-_BTN_SECONDARY = Styles.btn_secondary()
-_BTN_DANGER = Styles.btn_danger()
 
 
 class _DialogTitleBar(QWidget):
@@ -78,34 +92,21 @@ class _DialogTitleBar(QWidget):
 
         if title:
             lbl = QLabel(title)
-            lbl.setStyleSheet(f"color: {Colors.TEXT_3}; font-size: {Fonts.MD}; font-weight: 500; background: transparent; border: none;")
+            lbl.setObjectName("dialogTitleLabel")
             lbl.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
             layout.addWidget(lbl)
 
         layout.addStretch()
 
-        self.close_btn = self._traffic_light("\u2715", "dlgCloseBtn", "#FF5F57")
+        self.close_btn = self._traffic_light("\u2715", "dlgCloseBtn")
         self.close_btn.clicked.connect(lambda: self.window().close())
         layout.addWidget(self.close_btn)
 
-    def _traffic_light(self, symbol, obj_name, color):
+    def _traffic_light(self, symbol, obj_name):
         btn = QPushButton(symbol)
         btn.setObjectName(obj_name)
         btn.setFixedSize(14, 14)
         btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn.setStyleSheet(f"""
-            QPushButton {{
-                background: {color};
-                color: transparent;
-                border: none;
-                border-radius: 7px;
-                font-size: 0px;
-            }}
-            QPushButton:hover {{
-                color: rgba(0, 0, 0, 0.6);
-                font-size: {Fonts.MICRO};
-            }}
-        """)
         return btn
 
     def mousePressEvent(self, event):
@@ -116,6 +117,18 @@ class _DialogTitleBar(QWidget):
             event.accept()
         else:
             super().mousePressEvent(event)
+
+
+def refresh_open_dialogs():
+    """Re-apply the current token palette to dialogs that are already open."""
+    from PyQt6.QtWidgets import QApplication
+
+    app = QApplication.instance()
+    if app is None:
+        return
+    for widget in app.topLevelWidgets():
+        if isinstance(widget, QDialog):
+            widget.setStyleSheet(_dialog_style())
 
 
 def _apply_dialog_flags(dialog):
@@ -132,7 +145,7 @@ def dark_input(parent, title, label, text=""):
     dlg = QDialog(parent)
     dlg.setWindowTitle(title)
     dlg.setMinimumWidth(340)
-    dlg.setStyleSheet(_DIALOG_STYLE)
+    dlg.setStyleSheet(_dialog_style())
     _apply_dialog_flags(dlg)
 
     root = QVBoxLayout(dlg)
@@ -157,11 +170,11 @@ def dark_input(parent, title, label, text=""):
     btn_row = QHBoxLayout()
     btn_row.addStretch()
     cancel = QPushButton(_("Cancel"))
-    cancel.setStyleSheet(_BTN_SECONDARY)
+    cancel.setStyleSheet(Styles.btn_secondary())
     cancel.clicked.connect(dlg.reject)
     btn_row.addWidget(cancel)
     ok = QPushButton(_("OK"))
-    ok.setStyleSheet(_BTN_PRIMARY)
+    ok.setStyleSheet(Styles.btn_white())
     ok.clicked.connect(dlg.accept)
     btn_row.addWidget(ok)
     content_layout.addLayout(btn_row)
@@ -181,7 +194,7 @@ def dark_confirm(parent, title, message, danger=False):
     dlg = QDialog(parent)
     dlg.setWindowTitle(title)
     dlg.setMinimumWidth(360)
-    dlg.setStyleSheet(_DIALOG_STYLE)
+    dlg.setStyleSheet(_dialog_style())
     _apply_dialog_flags(dlg)
 
     root = QVBoxLayout(dlg)
@@ -203,11 +216,11 @@ def dark_confirm(parent, title, message, danger=False):
     btn_row = QHBoxLayout()
     btn_row.addStretch()
     cancel = QPushButton(_("Cancel"))
-    cancel.setStyleSheet(_BTN_SECONDARY)
+    cancel.setStyleSheet(Styles.btn_secondary())
     cancel.clicked.connect(dlg.reject)
     btn_row.addWidget(cancel)
     confirm = QPushButton(_("Delete") if danger else _("Confirm"))
-    confirm.setStyleSheet(_BTN_DANGER if danger else _BTN_PRIMARY)
+    confirm.setStyleSheet(Styles.btn_danger() if danger else Styles.btn_white())
     confirm.clicked.connect(dlg.accept)
     btn_row.addWidget(confirm)
     content_layout.addLayout(btn_row)

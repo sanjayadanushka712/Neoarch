@@ -25,7 +25,8 @@ from PyQt6.QtWidgets import (
 )
 
 from neoarch.backend.services.i18n import _
-from neoarch.frontend.tokens import Colors, Fonts, Radii
+from neoarch.frontend.icon_registry import icon_path
+from neoarch.frontend.tokens import Colors, Radii
 
 __all__ = [
     "ConsolePanel",
@@ -198,10 +199,7 @@ class ConsolePanel(QWidget):
         if not callable(self._icon_provider):
             return None
         try:
-            import os
-            from neoarch.resources.paths import PROJECT_ROOT
-            path = os.path.join(str(PROJECT_ROOT), "assets", "icons", "ui", name)
-            return self._icon_provider(path, size)
+            return self._icon_provider(icon_path(f"ui/{name}"), size)
         except Exception:
             return None
 
@@ -228,7 +226,7 @@ class ConsolePanel(QWidget):
                 border-color: {Colors.ACCENT_BORDER};
             }}
             QPushButton:pressed {{
-                background: rgba(0, 191, 174, 0.2);
+                background: {Colors.ACCENT_20};
             }}
         """)
         return btn

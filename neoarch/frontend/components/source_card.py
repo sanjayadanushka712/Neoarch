@@ -7,17 +7,10 @@ from PyQt6.QtCore import pyqtSignal, Qt, QRectF, QSize, QPropertyAnimation, QEas
 from PyQt6.QtGui import QColor, QPainter, QPen, QFont, QFontMetrics, QRadialGradient
 from neoarch.frontend.components.source_item import SourceItem, ToggleSwitch
 from neoarch.frontend.components.flow_layout import FlowLayout
-from neoarch.frontend.tokens import Colors, Fonts, SourceColors
+from neoarch.frontend.tokens import Colors, Fonts, SourceColors, qcolor
 from neoarch.backend.services.i18n import _
 
 # ── app theme design tokens ─────────────────────────────────────────
-_RAISED = Colors.CARD_HOVER
-_HOVER = "#24262C"
-_ACCENT = Colors.ACCENT
-_TEXT = Colors.TEXT
-_SECONDARY = Colors.TEXT_2
-_MUTED = Colors.TEXT_3
-_BORDER = Colors.BORDER
 
 
 def _fmt_bytes(b):
@@ -52,11 +45,11 @@ class _DiskBar(QWidget):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         w, h = self.width(), self.height()
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QColor(255, 255, 255, 12))
+        painter.setBrush(qcolor(Colors.OVERLAY_12))
         painter.drawRoundedRect(QRectF(0, 0, w, h), h / 2, h / 2)
         fill = max(self._percent, 0.0)
         if fill > 0:
-            color = QColor("#22C55E") if fill < 0.7 else (QColor("#F59E0B") if fill < 0.9 else QColor("#EF4444"))
+            color = qcolor(Colors.GREEN) if fill < 0.7 else (qcolor(Colors.AMBER) if fill < 0.9 else qcolor(Colors.RED_STRONG))
             painter.setBrush(color)
             painter.drawRoundedRect(QRectF(0, 0, max(w * fill, h), h), h / 2, h / 2)
         painter.end()
@@ -116,7 +109,7 @@ class _RadioRow(QWidget):
 
         if self._hover:
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(QColor(_HOVER))
+            painter.setBrush(qcolor(Colors.CARD_HOVER))
             painter.drawRoundedRect(QRectF(self.rect()), 8, 8)
 
         cs = 12
@@ -124,16 +117,16 @@ class _RadioRow(QWidget):
         cy = (h - cs) // 2
 
         if self._progress > 0.01:
-            painter.setPen(QPen(QColor(_ACCENT), 2))
+            painter.setPen(QPen(qcolor(Colors.ACCENT), 2))
         else:
-            painter.setPen(QPen(QColor(255, 255, 255, 55), 2))
+            painter.setPen(QPen(qcolor(Colors.OVERLAY_55), 2))
         painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawEllipse(QRectF(cx + 1, cy + 1, cs - 2, cs - 2))
 
         dot = 3.5 * self._progress
         if dot > 0.2:
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(QColor(_ACCENT))
+            painter.setBrush(qcolor(Colors.ACCENT))
             center = cs / 2.0
             painter.drawEllipse(QRectF(cx + center - dot, cy + center - dot, dot * 2, dot * 2))
 
@@ -141,7 +134,7 @@ class _RadioRow(QWidget):
         font.setPixelSize(11)
         font.setWeight(QFont.Weight.Medium if not self._checked else QFont.Weight.DemiBold)
         painter.setFont(font)
-        painter.setPen(QColor(_TEXT) if self._checked else QColor(_SECONDARY))
+        painter.setPen(qcolor(Colors.TEXT) if self._checked else qcolor(Colors.TEXT_2))
 
         right_w = 0
         if self.count is not None and str(self.count):
@@ -151,14 +144,14 @@ class _RadioRow(QWidget):
             painter.setFont(count_font)
             count_text = str(self.count)
             right_w = painter.fontMetrics().horizontalAdvance(count_text) + 6
-            painter.setPen(QColor(_MUTED))
+            painter.setPen(qcolor(Colors.TEXT_3))
             painter.drawText(
                 QRectF(w - right_w, 0, right_w, h),
                 Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignRight,
                 count_text,
             )
             painter.setFont(font)
-            painter.setPen(QColor(_TEXT) if self._checked else QColor(_SECONDARY))
+            painter.setPen(qcolor(Colors.TEXT) if self._checked else qcolor(Colors.TEXT_2))
 
         painter.drawText(
             QRectF(cx + cs + 10, 0, w - cx - cs - 10 - right_w, h),
@@ -189,8 +182,9 @@ class _ToggleRow(QWidget):
 
     toggled = pyqtSignal(bool)
 
-    def __init__(self, text, accent_color="#10B981", parent=None):
+    def __init__(self, text, accent_color=None, parent=None):
         super().__init__(parent)
+        accent_color = accent_color or Colors.GREEN_BRIGHT
         self.setFixedHeight(30)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
@@ -251,8 +245,8 @@ class _ActionRow(QWidget):
         h = self.height()
 
         if self._hover:
-            painter.setPen(QPen(QColor(255, 255, 255, 8), 1))
-            painter.setBrush(QColor(_RAISED))
+            painter.setPen(QPen(qcolor(Colors.OVERLAY_08), 1))
+            painter.setBrush(qcolor(Colors.CARD_HOVER))
             painter.drawRoundedRect(QRectF(self.rect()).adjusted(1, 1, -1, -1), 10, 10)
 
         icon_size = 16
@@ -261,7 +255,7 @@ class _ActionRow(QWidget):
         font = painter.font()
         font.setPixelSize(14)
         painter.setFont(font)
-        painter.setPen(QColor(_SECONDARY))
+        painter.setPen(qcolor(Colors.TEXT_2))
         painter.drawText(
             QRectF(icon_x, icon_y, icon_size, icon_size),
             Qt.AlignmentFlag.AlignCenter,
@@ -274,7 +268,7 @@ class _ActionRow(QWidget):
         font.setPixelSize(11)
         font.setWeight(QFont.Weight.Medium)
         painter.setFont(font)
-        painter.setPen(QColor(_TEXT))
+        painter.setPen(qcolor(Colors.TEXT))
         painter.drawText(
             QRectF(text_x, 0, text_w, h),
             Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft,
@@ -283,7 +277,7 @@ class _ActionRow(QWidget):
 
         font.setPixelSize(15)
         painter.setFont(font)
-        painter.setPen(QColor(255, 255, 255, 40))
+        painter.setPen(qcolor(Colors.OVERLAY_40))
         painter.drawText(
             QRectF(w - 21, 0, 13, h),
             Qt.AlignmentFlag.AlignCenter,
@@ -333,8 +327,8 @@ class _HealthRow(QWidget):
         w, h = self.width(), self.height()
 
         if self._hover:
-            painter.setPen(QPen(QColor(255, 255, 255, 8), 1))
-            painter.setBrush(QColor(_RAISED))
+            painter.setPen(QPen(qcolor(Colors.OVERLAY_08), 1))
+            painter.setBrush(qcolor(Colors.CARD_HOVER))
             painter.drawRoundedRect(QRectF(self.rect()).adjusted(1, 1, -1, -1), 10, 10)
 
         dot = 8
@@ -342,7 +336,7 @@ class _HealthRow(QWidget):
         dot_y = (h - dot) / 2
         dot_color = QColor(self.color)
         if self._count == 0:
-            dot_color = QColor(34, 197, 94)
+            dot_color = qcolor(Colors.GREEN)
         painter.setPen(Qt.PenStyle.NoPen)
         painter.setBrush(dot_color)
         painter.drawEllipse(QRectF(dot_x, dot_y, dot, dot))
@@ -351,7 +345,7 @@ class _HealthRow(QWidget):
         font.setPixelSize(11)
         font.setWeight(QFont.Weight.Medium)
         painter.setFont(font)
-        painter.setPen(QColor(_TEXT))
+        painter.setPen(qcolor(Colors.TEXT))
         text_x = 32
         text_w = w - text_x - 80
         painter.drawText(
@@ -368,9 +362,9 @@ class _HealthRow(QWidget):
             text_color = QColor(self.color).lighter(120)
             text = str(self._count)
         else:
-            badge_color = QColor(34, 197, 94, 30)
-            border = QColor(34, 197, 94, 80)
-            text_color = QColor(34, 197, 94)
+            badge_color = qcolor(Colors.GREEN, 30)
+            border = qcolor(Colors.GREEN, 80)
+            text_color = qcolor(Colors.GREEN)
             text = "0"
 
         font.setPixelSize(10)
@@ -393,7 +387,7 @@ class _HealthRow(QWidget):
 
         font.setPixelSize(15)
         painter.setFont(font)
-        painter.setPen(QColor(255, 255, 255, 40))
+        painter.setPen(qcolor(Colors.OVERLAY_40))
         painter.drawText(
             QRectF(w - 21, 0, 13, h),
             Qt.AlignmentFlag.AlignCenter,
@@ -432,10 +426,10 @@ class _HealthRing(QWidget):
 
     def _color(self):
         if self._score >= 85:
-            return QColor("#22C55E")
+            return qcolor(Colors.GREEN)
         if self._score >= 60:
-            return QColor("#F59E0B")
-        return QColor("#EF4444")
+            return qcolor(Colors.AMBER)
+        return qcolor(Colors.RED_STRONG)
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -444,7 +438,7 @@ class _HealthRing(QWidget):
         pen_w = 5
         rect = QRectF(pen_w / 2 + 1, pen_w / 2 + 1, w - pen_w - 2, h - pen_w - 2)
 
-        painter.setPen(QPen(QColor(255, 255, 255, 22), pen_w))
+        painter.setPen(QPen(qcolor(Colors.OVERLAY_22), pen_w))
         painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawEllipse(rect)
 
@@ -471,10 +465,10 @@ class _DistributionBar(QWidget):
         super().__init__(parent)
         self._counts = {}
         self._colors = {
-            "pacman": QColor(SourceColors.get("pacman", "#3B82F6")),
-            "AUR": QColor(SourceColors.get("AUR", "#F59E0B")),
-            "Flatpak": QColor(SourceColors.get("Flatpak", "#10B981")),
-            "npm": QColor(SourceColors.get("npm", "#EF4444")),
+            "pacman": QColor(SourceColors.get("pacman", f"{Colors.BLUE_STRONG}")),
+            "AUR": QColor(SourceColors.get("AUR", f"{Colors.AMBER}")),
+            "Flatpak": QColor(SourceColors.get("Flatpak", f"{Colors.GREEN_BRIGHT}")),
+            "npm": QColor(SourceColors.get("npm", f"{Colors.RED_STRONG}")),
         }
         self.setFixedHeight(6)
         self.setMinimumWidth(0)
@@ -493,7 +487,7 @@ class _DistributionBar(QWidget):
         w = self.width()
         h = self.height()
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QColor(255, 255, 255, 12))
+        painter.setBrush(qcolor(Colors.OVERLAY_12))
         painter.drawRoundedRect(QRectF(0, 0, w, h), h / 2, h / 2)
         x = 0.0
         for name, count in self._counts.items():
@@ -502,7 +496,7 @@ class _DistributionBar(QWidget):
             seg_w = w * count / total
             if seg_w <= 0:
                 continue
-            painter.setBrush(self._colors.get(name, QColor("#6B7280")))
+            painter.setBrush(self._colors.get(name, qcolor(Colors.TEXT_3)))
             painter.drawRect(QRectF(x + 1, 0, max(seg_w - 2, 1), h))
             x += seg_w
         painter.end()
@@ -550,11 +544,11 @@ class _StatusChip(QPushButton):
 
         checked = self.isChecked()
         if checked:
-            bg = QColor(255, 255, 255, 18) if self._hover else QColor(255, 255, 255, 12)
-            border = QColor(255, 255, 255, 26) if self._hover else QColor(255, 255, 255, 16)
+            bg = qcolor(Colors.OVERLAY_18) if self._hover else qcolor(Colors.OVERLAY_12)
+            border = qcolor(Colors.OVERLAY_26) if self._hover else qcolor(Colors.OVERLAY_16)
         else:
-            bg = QColor(255, 255, 255, 8) if self._hover else QColor(0, 0, 0, 0)
-            border = QColor(255, 255, 255, 14) if self._hover else QColor(0, 0, 0, 0)
+            bg = qcolor(Colors.OVERLAY_08) if self._hover else QColor(0, 0, 0, 0)
+            border = qcolor(Colors.OVERLAY_14) if self._hover else QColor(0, 0, 0, 0)
 
         painter.setPen(QPen(border, 1))
         painter.setBrush(bg)
@@ -574,7 +568,7 @@ class _StatusChip(QPushButton):
         font.setPixelSize(11)
         font.setWeight(QFont.Weight.Medium)
         painter.setFont(font)
-        painter.setPen(QColor(237, 237, 239) if checked else QColor(107, 114, 128))
+        painter.setPen(qcolor(Colors.TEXT) if checked else qcolor(Colors.TEXT_2))
         painter.drawText(
             QRectF(dot_x + d + 7, 0, w - dot_x - d - 15, h),
             Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft,
@@ -670,19 +664,19 @@ class SourceCard(QWidget):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         r = self.rect()
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QColor(9, 9, 10))
+        painter.setBrush(qcolor(Colors.BG))
         painter.drawRect(r)
         glow = QRadialGradient(r.width() / 2.0, 0, r.width() * 0.9)
-        glow.setColorAt(0.0, QColor(124, 58, 237, 16))
-        glow.setColorAt(0.5, QColor(88, 40, 160, 8))
-        glow.setColorAt(1.0, QColor(88, 40, 160, 0))
+        glow.setColorAt(0.0, qcolor(Colors.PURPLE_BRIGHT, 16))
+        glow.setColorAt(0.5, qcolor(Colors.PURPLE, 8))
+        glow.setColorAt(1.0, qcolor(Colors.PURPLE, 0))
         painter.setBrush(glow)
         painter.drawRect(r)
-        painter.setPen(QPen(QColor(255, 255, 255, 6), 1))
+        painter.setPen(QPen(qcolor(Colors.OVERLAY_06), 1))
         painter.setBrush(Qt.BrushStyle.NoBrush)
         painter.drawRect(QRectF(r).adjusted(0.5, 0.5, -0.5, -0.5))
         painter.setPen(Qt.PenStyle.NoPen)
-        painter.setBrush(QColor(168, 85, 247, 8))
+        painter.setBrush(qcolor(Colors.PURPLE_BRIGHT, 8))
         painter.drawRect(QRectF(0, 0, r.width(), 1))
         painter.end()
         super().paintEvent(event)
@@ -731,14 +725,14 @@ class SourceCard(QWidget):
                     font-weight: 600;
                 }}
                 QPushButton#toggleAllBtn:hover {{
-                    background-color: rgba(255, 255, 255, 0.20);
+                    background-color: {Colors.BORDER_STRONG};
                 }}
             """
         else:
             return f"""
                 QPushButton#toggleAllBtn {{
-                    background-color: rgba(255, 255, 255, 0.04);
-                    color: #6B7280;
+                    background-color: {Colors.OVERLAY_04};
+                    color: {Colors.TEXT_3};
                     border: 1px solid {Colors.BORDER};
                     border-radius: 8px;
                     padding: 0 10px;
@@ -746,8 +740,8 @@ class SourceCard(QWidget):
                     font-weight: 500;
                 }}
                 QPushButton#toggleAllBtn:hover {{
-                    background-color: rgba(255, 255, 255, 0.08);
-                    color: #A7B1C2;
+                    background-color: {Colors.BORDER_INPUT};
+                    color: {Colors.TEXT_2};
                 }}
             """
 
@@ -806,7 +800,7 @@ class SourceCard(QWidget):
         """)
         self.health_status_subtitle = QLabel(_("All checks passed"))
         self.health_status_subtitle.setStyleSheet(f"""
-            color: #6B7280;
+            color: {Colors.TEXT_3};
             font-size: {Fonts.SM};
             font-weight: 400;
             background: transparent;
@@ -824,9 +818,9 @@ class SourceCard(QWidget):
 
         self._health_rows = {}
         row_defs = [
-            ("orphans", "Orphaned Packages", "#F59E0B"),
-            ("pacnew", "Config Files (.pacnew)", "#FB923C"),
-            ("outdated", "Outdated Packages", "#3B82F6"),
+            ("orphans", "Orphaned Packages", f"{Colors.AMBER}"),
+            ("pacnew", "Config Files (.pacnew)", f"{Colors.ORANGE}"),
+            ("outdated", "Outdated Packages", f"{Colors.BLUE_STRONG}"),
         ]
         for key, title, color in row_defs:
             row = _HealthRow(title, color)
@@ -850,15 +844,15 @@ class SourceCard(QWidget):
         self.health_ring.set_score(score)
         if issues == 0:
             self.health_status_title.setText(_("System Healthy"))
-            self.health_status_title.setStyleSheet(self._health_title_style("#22C55E"))
+            self.health_status_title.setStyleSheet(self._health_title_style(f"{Colors.GREEN}"))
             self.health_status_subtitle.setText(_("All checks passed"))
         elif score >= 60:
             self.health_status_title.setText(_("Needs Attention"))
-            self.health_status_title.setStyleSheet(self._health_title_style("#F59E0B"))
+            self.health_status_title.setStyleSheet(self._health_title_style(f"{Colors.AMBER}"))
             self.health_status_subtitle.setText(_("{issues} item{s} found").format(issues=issues, s="s" if issues != 1 else ""))
         else:
             self.health_status_title.setText(_("Action Recommended"))
-            self.health_status_title.setStyleSheet(self._health_title_style("#EF4444"))
+            self.health_status_title.setStyleSheet(self._health_title_style(f"{Colors.RED_STRONG}"))
             self.health_status_subtitle.setText(_("{issues} issues need resolving").format(issues=issues))
 
     @staticmethod
@@ -892,10 +886,10 @@ class SourceCard(QWidget):
             search_layout.addWidget(row)
             self._radio_rows.append((radio_id, row))
 
-        self.search_mode_widget.setStyleSheet("""
-            QWidget#searchModeWidget {
-                border-top: 1px solid rgba(255, 255, 255, 0.03);
-            }
+        self.search_mode_widget.setStyleSheet(f"""
+            QWidget#searchModeWidget {{
+                border-top: 1px solid {Colors.OVERLAY_03};
+            }}
         """)
         layout.addWidget(self.search_mode_widget)
 
@@ -920,7 +914,7 @@ class SourceCard(QWidget):
         """)
         self.summary_count_caption = QLabel("")
         self.summary_count_caption.setStyleSheet(f"""
-            color: #6B7280;
+            color: {Colors.TEXT_3};
             font-size: {Fonts.TINY};
             font-weight: 600;
             letter-spacing: 0.5px;
@@ -950,7 +944,7 @@ class SourceCard(QWidget):
         """)
         self.summary_size_caption = QLabel("")
         self.summary_size_caption.setStyleSheet(f"""
-            color: #6B7280;
+            color: {Colors.TEXT_3};
             font-size: {Fonts.TINY};
             font-weight: 600;
             letter-spacing: 0.5px;
@@ -974,11 +968,11 @@ class SourceCard(QWidget):
         self.summary_distribution_bar.setVisible(False)
         s_layout.addWidget(self.summary_distribution_bar)
 
-        self.summary_widget.setStyleSheet("""
-            QWidget#summaryWidget {
-                border-top: 1px solid rgba(255, 255, 255, 0.04);
-                background: rgba(255, 255, 255, 0.02);
-            }
+        self.summary_widget.setStyleSheet(f"""
+            QWidget#summaryWidget {{
+                border-top: 1px solid {Colors.OVERLAY_04};
+                background: {Colors.OVERLAY_02};
+            }}
         """)
         self.summary_widget.setVisible(False)
         layout.addWidget(self.summary_widget)
@@ -1033,10 +1027,10 @@ class SourceCard(QWidget):
 
         self._status_chips = []
         statuses = [
-            ("Security", "#EF4444"),
+            ("Security", f"{Colors.RED_STRONG}"),
             ("Feature", Colors.ACCENT),
             ("Bug Fix", Colors.GREEN),
-            ("Maintenance", "#6B7280"),
+            ("Maintenance", f"{Colors.TEXT_3}"),
         ]
         for status_text, status_color in statuses:
             chip = _StatusChip(status_text, status_color)
@@ -1066,10 +1060,10 @@ class SourceCard(QWidget):
             sm_layout.addWidget(row)
             self._status_mode_rows.append((mode_id, row))
 
-        self.status_mode_widget.setStyleSheet("""
-            QWidget#statusModeWidget {
-                border-top: 1px solid rgba(255, 255, 255, 0.03);
-            }
+        self.status_mode_widget.setStyleSheet(f"""
+            QWidget#statusModeWidget {{
+                border-top: 1px solid {Colors.OVERLAY_03};
+            }}
         """)
         self.status_mode_widget.setVisible(False)
         layout.addWidget(self.status_mode_widget)
@@ -1158,8 +1152,8 @@ class SourceCard(QWidget):
         self.sort_menu.setObjectName("sourceSortMenu")
         self.sort_menu.setStyleSheet(f"""
             QMenu#sourceSortMenu {{
-                background-color: #171C25;
-                border: 1px solid rgba(255, 255, 255, 0.08);
+                background-color: {Colors.SURFACE_2};
+                border: 1px solid {Colors.BORDER_INPUT};
                 border-radius: 10px;
                 padding: 4px;
             }}
@@ -1174,7 +1168,7 @@ class SourceCard(QWidget):
             }}
             QMenu#sourceSortMenu::item:selected {{
                 background-color: {Colors.ACCENT_SOFT};
-                color: {Colors.WHITE};
+                color: {Colors.TEXT};
             }}
             QMenu#sourceSortMenu::separator {{
                 height: 1px;
@@ -1222,14 +1216,14 @@ class SourceCard(QWidget):
 
         il.addWidget(self._section_header(_("Results")))
 
-        self.hide_installed_row = _ToggleRow(_("Hide installed packages"), accent_color="#10B981")
+        self.hide_installed_row = _ToggleRow(_("Hide installed packages"), accent_color=f"{Colors.GREEN_BRIGHT}")
         self.hide_installed_row.toggled.connect(self._on_hide_installed_toggled)
         il.addWidget(self.hide_installed_row)
 
-        self.installed_filter_widget.setStyleSheet("""
-            QWidget#installedFilterWidget {
-                border-top: 1px solid rgba(255, 255, 255, 0.03);
-            }
+        self.installed_filter_widget.setStyleSheet(f"""
+            QWidget#installedFilterWidget {{
+                border-top: 1px solid {Colors.OVERLAY_03};
+            }}
         """)
         self.installed_filter_widget.setVisible(False)
         layout.addWidget(self.installed_filter_widget)
@@ -1259,10 +1253,10 @@ class SourceCard(QWidget):
             self._on_updates_available_toggled)
         ul.addWidget(self.updates_available_row)
 
-        self.updates_filter_widget.setStyleSheet("""
-            QWidget#updatesFilterWidget {
-                border-top: 1px solid rgba(255, 255, 255, 0.03);
-            }
+        self.updates_filter_widget.setStyleSheet(f"""
+            QWidget#updatesFilterWidget {{
+                border-top: 1px solid {Colors.OVERLAY_03};
+            }}
         """)
         self.updates_filter_widget.setVisible(False)
         layout.addWidget(self.updates_filter_widget)
@@ -1300,7 +1294,7 @@ class SourceCard(QWidget):
         """)
         self.disk_used_label = QLabel("")
         self.disk_used_label.setStyleSheet(f"""
-            color: #A7B1C2;
+            color: {Colors.TEXT_2};
             font-size: {Fonts.SM};
             font-weight: 500;
             background: transparent;
@@ -1345,7 +1339,7 @@ class SourceCard(QWidget):
         self.clear_cache_btn.setStyleSheet(f"""
             QPushButton#clearCacheBtn {{
                 color: {Colors.ACCENT};
-                background: rgba(59, 130, 246, 0.10);
+                background: {Colors.BLUE_STRONG_SOFT};
                 border: 1px solid {Colors.ACCENT_BORDER};
                 border-radius: 11px;
                 font-size: {Fonts.XS};
@@ -1353,8 +1347,8 @@ class SourceCard(QWidget):
                 padding: 0 10px;
             }}
             QPushButton#clearCacheBtn:hover {{
-                background: rgba(59, 130, 246, 0.20);
-                border-color: rgba(59, 130, 246, 0.40);
+                background: {Colors.BLUE_STRONG_BORDER};
+                border-color: {Colors.BLUE_STRONG_40};
             }}
         """)
         self.clear_cache_btn.clicked.connect(lambda: self.maintenance_action.emit("purge_cache"))
@@ -1413,7 +1407,7 @@ class SourceCard(QWidget):
         row = QHBoxLayout()
         row.setSpacing(8)
         lbl = QLabel(title)
-        lbl.setStyleSheet(f"color: #A7B1C2; font-size: {Fonts.SM}; font-weight: 500;"
+        lbl.setStyleSheet(f"color: {Colors.TEXT_2}; font-size: {Fonts.SM}; font-weight: 500;"
                           "background: transparent; border: none; padding: 0;")
         val = QLabel("0")
         val.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
@@ -1452,8 +1446,8 @@ class SourceCard(QWidget):
     def _sort_btn_style():
         return f"""
             QPushButton#sortBtn {{
-                color: #A7B1C2;
-                background: rgba(255, 255, 255, 0.04);
+                color: {Colors.TEXT_2};
+                background: {Colors.OVERLAY_04};
                 border: 1px solid {Colors.BORDER};
                 border-radius: 8px;
                 font-size: {Fonts.MD};
@@ -1462,8 +1456,8 @@ class SourceCard(QWidget):
                 text-align: left;
             }}
             QPushButton#sortBtn:hover {{
-                background: rgba(255, 255, 255, 0.07);
-                border-color: rgba(59, 130, 246, 0.30);
+                background: {Colors.OVERLAY_07};
+                border-color: {Colors.BLUE_STRONG_30};
                 color: {Colors.TEXT};
             }}
         """
@@ -1530,7 +1524,7 @@ class SourceCard(QWidget):
         self.action_update_all_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {Colors.ACCENT};
-                color: {Colors.WHITE};
+                color: {Colors.TEXT_ON_ACCENT};
                 border: 1px solid {Colors.ACCENT_BORDER_STRONG};
                 border-radius: 8px;
                 padding: 0 14px;
@@ -1551,8 +1545,8 @@ class SourceCard(QWidget):
         self.action_ignore_btn.setFixedHeight(24)
         self.action_ignore_btn.setStyleSheet(f"""
             QPushButton {{
-                background-color: rgba(255, 255, 255, 0.04);
-                color: #A7B1C2;
+                background-color: {Colors.OVERLAY_04};
+                color: {Colors.TEXT_2};
                 border: 1px solid {Colors.BORDER};
                 border-radius: 8px;
                 padding: 0 12px;
@@ -1560,11 +1554,11 @@ class SourceCard(QWidget):
                 font-weight: 500;
             }}
             QPushButton:hover {{
-                background-color: rgba(255, 255, 255, 0.07);
+                background-color: {Colors.OVERLAY_07};
                 color: {Colors.TEXT};
             }}
             QPushButton:pressed {{
-                background-color: rgba(255, 255, 255, 0.03);
+                background-color: {Colors.OVERLAY_03};
             }}
         """)
         self._action_buttons["ignore"] = self.action_ignore_btn
@@ -1574,8 +1568,8 @@ class SourceCard(QWidget):
         self.action_manage_btn.setFixedHeight(24)
         self.action_manage_btn.setStyleSheet(f"""
             QPushButton {{
-                background-color: rgba(255, 255, 255, 0.04);
-                color: #A7B1C2;
+                background-color: {Colors.OVERLAY_04};
+                color: {Colors.TEXT_2};
                 border: 1px solid {Colors.BORDER};
                 border-radius: 8px;
                 padding: 0 12px;
@@ -1583,11 +1577,11 @@ class SourceCard(QWidget):
                 font-weight: 500;
             }}
             QPushButton:hover {{
-                background-color: rgba(255, 255, 255, 0.07);
+                background-color: {Colors.OVERLAY_07};
                 color: {Colors.TEXT};
             }}
             QPushButton:pressed {{
-                background-color: rgba(255, 255, 255, 0.03);
+                background-color: {Colors.OVERLAY_03};
             }}
         """)
         self._action_buttons["manage"] = self.action_manage_btn
@@ -1609,10 +1603,10 @@ class SourceCard(QWidget):
 
     @staticmethod
     def _section_stylesheet():
-        return """
-            QWidget#statusWidget, QWidget#sortWidget, QWidget#actionsWidget, QWidget#summaryWidget, QWidget#healthWidget {
-                border-top: 1px solid rgba(255, 255, 255, 0.03);
-            }
+        return f"""
+            QWidget#statusWidget, QWidget#sortWidget, QWidget#actionsWidget, QWidget#summaryWidget, QWidget#healthWidget {{
+                border-top: 1px solid {Colors.OVERLAY_03};
+            }}
         """
 
     def _on_status_chip_clicked(self, status_text):

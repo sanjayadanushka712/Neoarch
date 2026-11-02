@@ -420,7 +420,7 @@ class _AuthMixin:
         layout = QVBoxLayout(dlg)
 
         hint = QLabel(f"{len(files)} config files pending review. Select one to inspect the diff.")
-        hint.setStyleSheet("color: #8B8D97;")
+        hint.setStyleSheet(f"color: {Colors.TEXT_2};")
         layout.addWidget(hint)
 
         list_widget = QListWidget()
@@ -551,10 +551,10 @@ class _AuthMixin:
         layout = QVBoxLayout(dlg)
         if unseen:
             hint = QLabel(f"Latest from archlinux.org — {unseen} new")
-            hint.setStyleSheet("color: #00BFAE; font-weight: 600;")
+            hint.setStyleSheet(f"color: {Colors.ACCENT}; font-weight: 600;")
         else:
             hint = QLabel(_("Latest from archlinux.org"))
-            hint.setStyleSheet("color: #8B8D97;")
+            hint.setStyleSheet(f"color: {Colors.TEXT_2};")
         layout.addWidget(hint)
 
         browser = QTextBrowser()
@@ -569,7 +569,7 @@ class _AuthMixin:
                 f"padding:1px 6px;font-size:{Fonts.XS};font-weight:700;'>NEW</span> "
             html.append(
                 f"<h3 style='color:{Colors.ACCENT};'>{badge}{title}</h3>"
-                f"<p style='color:#8B8D97;'>{date}</p>"
+                f"<p style='color:{Colors.TEXT_2};'>{date}</p>"
                 f"<p>{summary}</p>"
                 f"<p><a href='{link}'>{link}</a></p><hr>")
         browser.setHtml("\n".join(html))

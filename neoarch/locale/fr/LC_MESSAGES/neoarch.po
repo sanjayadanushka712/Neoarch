@@ -328,6 +328,9 @@ msgstr "Choisissez Connexion — votre navigateur gère la connexion sécurisée
 msgid "Choose a theme for NeoArch. Changes apply instantly."
 msgstr "Choisissez un thème pour NeoArch. Les modifications s'appliquent instantanément."
 
+msgid "Reload custom themes"
+msgstr "Recharger les thèmes personnalisés"
+
 msgid "Clean Cache"
 msgstr "Nettoyer le cache"
 
@@ -3539,3 +3542,27 @@ msgstr "Chargement des captures d'écran…"
 
 msgid "No screenshots available."
 msgstr "Aucune capture d'écran disponible."
+
+msgid "Choose a window style and theme for NeoArch. Changes apply instantly."
+msgstr "Choisissez un style de fenêtre et un thème pour NeoArch. Les modifications s'appliquent instantanément."
+
+msgid "Native system"
+msgstr "Système natif"
+
+msgid "NeoArch"
+msgstr "NeoArch"
+
+msgid "Use NeoArch's custom titlebar and choose any theme below."
+msgstr "Utilisez la barre de titre personnalisée de NeoArch et choisissez un thème ci-dessous."
+
+msgid "Use your desktop titlebar and system colors. Themes are managed by your OS."
+msgstr "Utilisez la barre de titre de votre bureau et les couleurs du système. Les thèmes sont gérés par votre système d'exploitation."
+
+msgid "Window style"
+msgstr "Style de fenêtre"
+
+msgid "System transparency"
+msgstr "Transparence du système"
+
+msgid "Let the desktop show through the window body."
+msgstr "Laissez le bureau apparaître à travers le corps de la fenêtre."

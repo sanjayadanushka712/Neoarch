@@ -328,6 +328,9 @@ msgstr "Oturum Aç'ı seçin — tarayıcınız güvenli girişi halleder, sonra
 msgid "Choose a theme for NeoArch. Changes apply instantly."
 msgstr "NeoArch için bir tema seçin. Değişiklikler anında uygulanır."
 
+msgid "Reload custom themes"
+msgstr "Özel temaları yeniden yükle"
+
 msgid "Clean Cache"
 msgstr "Önbelleği Temizle"
 
@@ -3539,3 +3542,27 @@ msgstr "Ekran görüntüleri yükleniyor…"
 
 msgid "No screenshots available."
 msgstr "Kullanılabilir ekran görüntüsü yok."
+
+msgid "Choose a window style and theme for NeoArch. Changes apply instantly."
+msgstr "NeoArch için bir pencere stili ve tema seçin. Değişiklikler anında uygulanır."
+
+msgid "Native system"
+msgstr "Yerel sistem"
+
+msgid "NeoArch"
+msgstr "NeoArch"
+
+msgid "Use NeoArch's custom titlebar and choose any theme below."
+msgstr "NeoArch'ın özel başlık çubuğunu kullanın ve aşağıdan bir tema seçin."
+
+msgid "Use your desktop titlebar and system colors. Themes are managed by your OS."
+msgstr "Masaüstünüzün başlık çubuğunu ve sistem renklerini kullanın. Temalar işletim sisteminiz tarafından yönetilir."
+
+msgid "Window style"
+msgstr "Pencere stili"
+
+msgid "System transparency"
+msgstr "Sistem saydamlığı"
+
+msgid "Let the desktop show through the window body."
+msgstr "Masaüstünün pencere gövdesinden görünmesine izin verin."

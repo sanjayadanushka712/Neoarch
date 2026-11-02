@@ -10,7 +10,7 @@ from threading import Thread
 from PyQt6.QtCore import QObject, pyqtSignal
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QPushButton, QLineEdit, QTextEdit, QTableWidget,
+    QLabel, QPushButton, QLineEdit, QTableWidget,
     QTableWidgetItem, QHeaderView, QCheckBox, QFrame, QSplitter,
     QScrollArea, QMessageBox, QSizePolicy, QGraphicsDropShadowEffect,
     QFileDialog,
@@ -21,7 +21,7 @@ from PyQt6.QtGui import (
     QTextCursor, QKeySequence, QShortcut,
 )
 
-from neoarch.resources.paths import PROJECT_ROOT
+from neoarch.frontend.icon_registry import icon_path, render_pixmap
 from neoarch.frontend.components.title_bar import _TitleBar
 from neoarch.frontend.components.large_search_box import LargeSearchBox
 from neoarch.frontend.components.packages_grid_view import PackagesGridView
@@ -32,15 +32,14 @@ from neoarch.frontend.components.updates_table import UpdatesTable, _parse_size
 from neoarch.frontend.components.toast import Toast
 from neoarch.frontend.components.installed_table import HoverTableWidget
 from neoarch.backend.services import help as help_service
+from neoarch.backend.services.settings import WINDOW_MODE_SYSTEM
 from neoarch.backend.package import loader as packages_service
 from neoarch.backend.package import updater as update_service
 from neoarch.backend.package import uninstaller as uninstall_service
 from neoarch.backend.services import ignore as ignore_service
 from neoarch.backend.services.i18n import _
-from neoarch.frontend.tokens import Colors, Fonts, Radii
+from neoarch.frontend.tokens import Colors, Fonts, Radii, qcolor, icon_tint
 from neoarch.frontend.styles import Styles
-
-_BASE_DIR = str(PROJECT_ROOT)
 
 
 class _CloudHelper(QObject):
@@ -82,13 +81,13 @@ class _ViewsMixin:
         with QPainter(pixmap) as painter:
             painter.setRenderHint(QPainter.RenderHint.Antialiasing)
 
-            painter.setBrush(QColor(0, 212, 255))
+            painter.setBrush(qcolor(Colors.NEON))
             painter.setPen(Qt.PenStyle.NoPen)
             painter.drawEllipse(4, 4, 56, 56)
 
             font = QFont("Segoe UI", 32, QFont.Weight.Bold)
             painter.setFont(font)
-            painter.setPen(QColor(26, 26, 26))
+            painter.setPen(qcolor(Colors.TEXT_ON_ACCENT))
             painter.drawText(pixmap.rect(), Qt.AlignmentFlag.AlignCenter, "A")
 
         icon = QIcon(pixmap)
@@ -103,7 +102,8 @@ class _ViewsMixin:
 
     def setup_ui(self):
         # Outer container with margins for glow visibility
-        glow = bool(self.settings.get('window_glow', False))
+        native = self._window_mode() == WINDOW_MODE_SYSTEM
+        glow = bool(self.settings.get('window_glow', False)) and not native
         gm = 12 if glow else 0
         outer = QWidget()
         outer.setObjectName("appOuter")
@@ -128,9 +128,10 @@ class _ViewsMixin:
         wrapper_layout.setContentsMargins(0, 0, 0, 0)
         wrapper_layout.setSpacing(0)
 
-        # Custom title bar
-        title_bar = _TitleBar()
-        wrapper_layout.addWidget(title_bar)
+        # Custom title bar (hidden in Native system mode)
+        self._title_bar = _TitleBar()
+        self._title_bar.setVisible(not native)
+        wrapper_layout.addWidget(self._title_bar)
 
         # Body: sidebar + content
         body = QWidget()
@@ -223,7 +224,7 @@ class _ViewsMixin:
         logo_label = QLabel()
         logo_label.setObjectName("sidebarLogo")
         logo_label.setFixedSize(36, 36)
-        logo_path = os.path.join(_BASE_DIR, "assets", "icons", "app", "logo.png")
+        logo_path = icon_path("app/logo")
         pm = QPixmap(logo_path)
         if not pm.isNull():
             logo_label.setPixmap(pm.scaled(36, 36, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
@@ -240,13 +241,12 @@ class _ViewsMixin:
         sec_main.setFixedHeight(0)
         layout.addWidget(sec_main)
 
-        _base = os.path.join(_BASE_DIR, "assets", "icons")
         nav_items = [
-            (_("Home"), "discover", os.path.join(_base, "discover.svg")),
-            (_("Installed"), "installed", os.path.join(_base, "installed.svg")),
-            (_("Groups"), "groups", os.path.join(_base, "groups.svg")),
-            (_("Updates"), "updates", os.path.join(_base, "updates.svg")),
-            (_("History"), "history", os.path.join(_base, "history.svg")),
+            (_("Home"), "discover", icon_path("discover")),
+            (_("Installed"), "installed", icon_path("installed")),
+            (_("Groups"), "groups", icon_path("groups")),
+            (_("Updates"), "updates", icon_path("updates")),
+            (_("History"), "history", icon_path("history")),
         ]
 
         self.nav_buttons = {}
@@ -263,12 +263,12 @@ class _ViewsMixin:
         layout.addWidget(sec_sys)
 
         sys_items = [
-            (_("Sources"), "plugins", os.path.join(_base, "plugins.svg")),
-            (_("Git"), "git", os.path.join(_base, "git.svg")),
-            (_("Docker"), "docker", os.path.join(_base, "docker.svg")),
-            (_("Bundles"), "bundles", os.path.join(_base, "local-builds.svg")),
-            (_("AppImages"), "appimage", os.path.join(_base, "appimage.svg")),
-            (_("Settings"), "settings", os.path.join(_base, "settings.svg")),
+            (_("Sources"), "plugins", icon_path("plugins")),
+            (_("Git"), "git", icon_path("git")),
+            (_("Docker"), "docker", icon_path("docker")),
+            (_("Bundles"), "bundles", icon_path("local_builds")),
+            (_("AppImages"), "appimage", icon_path("appimage")),
+            (_("Settings"), "settings", icon_path("settings")),
         ]
         for text, view_id, icon in sys_items:
             btn = self._create_sidebar_btn(icon, text, view_id)
@@ -291,7 +291,7 @@ class _ViewsMixin:
         icon_label.setObjectName("sidebarNavIcon")
         icon_label.setFixedSize(48, 48)
         icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        about_icon_path = os.path.join(_BASE_DIR, "assets", "icons", "about.svg")
+        about_icon_path = icon_path("about")
         icon = self.get_svg_icon(about_icon_path, 24)
         if not icon.isNull():
             icon_label.setPixmap(icon.pixmap(24, 24))
@@ -303,7 +303,7 @@ class _ViewsMixin:
         # Red count badge for missing dependencies
         dep_badge = QLabel("", about_btn)
         dep_badge.setStyleSheet(f"""
-            background-color: {Colors.RED}; color: #FFFFFF;
+            background-color: {Colors.RED}; color: {Colors.WHITE};
             border: none; border-radius: 9px;
             font-size: {Fonts.XS}; font-weight: {Fonts.BOLD};
         """)
@@ -327,7 +327,7 @@ class _ViewsMixin:
         self.user_avatar_label.setObjectName("sidebarNavIcon")
         self.user_avatar_label.setFixedSize(48, 48)
         self.user_avatar_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        default_avatar_icon = self.get_svg_icon(os.path.join(_BASE_DIR, "assets", "icons", "user.svg"), 24)
+        default_avatar_icon = self.get_svg_icon(icon_path("user"), 24)
         if not default_avatar_icon.isNull():
             self.user_avatar_label.setPixmap(default_avatar_icon.pixmap(24, 24))
         else:
@@ -490,26 +490,26 @@ class _ViewsMixin:
         btn.setToolTip(tooltip)
         btn.setCursor(Qt.CursorShape.PointingHandCursor)
         btn.clicked.connect(callback)
-        btn.setStyleSheet("""
-            QPushButton {
+        btn.setStyleSheet(f"""
+            QPushButton {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 rgba(40, 42, 48, 0.9),
-                    stop:1 rgba(28, 30, 36, 0.9));
-                border: 1px solid rgba(255, 255, 255, 0.06);
+                    stop:0 {Colors.GLASS_40_90},
+                    stop:1 {Colors.GLASS_2_90});
+                border: 1px solid {Colors.BORDER};
                 border-radius: 21px;
-            }
-            QPushButton:hover {
+            }}
+            QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 rgba(50, 52, 58, 0.9),
-                    stop:1 rgba(34, 36, 42, 0.9));
-                border: 1px solid rgba(0, 191, 174, 0.25);
-            }
-            QPushButton:pressed {
+                    stop:0 {Colors.GLASS_50_90},
+                    stop:1 {Colors.GLASS_2_90});
+                border: 1px solid {Colors.ACCENT_BORDER};
+            }}
+            QPushButton:pressed {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 rgba(20, 22, 26, 0.9),
-                    stop:1 rgba(24, 26, 32, 0.9));
-                border: 1px solid rgba(0, 191, 174, 0.4);
-            }
+                    stop:0 {Colors.GLASS_20_90},
+                    stop:1 {Colors.GLASS_DEEP});
+                border: 1px solid {Colors.ACCENT_40};
+            }}
         """)
 
         glow = QGraphicsDropShadowEffect(btn)
@@ -536,11 +536,9 @@ class _ViewsMixin:
 
     def _add_right_toolbar_icons(self, layout, show_install_file=False, show_sudo=False, show_bundle=False, show_grid_filter=True, show_news=False):
         """Add common right-side navbar icons to any toolbar layout."""
-        navbar_dir = os.path.join(_BASE_DIR, "assets", "icons", "toolbar")
-
         if show_grid_filter:
             self._grid_view_btn = self.create_toolbar_button(
-                os.path.join(navbar_dir, "view.svg"),
+                icon_path("toolbar/view"),
                 _("Grid View"),
                 self.toggle_view_mode
             )
@@ -548,7 +546,7 @@ class _ViewsMixin:
 
         if show_install_file:
             self._install_file_btn = self.create_toolbar_button(
-                os.path.join(navbar_dir, "install_from_file.svg"),
+                icon_path("toolbar/install_from_file"),
                 _("Install Local Pkg"),
                 self.install_from_local_file
             )
@@ -556,7 +554,7 @@ class _ViewsMixin:
 
         if show_bundle:
             self._bundle_btn = self.create_toolbar_button(
-                os.path.join(navbar_dir, "addBundle.svg"),
+                icon_path("toolbar/addBundle"),
                 _("Add selected to Bundle"),
                 self.add_selected_to_bundle
             )
@@ -564,7 +562,7 @@ class _ViewsMixin:
 
         if show_sudo:
             self._sudo_btn = self.create_toolbar_button(
-                os.path.join(navbar_dir, "insatllwithsudo.svg"),
+                icon_path("toolbar/insatllwithsudo"),
                 _("Install with Sudo Privileges"),
                 self.sudo_install_selected
             )
@@ -572,7 +570,7 @@ class _ViewsMixin:
 
         if show_news:
             self._news_btn = self.create_toolbar_button(
-                os.path.join(navbar_dir, "news.svg"),
+                icon_path("toolbar/news"),
                 _("Arch News"),
                 self.show_arch_news
             )
@@ -697,8 +695,8 @@ class _ViewsMixin:
         p = QPainter(pm)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         grad = QLinearGradient(0, 0, pw, 0)
-        grad.setColorAt(0.0, QColor("#FFFFFF"))
-        grad.setColorAt(1.0, QColor("#4A9EFF"))
+        grad.setColorAt(0.0, qcolor(Colors.WHITE))
+        grad.setColorAt(1.0, qcolor(Colors.BLUE))
         p.setFont(font)
         p.setPen(QPen(grad, 1))
         p.drawText(QRectF(0, 0, pw, ph), Qt.AlignmentFlag.AlignCenter, text)
@@ -1008,26 +1006,26 @@ class _ViewsMixin:
         search_input.setPlaceholderText(_("Quick search…"))
         search_input.setFixedWidth(220)
         search_input.setFixedHeight(36)
-        search_input.setStyleSheet("""
-            QLineEdit {
-                background-color: rgba(0, 0, 0, 0.55);
-                border: 1px solid rgba(255, 255, 255, 0.10);
+        search_input.setStyleSheet(f"""
+            QLineEdit {{
+                background-color: {Colors.INPUT_BG};
+                border: 1px solid {Colors.BORDER_INPUT};
                 border-radius: 12px;
                 padding: 0 14px;
-                color: #FFFFFF;
+                color: {Colors.TEXT};
                 font-size: 13px;
-                selection-background-color: rgba(0, 214, 213, 0.35);
-            }
-            QLineEdit:hover {
-                border: 1px solid rgba(0, 214, 213, 0.35);
-            }
-            QLineEdit:focus {
-                background-color: rgba(0, 0, 0, 0.78);
-                border: 1px solid rgba(0, 214, 213, 0.85);
-            }
-            QLineEdit::placeholder {
-                color: rgba(255, 255, 255, 0.35);
-            }
+                selection-background-color: {Colors.NEON_35};
+            }}
+            QLineEdit:hover {{
+                border: 1px solid {Colors.BORDER_HOVER};
+            }}
+            QLineEdit:focus {{
+                background-color: {Colors.SURFACE_2};
+                border: 1px solid {Colors.BORDER_FOCUS};
+            }}
+            QLineEdit::placeholder {{
+                color: {Colors.TEXT_3};
+            }}
         """)
         self.search_input = search_input
         layout.addWidget(search_input)
@@ -1040,48 +1038,47 @@ class _ViewsMixin:
         refresh_btn = QPushButton()
         refresh_btn.setFixedSize(36, 36)
         refresh_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        icon_dir = os.path.join(_BASE_DIR, "assets", "icons", "ui")
-        refresh_btn.setIcon(self.get_svg_icon(os.path.join(icon_dir, "refresh.svg"), 18))
+        refresh_btn.setIcon(self.get_svg_icon(icon_path("ui/refresh"), 18))
         refresh_btn.setToolTip(_("Refresh"))
         refresh_btn.clicked.connect(self.refresh_packages)
-        refresh_btn.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(28, 30, 36, 0.75);
-                border: 1px solid rgba(255, 255, 255, 0.08);
+        refresh_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {Colors.GLASS_2_90};
+                border: 1px solid {Colors.BORDER_INPUT};
                 border-radius: 18px;
-            }
-            QPushButton:hover {
-                background-color: rgba(34, 36, 42, 0.85);
-                border: 1px solid rgba(0, 214, 213, 0.45);
-            }
-            QPushButton:pressed {
-                background-color: rgba(0, 214, 213, 0.18);
-                border: 1px solid rgba(0, 214, 213, 0.60);
-            }
+            }}
+            QPushButton:hover {{
+                background-color: {Colors.GLASS_2};
+                border: 1px solid {Colors.NEON_45};
+            }}
+            QPushButton:pressed {{
+                background-color: {Colors.NEON_18};
+                border: 1px solid {Colors.NEON_60};
+            }}
         """)
         layout.addWidget(refresh_btn)
 
         security_btn = QPushButton()
         security_btn.setFixedSize(36, 36)
         security_btn.setCursor(Qt.CursorShape.PointingHandCursor)
-        security_icon = os.path.join(_BASE_DIR, "assets", "icons", "toolbar", "shield.svg")
+        security_icon = icon_path("toolbar/shield")
         security_btn.setIcon(self.get_svg_icon(security_icon, 18))
         security_btn.setToolTip(_("Security"))
         security_btn.clicked.connect(self.open_security_settings)
-        security_btn.setStyleSheet("""
-            QPushButton {
-                background-color: rgba(28, 30, 36, 0.75);
-                border: 1px solid rgba(255, 255, 255, 0.08);
+        security_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {Colors.GLASS_2_90};
+                border: 1px solid {Colors.BORDER_INPUT};
                 border-radius: 18px;
-            }
-            QPushButton:hover {
-                background-color: rgba(34, 36, 42, 0.85);
-                border: 1px solid rgba(0, 214, 213, 0.45);
-            }
-            QPushButton:pressed {
-                background-color: rgba(0, 214, 213, 0.18);
-                border: 1px solid rgba(0, 214, 213, 0.60);
-            }
+            }}
+            QPushButton:hover {{
+                background-color: {Colors.GLASS_2};
+                border: 1px solid {Colors.NEON_45};
+            }}
+            QPushButton:pressed {{
+                background-color: {Colors.NEON_18};
+                border: 1px solid {Colors.NEON_60};
+            }}
         """)
         layout.addWidget(security_btn)
 
@@ -1372,6 +1369,8 @@ class _ViewsMixin:
         self.appimage_view = None
         self.git_view = None
         self.docker_view = None
+        self.history_view = None
+        self.groups_view = None
         self.about_view = None
 
         # Container for table area + detail card side panel
@@ -1459,36 +1458,35 @@ class _ViewsMixin:
         self.packages_panel_layout.addWidget(self.packages_content_area, 1)
 
         # Console toggle button (bottom-right)
-        icon_dir = os.path.join(_BASE_DIR, "assets", "icons", "ui")
         self.console_toggle_btn = QPushButton()
         self.console_toggle_btn.setFixedSize(42, 42)
-        self.console_toggle_btn.setIcon(self.get_svg_icon(os.path.join(icon_dir, "terminal.svg"), 20))
+        self.console_toggle_btn.setIcon(self.get_svg_icon(icon_path("ui/terminal"), 20))
         self.console_toggle_btn.setIconSize(QSize(20, 20))
         self.console_toggle_btn.setToolTip(_("Show Console"))
         self.console_toggle_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self.console_toggle_btn.clicked.connect(self.toggle_console)
         self.console_toggle_btn.setVisible(False)
-        self.console_toggle_btn.setStyleSheet("""
-            QPushButton {
+        self.console_toggle_btn.setStyleSheet(f"""
+            QPushButton {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 rgba(40, 42, 48, 0.95),
-                    stop:1 rgba(28, 30, 36, 0.95));
-                border: 1px solid rgba(255, 255, 255, 0.08);
+                    stop:0 {Colors.GLASS_3_95},
+                    stop:1 {Colors.GLASS_95});
+                border: 1px solid {Colors.BORDER_INPUT};
                 border-radius: 21px;
                 padding: 0px;
-            }
-            QPushButton:hover {
+            }}
+            QPushButton:hover {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 rgba(50, 52, 58, 0.95),
-                    stop:1 rgba(34, 36, 42, 0.95));
-                border: 1px solid rgba(0, 191, 174, 0.3);
-            }
-            QPushButton:pressed {
+                    stop:0 {Colors.GLASS_3_95},
+                    stop:1 {Colors.GLASS_2_95});
+                border: 1px solid {Colors.ACCENT_30};
+            }}
+            QPushButton:pressed {{
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                    stop:0 rgba(20, 22, 26, 0.95),
-                    stop:1 rgba(24, 26, 32, 0.95));
-                border: 1px solid rgba(0, 191, 174, 0.5);
-            }
+                    stop:0 {Colors.GLASS_DEEP_95},
+                    stop:1 {Colors.GLASS_DEEP_95});
+                border: 1px solid {Colors.BORDER_FOCUS};
+            }}
         """)
         btn_shadow = QGraphicsDropShadowEffect()
         btn_shadow.setBlurRadius(20)
@@ -1566,27 +1564,27 @@ class _ViewsMixin:
 
             btn_style = f"""
                 QPushButton {{
-                    background-color: rgba(28, 30, 36, 0.75);
+                    background-color: {Colors.GLASS_2_90};
                     color: {Colors.TEXT};
-                    border: 1px solid rgba(255,255,255,0.06);
+                    border: 1px solid {Colors.BORDER};
                     border-radius: 10px;
                     padding: 8px 18px;
                     font-size: {Fonts.BASE};
                     font-weight: 500;
                 }}
                 QPushButton:hover {{
-                    background-color: rgba(34, 36, 42, 0.85);
-                    border-color: rgba(255,255,255,0.12);
+                    background-color: {Colors.GLASS_2};
+                    border-color: {Colors.OVERLAY_12};
                 }}
                 QPushButton:pressed {{
-                    background-color: rgba(38, 40, 48, 0.9);
+                    background-color: {Colors.GLASS_3};
                 }}
             """
 
             refresh_btn = QPushButton(_(" Check for Updates"))
             refresh_btn.setMinimumHeight(36)
             refresh_btn.setStyleSheet(btn_style)
-            refresh_icon = self.get_svg_icon(os.path.join(_BASE_DIR, "assets", "icons", "ui", "refresh.svg"), 16)
+            refresh_icon = self.get_svg_icon(icon_path("ui/refresh"), 16)
             refresh_btn.setIcon(refresh_icon)
             refresh_btn.setIconSize(QSize(16, 16))
             refresh_btn.clicked.connect(self.load_updates)
@@ -1605,22 +1603,22 @@ class _ViewsMixin:
             update_selected_btn.setEnabled(False)
             update_selected_btn.setStyleSheet(f"""
                 QPushButton {{
-                    background-color: rgba(255, 255, 255, 0.06);
+                    background-color: {Colors.BORDER};
                     color: {Colors.TEXT};
-                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    border: 1px solid {Colors.BORDER_HOVER};
                     border-radius: 10px;
                     padding: 8px 18px;
                     font-size: {Fonts.BASE};
                     font-weight: 500;
                 }}
                 QPushButton:hover {{
-                    background-color: rgba(255, 255, 255, 0.1);
-                    border-color: rgba(0, 191, 174, 0.4);
+                    background-color: {Colors.BORDER_HOVER};
+                    border-color: {Colors.ACCENT_40};
                 }}
                 QPushButton:disabled {{
                     color: {Colors.TEXT_3};
-                    background-color: rgba(255, 255, 255, 0.03);
-                    border-color: rgba(255, 255, 255, 0.04);
+                    background-color: {Colors.OVERLAY_03};
+                    border-color: {Colors.OVERLAY_04};
                 }}
             """)
             update_selected_btn.clicked.connect(self.update_selected)
@@ -1649,20 +1647,20 @@ class _ViewsMixin:
             update_btn.setMinimumHeight(36)
             update_btn.setStyleSheet(f"""
                 QPushButton {{
-                    background-color: rgba(28, 30, 36, 0.75);
+                    background-color: {Colors.GLASS_2_90};
                     color: {Colors.TEXT};
-                    border: 1px solid rgba(255,255,255,0.06);
+                    border: 1px solid {Colors.BORDER};
                     border-radius: 10px;
                     padding: 8px 18px;
                     font-size: {Fonts.BASE};
                     font-weight: 500;
                 }}
                 QPushButton:hover {{
-                    background-color: rgba(34, 36, 42, 0.85);
-                    border-color: rgba(255,255,255,0.12);
+                    background-color: {Colors.GLASS_2};
+                    border-color: {Colors.OVERLAY_12};
                 }}
                 QPushButton:pressed {{
-                    background-color: rgba(38, 40, 48, 0.9);
+                    background-color: {Colors.GLASS_3};
                 }}
                 """
             )
@@ -1708,30 +1706,6 @@ class _ViewsMixin:
             self.discover_install_btn.setEnabled(False)
             layout.addWidget(self.discover_install_btn)
 
-            self._select_all_btn = QPushButton(_("Select all"))
-            self._select_all_btn.setMinimumHeight(36)
-            self._select_all_btn.setCursor(
-                Qt.CursorShape.PointingHandCursor)
-            self._select_all_btn.setStyleSheet(f"""
-                QPushButton {{
-                    background-color: transparent;
-                    color: {Colors.TEXT_2};
-                    border: 1px solid rgba(255,255,255,0.14);
-                    border-radius: 10px;
-                    padding: 8px 16px;
-                    font-size: {Fonts.BASE};
-                    font-weight: 600;
-                }}
-                QPushButton:hover {{
-                    color: {Colors.TEXT};
-                    background-color: rgba(255,255,255,0.06);
-                    border-color: rgba(255,255,255,0.28);
-                }}
-                QPushButton:pressed {{ background-color: rgba(255,255,255,0.1); }}
-            """)
-            self._select_all_btn.clicked.connect(self._toggle_select_all)
-            layout.addWidget(self._select_all_btn)
-
             self._greeting_label = QLabel()
             self._greeting_label.setVisible(False)
             layout.addWidget(self._greeting_label)
@@ -1774,21 +1748,21 @@ class _ViewsMixin:
             self._plugins_clear_btn.setStyleSheet(f"""
                 QPushButton {{
                     background-color: transparent;
-                    color: #FF6B6B;
-                    border: 1px solid rgba(255, 107, 107, 0.3);
+                    color: {Colors.RED};
+                    border: 1px solid {Colors.RED_30};
                     border-radius: 10px;
                     padding: 8px 18px;
                     font-size: {Fonts.BASE};
                     font-weight: 600;
                 }}
                 QPushButton:hover {{
-                    background-color: rgba(255, 107, 107, 0.12);
-                    border-color: rgba(255, 107, 107, 0.5);
+                    background-color: {Colors.RED_12};
+                    border-color: {Colors.RED_50};
                 }}
-                QPushButton:pressed {{ background-color: rgba(255, 107, 107, 0.2); }}
+                QPushButton:pressed {{ background-color: {Colors.RED_BORDER}; }}
                 QPushButton:disabled {{
                     color: {Colors.TEXT_3};
-                    border-color: rgba(255, 255, 255, 0.06);
+                    border-color: {Colors.BORDER};
                 }}
             """)
             self._plugins_clear_btn.clicked.connect(self._on_plugins_clear_selection)
@@ -1829,7 +1803,7 @@ class _ViewsMixin:
             # ── Separator ──
             sep1 = QFrame()
             sep1.setFrameShape(QFrame.Shape.VLine)
-            sep1.setStyleSheet("QFrame { color: rgba(255,255,255,0.08); }")
+            sep1.setStyleSheet(f"QFrame {{ color: {Colors.BORDER_INPUT}; }}")
             sep1.setFixedWidth(1)
             layout.addWidget(sep1)
 
@@ -1838,20 +1812,20 @@ class _ViewsMixin:
                 QPushButton {{
                     background-color: transparent;
                     color: {Colors.TEXT};
-                    border: 1px solid rgba(255, 255, 255, 0.12);
+                    border: 1px solid {Colors.OVERLAY_12};
                     border-radius: 8px;
                     padding: 7px 14px;
                     font-size: {Fonts.MD};
                     font-weight: 500;
                 }}
                 QPushButton:hover {{
-                    background-color: rgba(255, 255, 255, 0.06);
-                    border-color: rgba(255, 255, 255, 0.2);
+                    background-color: {Colors.BORDER};
+                    border-color: {Colors.BORDER_STRONG};
                 }}
-                QPushButton:pressed {{ background-color: rgba(255, 255, 255, 0.10); }}
+                QPushButton:pressed {{ background-color: {Colors.BORDER_HOVER}; }}
                 QPushButton:disabled {{
                     color: {Colors.TEXT_3};
-                    border-color: rgba(255, 255, 255, 0.06);
+                    border-color: {Colors.BORDER};
                 }}
             """
 
@@ -1860,21 +1834,21 @@ class _ViewsMixin:
             self._bundle_clear_btn.setStyleSheet(f"""
                 QPushButton {{
                     background-color: transparent;
-                    color: #FF6B6B;
-                    border: 1px solid rgba(255, 107, 107, 0.2);
+                    color: {Colors.RED};
+                    border: 1px solid {Colors.RED_BORDER};
                     border-radius: 8px;
                     padding: 7px 14px;
                     font-size: {Fonts.MD};
                     font-weight: 500;
                 }}
                 QPushButton:hover {{
-                    background-color: rgba(255, 107, 107, 0.1);
-                    border-color: rgba(255, 107, 107, 0.4);
+                    background-color: {Colors.RED_SOFT};
+                    border-color: {Colors.RED_40};
                 }}
-                QPushButton:pressed {{ background-color: rgba(255, 107, 107, 0.18); }}
+                QPushButton:pressed {{ background-color: {Colors.RED_18}; }}
                 QPushButton:disabled {{
                     color: {Colors.TEXT_3};
-                    border-color: rgba(255, 255, 255, 0.06);
+                    border-color: {Colors.BORDER};
                 }}
             """)
             self._bundle_clear_btn.clicked.connect(self.clear_bundle)
@@ -1883,7 +1857,7 @@ class _ViewsMixin:
 
             sep2 = QFrame()
             sep2.setFrameShape(QFrame.Shape.VLine)
-            sep2.setStyleSheet("QFrame { color: rgba(255,255,255,0.08); }")
+            sep2.setStyleSheet(f"QFrame {{ color: {Colors.BORDER_INPUT}; }}")
             sep2.setFixedWidth(1)
             layout.addWidget(sep2)
 
@@ -2039,18 +2013,18 @@ class _ViewsMixin:
 
         # Update header
         headers = {
-            "updates": (os.path.join(_BASE_DIR, "assets", "icons", "ui", "update12.svg"), _("Software Updates"), ""),
-            "installed": (os.path.join(_BASE_DIR, "assets", "icons", "ui", "installed.svg"), _("Installed Packages"), ""),
-            "groups": (os.path.join(_BASE_DIR, "assets", "icons", "groups.svg"), _("Package Groups"), _("Browse and install packages by group")),
-            "discover": (os.path.join(_BASE_DIR, "assets", "icons", "ui", "search.svg"), _("Home"), _("Dashboard and package discovery")),
-            "plugins": (os.path.join(_BASE_DIR, "assets", "icons", "plugins.svg"), _("Sources & Plugins"), _("Manage package sources and extensions")),
-            "bundles": (os.path.join(_BASE_DIR, "assets", "icons", "local-builds.svg"), _("Bundles"), _("Create, import, export, and install bundles of packages")),
-            "appimage": (os.path.join(_BASE_DIR, "assets", "icons", "appimage.svg"), _("AppImages"), _("Manage AppImage applications")),
-            "git": (os.path.join(_BASE_DIR, "assets", "icons", "git.svg"), _("Git Repositories"), _("Clone, build, update, and manage Git repositories")),
-            "docker": (os.path.join(_BASE_DIR, "assets", "icons", "docker.svg"), _("Docker Containers"), _("Pull, run, and manage Docker containers")),
-            "history": (os.path.join(_BASE_DIR, "assets", "icons", "history.svg"), _("History"), _("Every install, upgrade and removal recorded by pacman")),
-            "settings": (os.path.join(_BASE_DIR, "assets", "icons", "settings.svg"), _("Settings"), _("Configure NeoArch settings")),
-            "about": (os.path.join(_BASE_DIR, "assets", "icons", "about.svg"), _("About"), _("About NeoArch")),
+            "updates": (icon_path("ui/update12"), _("Software Updates"), ""),
+            "installed": (icon_path("ui/installed"), _("Installed Packages"), ""),
+            "groups": (icon_path("groups"), _("Package Groups"), _("Browse and install packages by group")),
+            "discover": (icon_path("ui/search"), _("Home"), _("Dashboard and package discovery")),
+            "plugins": (icon_path("plugins"), _("Sources & Plugins"), _("Manage package sources and extensions")),
+            "bundles": (icon_path("local_builds"), _("Bundles"), _("Create, import, export, and install bundles of packages")),
+            "appimage": (icon_path("appimage"), _("AppImages"), _("Manage AppImage applications")),
+            "git": (icon_path("git"), _("Git Repositories"), _("Clone, build, update, and manage Git repositories")),
+            "docker": (icon_path("docker"), _("Docker Containers"), _("Pull, run, and manage Docker containers")),
+            "history": (icon_path("history"), _("History"), _("Every install, upgrade and removal recorded by pacman")),
+            "settings": (icon_path("settings"), _("Settings"), _("Configure NeoArch settings")),
+            "about": (icon_path("about"), _("About"), _("About NeoArch")),
         }
 
         header_data = headers.get(view_id, ("NeoArch", ""))
@@ -2104,7 +2078,7 @@ class _ViewsMixin:
         if view_id != "plugins" and self._view_mode != "table":
             self._view_mode = "table"
             if hasattr(self, '_grid_view_btn') and self._grid_view_btn:
-                self._grid_view_btn.setIcon(self.get_svg_icon(os.path.join(_BASE_DIR, "assets", "icons", "toolbar", "view.svg"), 20))
+                self._grid_view_btn.setIcon(self.get_svg_icon(icon_path("toolbar/view"), 20))
                 self._grid_view_btn.setToolTip(_("Grid View"))
 
         # Load data for view
@@ -2313,7 +2287,7 @@ class _ViewsMixin:
         elif view_id == "plugins":
             self._view_mode = "grid"
             if hasattr(self, '_grid_view_btn') and self._grid_view_btn:
-                self._grid_view_btn.setIcon(self.get_svg_icon(os.path.join(_BASE_DIR, "assets", "icons", "toolbar", "view.svg"), 20))
+                self._grid_view_btn.setIcon(self.get_svg_icon(icon_path("toolbar/view"), 20))
                 self._grid_view_btn.setToolTip(_("List View"))
             try:
                 self.loading_widget.setVisible(False)
@@ -3253,14 +3227,14 @@ class _ViewsMixin:
         except Exception:
             installed = False
         if installed:
-            green = QColor(16, 185, 129)
+            green = qcolor(Colors.GREEN_BRIGHT)
             name_item.setForeground(green)
             ver_item.setForeground(green)
             tip = "Already installed"
             name_item.setToolTip(tip)
             ver_item.setToolTip(tip)
             try:
-                chip_text.setStyleSheet("color: rgb(16,185,129);")
+                chip_text.setStyleSheet(f"color: {Colors.GREEN_BRIGHT};")
                 source_chip.setToolTip(tip)
             except Exception:
                 pass
@@ -3301,7 +3275,7 @@ class _ViewsMixin:
         if self.package_table.columnCount() > 3:
             new_version_item = QTableWidgetItem(new_version)
             if self.current_view == "updates":
-                new_version_item.setForeground(QColor(16, 185, 129))
+                new_version_item.setForeground(qcolor(Colors.GREEN_BRIGHT))
             self.package_table.setItem(row, 3, new_version_item)
             self.package_table.setItem(row, 4, QTableWidgetItem(source))
 
@@ -4152,7 +4126,7 @@ class _ViewsMixin:
         menu.setStyleSheet(Styles.menu(bg=Colors.CARD, fg=Colors.TEXT,
                                border=Colors.BORDER_STRONG) + f"""
             QMenu::item {{ padding: 8px 16px; border-radius: 4px; }}
-            QMenu::item:selected {{ background-color: {Colors.ACCENT}; color: #fff; }}
+            QMenu::item:selected {{ background-color: {Colors.ACCENT}; color: {Colors.TEXT_ON_ACCENT}; }}
             QMenu::separator {{ height: 1px; background: {Colors.ACCENT_SOFT}; margin: 4px 8px; }}
         """)
 
@@ -4498,46 +4472,6 @@ class _ViewsMixin:
         except Exception as e:
             self.log(f"Error reading checked packages: {e}")
         self.discover_install_btn.setEnabled(has_checked)
-        btn = getattr(self, '_select_all_btn', None)
-        if btn is not None:
-            if getattr(self, '_view_mode', 'table') == "grid":
-                all_checked = bool(getattr(self, 'packages_grid', None)
-                                   and self.packages_grid.is_all_checked())
-            else:
-                all_checked = False
-                try:
-                    if hasattr(self, 'updates_table') and self.updates_table:
-                        all_checked = self.updates_table.model.all_installable_checked()
-                except (AttributeError, RuntimeError):
-                    all_checked = False
-            btn.setText(_("Clear selection") if all_checked else _("Select all"))
-
-    def _toggle_select_all(self):
-        """Select / clear every result on the active Discover surface."""
-        view_mode = getattr(self, '_view_mode', 'table')
-        state = True
-        if view_mode == "grid":
-            try:
-                grid = getattr(self, 'packages_grid', None)
-                if grid is not None:
-                    state = not grid.is_all_checked()
-                    grid.set_all_checked(state)
-            except (AttributeError, RuntimeError) as e:
-                self.log(f"Select-all (grid) error: {e}")
-                return
-        else:
-            try:
-                if self.updates_table is not None:
-                    state = not self.updates_table.model.all_installable_checked()
-                    self.updates_table.set_all_checked(state)
-            except (AttributeError, RuntimeError) as e:
-                self.log(f"Select-all error: {e}")
-                return
-        try:
-            self._update_discover_install_btn_state()
-        except (AttributeError, RuntimeError):
-            self.log("Could not refresh the install button state")
-        self.log(f"{'Selected' if state else 'Cleared'} all package results")
 
     def on_checkbox_changed(self, row, state):
         if self._updating_selection:
@@ -4611,7 +4545,7 @@ class _ViewsMixin:
             if shutil.which("notify-send") is None:
                 return
             cmd = ["notify-send", "-a", "Neoarch"]
-            icon = os.path.join(_BASE_DIR, "assets", "icons", "discover.svg")
+            icon = icon_path("discover")
             if os.path.exists(icon):
                 cmd += ["-i", icon]
             cmd += [title, text]
@@ -4886,9 +4820,8 @@ class _ViewsMixin:
         has_optional = bool(self._dep_optional_missing)
 
         label = getattr(self, '_about_icon_label', None)
-        about_icon_path = os.path.join(_BASE_DIR, "assets", "icons", "about.svg")
-        about_fail_path = os.path.join(_BASE_DIR, "assets", "icons",
-                                       "about-fail.svg")
+        about_icon_path = icon_path("about")
+        about_fail_path = icon_path("about_fail")
         if label is not None:
             if has_issue:
                 icon = self.get_svg_icon(
@@ -4924,7 +4857,7 @@ class _ViewsMixin:
                          else len(self._dep_optional_missing))
                 badge.setStyleSheet(f"""
                     background-color: {Colors.RED if has_issue else Colors.GREEN};
-                    color: #FFFFFF;
+                    color: {Colors.WHITE};
                     border: none; border-radius: 9px;
                     font-size: {Fonts.XS}; font-weight: {Fonts.BOLD};
                 """)
@@ -4940,19 +4873,11 @@ class _ViewsMixin:
         from PyQt6.QtCore import QPoint
         from PyQt6.QtWidgets import QMenu, QWidgetAction
 
-        def _white_icon(svg_body):
-            """White mac-style line icon for menu items."""
-            try:
-                from neoarch.frontend.components.about_tab import (
-                    _mac_icon_pixmap)
-                return QIcon(_mac_icon_pixmap(svg_body, 15))
-            except Exception:
-                return QIcon()
+        def _menu_icon(icon_name):
+            """Themed macOS-style line icon for menu items."""
+            return QIcon(render_pixmap(icon_name, 15, f"{icon_tint()}"))
 
-        _ICON_BOX = (
-            '<path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/>'
-            '<path d="M3.3 7.9L12 12.8l8.7-4.9"/>'
-            '<path d="M12 22.1V12.8"/>')
+        _ICON_BOX = "ui/box"
 
         cm = getattr(self, '_cloud_auth', None)
         logged_in = bool(cm and cm.is_logged_in)
@@ -4967,7 +4892,7 @@ class _ViewsMixin:
             QMenu::item:disabled {{ color: {Colors.TEXT_3}; }}
             QMenu::separator {{
                 height: 1px;
-                background: rgba(255, 255, 255, 0.07);
+                background: {Colors.OVERLAY_07};
                 margin: 5px 8px;
             }}
         """)
@@ -5011,7 +4936,7 @@ class _ViewsMixin:
                 lambda: cm.logout() if cm else None)
             menu.addSeparator()
             manage_act = menu.addAction(_("Manage Bundles"))
-            manage_act.setIcon(_white_icon(_ICON_BOX))
+            manage_act.setIcon(_menu_icon(_ICON_BOX))
             manage_act.triggered.connect(
                 lambda: self._safe_switch("bundles"))
             settings_act = menu.addAction(_("\u2699  Account Settings"))
@@ -5170,15 +5095,15 @@ class _ViewsMixin:
 
         from PyQt6.QtWidgets import QDialog
         from neoarch.frontend.components.dark_dialogs import (
-            _DIALOG_STYLE,
+            _dialog_style,
             _DialogTitleBar, _apply_dialog_flags,
         )
 
         _RESTORE_BTN = f"""
             QPushButton {{
                 background-color: {Colors.WHITE};
-                color: {Colors.TEXT_ON_ACCENT};
-                border: 1px solid rgba(255, 255, 255, 0.9);
+                color: {Colors.TEXT_ON_WHITE};
+                border: 1px solid {Colors.OVERLAY_90};
                 border-radius: 6px;
                 padding: 5px 0;
                 font-size: {Fonts.SM};
@@ -5190,9 +5115,9 @@ class _ViewsMixin:
         """
         _DELETE_BTN = f"""
             QPushButton {{
-                background-color: rgba(255, 80, 80, 0.15);
-                color: #FF6B6B;
-                border: 1px solid rgba(255, 80, 80, 0.30);
+                background-color: {Colors.RED_STRONG_SOFT};
+                color: {Colors.RED};
+                border: 1px solid {Colors.RED_STRONG_BORDER};
                 border-radius: 6px;
                 padding: 5px 0;
                 font-size: {Fonts.SM};
@@ -5200,14 +5125,14 @@ class _ViewsMixin:
                 min-width: 64px;
             }}
             QPushButton:hover {{
-                background-color: rgba(255, 80, 80, 0.25);
-                border-color: rgba(255, 80, 80, 0.45);
+                background-color: {Colors.RED_STRONG_25};
+                border-color: {Colors.RED_STRONG_45};
             }}
         """
         _DONE_BTN = f"""
             QPushButton {{
                 background: {Colors.ACCENT};
-                color: {Colors.WHITE};
+                color: {Colors.TEXT_ON_ACCENT};
                 border: 1px solid {Colors.ACCENT_BORDER_STRONG};
                 border-radius: 6px;
                 padding: 6px 20px;
@@ -5225,7 +5150,7 @@ class _ViewsMixin:
         dlg = QDialog(self)
         dlg.setWindowTitle(_("Manage Cloud Bundles"))
         dlg.setMinimumWidth(440)
-        dlg.setStyleSheet(_DIALOG_STYLE)
+        dlg.setStyleSheet(_dialog_style())
         _apply_dialog_flags(dlg)
 
         root = QVBoxLayout(dlg)
@@ -5249,12 +5174,12 @@ class _ViewsMixin:
         list_layout.setContentsMargins(0, 4, 0, 0)
         list_layout.setSpacing(6)
 
-        _ROW_STYLE = """
-            QWidget#bundleRow {
-                background: rgba(255, 255, 255, 0.04);
-                border: 1px solid rgba(255, 255, 255, 0.06);
+        _ROW_STYLE = f"""
+            QWidget#bundleRow {{
+                background: {Colors.OVERLAY_04};
+                border: 1px solid {Colors.BORDER};
                 border-radius: 8px;
-            }
+            }}
         """
 
         def rebuild_list():
@@ -5397,12 +5322,12 @@ class _ViewsMixin:
                 self.user_avatar_label.setText(initials)
                 self.user_avatar_label.setStyleSheet(f"""
                     color: {Colors.ACCENT}; font-weight: bold; font-size: {Fonts.LG};
-                    background-color: rgba(0,191,174,0.15);
+                    background-color: {Colors.ACCENT_15};
                     border-radius: {size // 2}px;
                 """)
                 self.user_avatar_btn.setToolTip(_("Signed in as {name}").format(name=user.name))
         else:
-            default = self.get_svg_icon(os.path.join(_BASE_DIR, "assets", "icons", "user.svg"), 20)
+            default = self.get_svg_icon(icon_path("user"), 20)
             if not default.isNull():
                 self.user_avatar_label.setPixmap(default.pixmap(20, 20))
             else:
