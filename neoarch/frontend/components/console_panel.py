@@ -62,7 +62,7 @@ class ConsoleTextEdit(QTextEdit):
         self._target_height = max(CONSOLE_MIN_HEIGHT, int(height))
         self._expanded = False
         self.setReadOnly(True)
-        self.setLineWrapMode(QTextEdit.LineWrapMode.NoWrap)
+        self.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self._apply_constraints()
 
@@ -183,13 +183,14 @@ class ConsolePanel(QWidget):
 
     heightChanged = pyqtSignal(int)      # resting height in px
     expandedChanged = pyqtSignal(bool)    # strip took over the panel
+    wrapChanged = pyqtSignal(bool)        # soft-wrap state
     statusMessage = pyqtSignal(str)       # user-facing feedback string
 
     def __init__(self, parent=None, icon_provider=None, title=None):
         super().__init__(parent)
         self._icon_provider = icon_provider
         self._expanded = False
-        self._wrap = False
+        self._wrap = True
         self._build_ui(_("Console Output") if title is None else title)
 
     # ── construction ────────────────────────────────────────────────
@@ -277,6 +278,8 @@ class ConsolePanel(QWidget):
         except Exception:
             pass
         outer.addWidget(self.console, 1)
+
+        self.set_wrap(self._wrap)
 
         self.setSizePolicy(QSizePolicy.Policy.Expanding,
                            QSizePolicy.Policy.Fixed)
@@ -385,7 +388,9 @@ class ConsolePanel(QWidget):
 
     def set_wrap(self, wrap):
         """Toggle soft wrapping of long log lines."""
-        self._wrap = bool(wrap)
+        wrap = bool(wrap)
+        changed = wrap != self._wrap
+        self._wrap = wrap
         try:
             if self._wrap:
                 self.console.setLineWrapMode(QTextEdit.LineWrapMode.WidgetWidth)
@@ -401,3 +406,5 @@ class ConsolePanel(QWidget):
                 self.wrap_btn.setIcon(icon)
         except Exception:
             pass
+        if changed:
+            self.wrapChanged.emit(self._wrap)

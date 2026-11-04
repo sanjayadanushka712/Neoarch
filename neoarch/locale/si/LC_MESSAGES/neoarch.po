@@ -2309,6 +2309,9 @@ msgstr "{count} අස්ථානගතව ඇත — NeoArch ක්‍රි�
 msgid "{count} optional component(s) missing — features above will stay hidden until installed"
 msgstr "{count} විකල්ප සංරචක අස්ථානගතව ඇත — ඉහත විශේෂාංග ස්ථාපනය වන තුරු සැඟවී පවතිනු ඇත"
 
+msgid "{count} optional integration(s) not installed"
+msgstr "{count} විකල්ප ඒකාබද්ධතා ස්ථාපනය කර නැත"
+
 msgid "{count} packages were found, {count} of which match the specified filters{suffix}"
 msgstr "පැකේජ {count}ක් හමු විය, ඉන් {count}ක් නිශ්චිත පෙරහන්වලට ගැළපේ{suffix}"
 
@@ -3590,3 +3593,83 @@ msgstr "NeoArch ධාවනය වෙමින් පවතී"
 
 msgid "Open NeoArch from the system tray icon."
 msgstr "පද්ධති ට්‍රේ නිරූපකයෙන් NeoArch විවෘත කරන්න."
+
+msgid "Pro Themes"
+msgstr "Pro තේමා"
+
+msgid "Exclusive full-window artwork"
+msgstr "සුවිශේෂී සම්පූර්ණ කවුළු නිර්මාණ"
+
+msgid "Premium themes with blurred backdrops and tailored palettes."
+msgstr "බොඳ පසුබිම් සහ අභිරුචි වර්ණ පුවරු සහිත ප්‍රීමියම් තේමා."
+
+msgid "No supported mirror tool is installed. Install reflector, pacman-mirrors, or cachyos-rate-mirrors for your distribution."
+msgstr "සහාය දක්වන මිරර් මෙවලමක් ස්ථාපනය කර නැත. ඔබේ බෙදාහැරීම සඳහා reflector, pacman-mirrors හෝ cachyos-rate-mirrors ස්ථාපනය කරන්න."
+
+msgid "Download the fastest mirrors with your distribution's supported tool and write them to the system mirror list. NeoArch uses reflector, pacman-mirrors, or cachyos-rate-mirrors automatically."
+msgstr "ඔබේ බෙදාහැරීමේ සහාය දක්වන මෙවලම සමඟ වේගවත්ම මිරර් බාගත කර පද්ධති මිරර් ලැයිස්තුවට ලියයි. NeoArch ස්වයංක්‍රීයව reflector, pacman-mirrors හෝ cachyos-rate-mirrors භාවිත කරයි."
+
+msgid "Locked"
+msgstr "අගුළු දමා ඇත"
+
+msgid "Locked theme"
+msgstr "අගුළු දමන ලද තේමාව"
+
+msgid "This Pro theme is locked. NeoArch Pro and EndeavourOS are available for free."
+msgstr "මෙම Pro තේමාව අගුළු දමා ඇත. NeoArch Pro සහ EndeavourOS නොමිලේ ලබා ගත හැක."
+
+
+msgid "Invalid unlock code"
+msgstr "වලංගු නොවන අගුලු හැරීමේ කේතය"
+
+msgid "The unlock code for this Pro theme is incorrect."
+msgstr "මෙම Pro තේමාවේ අගුලු හැරීමේ කේතය වැරදිය."
+
+msgid "This Pro theme is locked. Enter its unlock code to use it."
+msgstr "මෙම Pro තේමාව අගුළු දමා ඇත. එය භාවිත කිරීමට එහි අගුලු හැරීමේ කේතය ඇතුළත් කරන්න."
+
+msgid "Unlock"
+msgstr "අගුලු හරින්න"
+
+msgid "Unlock code"
+msgstr "අගුලු හැරීමේ කේතය"
+
+msgid "Try 30 min"
+msgstr "මිනිත්තු 30 උත්සාහ කරන්න"
+
+msgid "Trial: {time} left"
+msgstr "අත්හදා බැලීම: {time} ඉතිරියි"
+
+msgid "Trial ended"
+msgstr "අත්හදා බැලීම අවසන්"
+
+msgid "Trial unavailable"
+msgstr "අත්හදා බැලීම නොමැත"
+
+msgid "This theme's free trial is no longer available."
+msgstr "මෙම තේමාවේ නොමිලේ අත්හදා බැලීම දැන් නොමැත."
+
+msgid "Pro trial ended"
+msgstr "Pro අත්හදා බැලීම අවසන්"
+
+msgid "Your 30-minute trial for {theme} has ended."
+msgstr "{theme} සඳහා ඔබේ මිනිත්තු 30 අත්හදා බැලීම අවසන් විය."
+
+msgid "Decorative rim using the active theme's glow color."
+msgstr "සක්‍රීය තේමාවේ දීප්ති වර්ණය භාවිත කරන අලංකාර මායිමක්."
+
+msgid "Pinned"
+msgstr "පින් කර ඇත"
+
+msgid "Halloween theme giveaway"
+msgstr "හැලෝවීන් තේම් දීමනාව"
+
+msgid "Limited-time offer"
+msgstr "සීමිත කාලයක් සඳහා පමණි"
+
+msgid "Share NeoArch on 5 social media sites or forums — any platform or community works. Take a screenshot of each post or copy its link, then email them to dsanjaya712@gmail.com."
+msgstr "NeoArch එක සමාජ මාධ්‍ය අඩවි 5ක හෝ සංසදවල — ඕනෑම වේදිකාවක් හෝ ප්‍රජාවක් වලංගුයි — බෙදාගන්න. එක් එක් පළ කිරීමේ තිර රුවක් ගන්න හෝ එහි සබැඳිය පිටපත් කරන්න, පසුව ඒවා dsanjaya712@gmail.com වෙත ඊමේල් කරන්න."
+
+msgid "Get the Halloween theme free. This offer is available for a limited time only."
+msgstr "හැලෝවීන් තේම් නොමිලේ ලබාගන්න. මෙම දීමනාව සීමිත කාලයක් සඳහා පමණි."
+

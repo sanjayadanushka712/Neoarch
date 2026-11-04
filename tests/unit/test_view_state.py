@@ -1008,6 +1008,23 @@ def test_row_click_without_marks_opens_that_detail_card(qapp):
     assert card.name_label.text() == "bash"
 
 
+def test_duplicate_package_rows_show_single_detail_card(qapp):
+    # One logical package must never make the card claim "2 packages selected"
+    # just because Discover returned it twice.
+    mixin = _panel_mixin(packages=[
+        {"name": "bash", "id": "bash", "version": "1.0", "new_version": "2.0",
+         "source": "pacman", "download_size": "1.00 MiB"},
+        {"name": "bash", "id": "bash", "version": "1.0", "new_version": "2.0",
+         "source": "pacman", "download_size": "1.00 MiB"},
+    ])
+    _check_row(mixin, 0)
+    card = mixin.package_detail_card
+
+    assert mixin.updates_table.row_count() == 1
+    assert card._multi_mode is False
+    assert card.name_label.text() == "bash"
+
+
 def test_two_checked_rows_show_the_summary_card(qapp):
     mixin = _panel_mixin()
     _check_row(mixin, 0)

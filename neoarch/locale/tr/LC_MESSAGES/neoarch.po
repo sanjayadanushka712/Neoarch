@@ -2309,6 +2309,9 @@ msgstr "{count} eksik — NeoArch'ın çalışması için {req} gerekli"
 msgid "{count} optional component(s) missing — features above will stay hidden until installed"
 msgstr "{count} isteğe bağlı bileşen eksik — yukarıdaki özellikler kurulana kadar gizli kalır"
 
+msgid "{count} optional integration(s) not installed"
+msgstr "{count} isteğe bağlı entegrasyon yüklü değil"
+
 msgid "{count} packages were found, {count} of which match the specified filters{suffix}"
 msgstr "{count} paket bulundu, bunlardan {count} tanesi belirtilen filtrelere uyuyor{suffix}"
 
@@ -3590,3 +3593,83 @@ msgstr "NeoArch çalışıyor"
 
 msgid "Open NeoArch from the system tray icon."
 msgstr "NeoArch'ı sistem tepsisi simgesinden aç."
+
+msgid "Pro Themes"
+msgstr "Pro Temalar"
+
+msgid "Exclusive full-window artwork"
+msgstr "Özel tam pencere görseli"
+
+msgid "Premium themes with blurred backdrops and tailored palettes."
+msgstr "Bulanık arka planlar ve özel paletler içeren premium temalar."
+
+msgid "No supported mirror tool is installed. Install reflector, pacman-mirrors, or cachyos-rate-mirrors for your distribution."
+msgstr "Desteklenen bir ayna aracı yüklü değil. Dağıtımınız için reflector, pacman-mirrors veya cachyos-rate-mirrors yükleyin."
+
+msgid "Download the fastest mirrors with your distribution's supported tool and write them to the system mirror list. NeoArch uses reflector, pacman-mirrors, or cachyos-rate-mirrors automatically."
+msgstr "Dağıtımınızın desteklenen aracıyla en hızlı aynaları indirir ve sistem ayna listesine yazar. NeoArch otomatik olarak reflector, pacman-mirrors veya cachyos-rate-mirrors kullanır."
+
+msgid "Locked"
+msgstr "Kilitli"
+
+msgid "Locked theme"
+msgstr "Kilitli tema"
+
+msgid "This Pro theme is locked. NeoArch Pro and EndeavourOS are available for free."
+msgstr "Bu Pro tema kilitli. NeoArch Pro ve EndeavourOS ücretsiz olarak kullanılabilir."
+
+
+msgid "Invalid unlock code"
+msgstr "Geçersiz kilit açma kodu"
+
+msgid "The unlock code for this Pro theme is incorrect."
+msgstr "Bu Pro temanın kilit açma kodu yanlış."
+
+msgid "This Pro theme is locked. Enter its unlock code to use it."
+msgstr "Bu Pro tema kilitli. Kullanmak için kilit açma kodunu girin."
+
+msgid "Unlock"
+msgstr "Kilidi aç"
+
+msgid "Unlock code"
+msgstr "Kilit açma kodu"
+
+msgid "Try 30 min"
+msgstr "30 dk dene"
+
+msgid "Trial: {time} left"
+msgstr "Deneme: {time} kaldı"
+
+msgid "Trial ended"
+msgstr "Deneme sona erdi"
+
+msgid "Trial unavailable"
+msgstr "Deneme kullanılamıyor"
+
+msgid "This theme's free trial is no longer available."
+msgstr "Bu temanın ücretsiz deneme süresi artık kullanılamıyor."
+
+msgid "Pro trial ended"
+msgstr "Pro denemesi sona erdi"
+
+msgid "Your 30-minute trial for {theme} has ended."
+msgstr "{theme} için 30 dakikalık deneme süreniz sona erdi."
+
+msgid "Decorative rim using the active theme's glow color."
+msgstr "Etkin temanın parıltı rengini kullanan dekoratif kenarlık."
+
+msgid "Pinned"
+msgstr "Sabitlenmiş"
+
+msgid "Halloween theme giveaway"
+msgstr "Halloween tema çekilişi"
+
+msgid "Limited-time offer"
+msgstr "Sınırlı süreli teklif"
+
+msgid "Share NeoArch on 5 social media sites or forums — any platform or community works. Take a screenshot of each post or copy its link, then email them to dsanjaya712@gmail.com."
+msgstr "NeoArch'ı 5 sosyal medya sitesinde veya forumda paylaşın — herhangi bir platform veya topluluk kabul edilir. Her gönderinin ekran görüntüsünü alın veya bağlantısını kopyalayın, ardından dsanjaya712@gmail.com adresine e-postayla gönderin."
+
+msgid "Get the Halloween theme free. This offer is available for a limited time only."
+msgstr "Halloween temasını ücretsiz alın. Bu teklif yalnızca sınırlı bir süre için geçerlidir."
+

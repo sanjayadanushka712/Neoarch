@@ -345,9 +345,28 @@ class UpdatesModel(QAbstractTableModel):
     def _pkg_key(pkg):
         return (pkg.get("name") or "", pkg.get("source") or "")
 
+    @classmethod
+    def _dedupe_packages(cls, packages):
+        """Keep one row per package identity.
+
+        Search can surface the same package twice (for example the same
+        name/source pair from two queries). Duplicate rows share one
+        check key, so ticking either row would mark both and the panel would
+        report one package as two selected.
+        """
+        seen = set()
+        unique = []
+        for pkg in packages:
+            key = cls._pkg_key(pkg)
+            if key in seen:
+                continue
+            seen.add(key)
+            unique.append(pkg)
+        return unique
+
     def set_packages(self, packages):
         self.beginResetModel()
-        self._pkgs = [dict(p) for p in packages]
+        self._pkgs = self._dedupe_packages([dict(p) for p in packages])
         self._checked = set()
         self._selection = set()
         self.endResetModel()
@@ -366,14 +385,32 @@ class UpdatesModel(QAbstractTableModel):
         """Extend the model with more rows (Discover pagination)."""
         if not packages:
             return
+        seen = {self._pkg_key(p) for p in self._pkgs}
+        new = []
+        for pkg in packages:
+            item = dict(pkg)
+            key = self._pkg_key(item)
+            if key in seen:
+                continue
+            seen.add(key)
+            new.append(item)
+        if not new:
+            return
         start = len(self._pkgs)
-        self.beginInsertRows(QModelIndex(), start, start + len(packages) - 1)
-        self._pkgs.extend(dict(p) for p in packages)
+        self.beginInsertRows(QModelIndex(), start, start + len(new) - 1)
+        self._pkgs.extend(new)
         self.endInsertRows()
         self._apply_sort()
 
     def checked_packages(self):
-        return [p for p in self._pkgs if self._pkg_key(p) in self._checked]
+        seen = set()
+        packages = []
+        for pkg in self._pkgs:
+            key = self._pkg_key(pkg)
+            if key in self._checked and key not in seen:
+                seen.add(key)
+                packages.append(pkg)
+        return packages
 
     def panel_packages(self):
         """Packages the user has marked, in row order.
@@ -382,8 +419,16 @@ class UpdatesModel(QAbstractTableModel):
         (they have no batch column), so the detail panel can follow marks on
         every page instead of only where a real checkbox exists.
         """
-        return [p for p in self._pkgs
-                if self._pkg_key(p) in self._checked or self._pkg_key(p) in self._selection]
+        seen = set()
+        packages = []
+        for pkg in self._pkgs:
+            key = self._pkg_key(pkg)
+            if key in seen:
+                continue
+            if key in self._checked or key in self._selection:
+                seen.add(key)
+                packages.append(pkg)
+        return packages
 
     def is_all_checked(self):
         return bool(self._pkgs) and len(self._checked) >= len(self._pkgs)

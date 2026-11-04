@@ -15,13 +15,15 @@ __all__ = [
     "WINDOW_MODE_SYSTEM",
     "load_settings",
     "save_settings",
+    "get_seen_optional_deps",
+    "mark_optional_deps_seen",
     "export_settings",
     "import_settings",
 ]
 
 WINDOW_MODE_SYSTEM = "system"
 WINDOW_MODE_NEOARCH = "neoarch"
-DEFAULT_WINDOW_MODE = WINDOW_MODE_SYSTEM
+DEFAULT_WINDOW_MODE = WINDOW_MODE_NEOARCH
 
 DEFAULT_SETTINGS = {
     'auto_check_updates': True,
@@ -46,15 +48,19 @@ DEFAULT_SETTINGS = {
     'accent_color': '#00BFAE',
     'font_size': 13,
     'source_accent_colors': True,
-    'window_glow': False,
+    'window_glow': True,
+    'window_glow_explicit': None,
     'window_radius': 8,
     'window_opacity': 0.75,
     'window_system_transparency': False,
+    'unlocked_pro_themes': [],
+    'pro_theme_trials': {},
     # Tray / startup
     'start_minimized': False,
     'close_to_tray': False,
     # Console output strip (pixels)
     'console_height': 150,
+    'console_wrap': True,
     # Notifications
     'notify_desktop': True,
     'notify_inapp': True,
@@ -82,6 +88,8 @@ DEFAULT_SETTINGS = {
     'schedule_time': '03:00',
     # Localization (Phase 5); empty means "follow the OS language"
     'culture': '',
+    # Optional integrations whose first-run notice has been seen.
+    'optional_deps_seen': [],
 }
 
 
@@ -117,6 +125,30 @@ def save_settings(settings: dict, log=None) -> None:
     except Exception as e:
         if log:
             log(f"Settings save error: {str(e)}")
+
+
+def get_seen_optional_deps() -> set:
+    """Optional integrations the user has already been shown."""
+    try:
+        values = load_settings().get('optional_deps_seen') or []
+        return {str(name) for name in values if name}
+    except Exception:
+        return set()
+
+
+def mark_optional_deps_seen(names) -> set:
+    """Remember optional integrations shown on Diagnostics; return full set."""
+    try:
+        settings = load_settings()
+        seen = {str(name) for name in
+                (settings.get('optional_deps_seen') or []) if name}
+        updated = seen | {str(name) for name in (names or []) if name}
+        if updated != seen:
+            settings['optional_deps_seen'] = sorted(updated)
+            save_settings(settings)
+        return updated
+    except Exception:
+        return set()
 
 
 def export_settings(app) -> None:

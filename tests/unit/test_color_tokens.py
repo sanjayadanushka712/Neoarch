@@ -53,8 +53,7 @@ def test_theme_switch_updates_tokens_and_generated_styles(monkeypatch):
             assert manager.apply_theme(theme_id)
             colors = THEMES[theme_id]["colors"]
             assert tokens.Colors.BG == colors["BG"]
-            bg = tokens.qcolor(colors["BG"])
-            assert f"rgba({bg.red()}, {bg.green()}, {bg.blue()}," in tokens.DARK_STYLESHEET
+            assert "QFrame#appWindow" in tokens.DARK_STYLESHEET
             assert colors["SURFACE"].lower() in Styles.card().lower()
             assert colors["TEXT"].lower() in Styles.text().lower()
             assert tokens.qcolor(tokens.Colors.OVERLAY_12).isValid()
@@ -122,23 +121,27 @@ def test_builtin_themes_define_all_color_tokens():
         if name.isupper() and isinstance(value, str)
     }
     for theme_id in ("dark", "light", "dracula", "nord",
-                     "solarized-dark", "forest-green"):
+                     "solarized-dark", "forest-green", "neoarch-pro",
+                     "neoarch-pro-evergreen", "neoarch-pro-ember",
+                     "neoarch-pro-glacier", "neoarch-pro-aero",
+                     "neoarch-pro-lagoon", "neoarch-pro-moss",
+                     "neoarch-pro-sakura", "neoarch-pro-crystal",
+                     "neoarch-pro-endeavour", "neoarch-pro-v4",
+                     "neoarch-pro-halloween"):
         missing = token_names - set(THEMES[theme_id]["colors"])
         assert not missing, (theme_id, sorted(missing))
 
-def test_window_background_tracks_theme(monkeypatch):
+def test_window_background_stays_transparent_for_frame(monkeypatch):
     manager = ThemeManager()
     monkeypatch.setattr(manager, "_save", lambda: None)
     try:
         for theme_id in ("light", "dracula", "nord",
                          "solarized-dark", "forest-green"):
             assert manager.apply_theme(theme_id)
-            bg = tokens.qcolor(tokens.Colors.BG)
-            expected = (
-                f"rgba({bg.red()}, {bg.green()}, {bg.blue()}, "
-                f"{tokens.WINDOW_OPACITY})"
-            )
-            assert expected in tokens.DARK_STYLESHEET
+            assert (
+                "QFrame#appWindow {\n"
+                "    background-color: transparent;"
+            ) in tokens.DARK_STYLESHEET
     finally:
         manager.apply_theme("dark")
 

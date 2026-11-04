@@ -13,6 +13,7 @@ import subprocess
 from typing import Dict, List, Optional
 
 from neoarch.backend.auth import get_auth_command, get_askpass_env
+from neoarch.backend.services import distro
 
 __all__ = [
     "list_keyring", "key_details",
@@ -20,8 +21,14 @@ __all__ = [
     "receive_key", "locally_sign", "locally_sign_key",
 ]
 
-# Key IDs the keyring is populated with by default.
-ARCH_KEYRING = ("archlinux", "archlinux32", "archlinuxarm")
+# Arch master/signing keys.  Distro keyrings (Manjaro, EndeavourOS,
+# CachyOS, Garuda) are added by the distro capability profile.
+ARCH_KEYRING = distro.ARCH_KEYRINGS
+
+
+def default_keyrings() -> List[str]:
+    """Return installed distro keyrings, falling back to Arch keyrings."""
+    return list(distro.available_keyrings())
 
 # Fingerprint: 40 hex chars (optionally with spaces).
 _FINGERPRINT_RE = re.compile(r"^[0-9A-Fa-f]{40}$")
@@ -112,8 +119,8 @@ def init_keyring() -> bool:
 
 
 def populate_keyring(keyrings: Optional[List[str]] = None) -> bool:
-    """Populate the keyring with Arch master/signing keys (needs root)."""
-    names = keyrings or list(ARCH_KEYRING)
+    """Populate the keyring with distro and Arch master/signing keys."""
+    names = list(keyrings) if keyrings else default_keyrings()
     return _run_sudo(["pacman-key", "--populate"] + names).returncode == 0
 
 

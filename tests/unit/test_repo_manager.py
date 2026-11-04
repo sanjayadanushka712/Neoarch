@@ -237,3 +237,40 @@ def test_chaotic_preflight_empty_on_manjaro_unstable(tmp_path, monkeypatch):
     monkeypatch.setattr(repo_manager, "_OS_RELEASE_PATH", str(f))
     monkeypatch.setattr(repo_manager, "_PACMAN_MIRRORS_CONF", str(mirrors))
     assert repo_manager.chaotic_preflight() == ""
+
+# ── distro-owned repository protection ───────────────────────────────
+
+
+def _profile(monkeypatch, distro_id):
+    from neoarch.backend.services import distro
+    profile = distro.profile_for({"ID": distro_id, "ID_LIKE": "arch"})
+    monkeypatch.setattr(repo_manager.distro, "current_profile", lambda: profile)
+    return profile
+
+
+def test_endeavouros_repo_is_protected(monkeypatch):
+    _profile(monkeypatch, "endeavouros")
+    lines = ["[endeavouros]", "Server = https://mirror.example"]
+    try:
+        repo_manager.apply_enable(lines, "endeavouros", False)
+    except ValueError as e:
+        assert "system repository" in str(e)
+    else:
+        raise AssertionError("expected ValueError")
+
+
+def test_cachyos_prefixed_repos_are_protected(monkeypatch):
+    _profile(monkeypatch, "cachyos")
+    lines = ["[cachyos-extra-v3]", "Server = https://mirror.example"]
+    try:
+        repo_manager.apply_enable(lines, "cachyos-extra-v3", False)
+    except ValueError as e:
+        assert "system repository" in str(e)
+    else:
+        raise AssertionError("expected ValueError")
+
+
+def test_garuda_chaotic_repo_is_protected(monkeypatch):
+    _profile(monkeypatch, "garuda")
+    assert repo_manager.is_protected_repo("chaotic-aur") is True
+    assert repo_manager.is_protected_repo("garuda") is True

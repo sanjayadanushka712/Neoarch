@@ -24,14 +24,12 @@ class _TitleBar(QWidget):
         layout.setContentsMargins(14, 0, 14, 0)
         layout.setSpacing(6)
 
-        icon_label = QLabel()
-        icon_label.setFixedSize(18, 18)
-        icon_path = _get_brand_icon_path()
-        if os.path.exists(icon_path):
-            pm = QPixmap(icon_path).scaled(18, 18, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-            icon_label.setPixmap(pm)
-        icon_label.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents)
-        layout.addWidget(icon_label)
+        self._brand_icon = QLabel()
+        self._brand_icon.setFixedSize(18, 18)
+        self._brand_icon.setAttribute(
+            Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+        layout.addWidget(self._brand_icon)
+        self.refresh_brand_icon()
 
         title = QLabel("NeoArch")
         title.setObjectName("titleBarLabel")
@@ -51,6 +49,18 @@ class _TitleBar(QWidget):
         layout.addWidget(self.min_btn)
         layout.addWidget(self.max_btn)
         layout.addWidget(self.close_btn)
+
+    def refresh_brand_icon(self):
+        """Reload the title-bar logo after the active theme changes."""
+        icon_path = _get_brand_icon_path()
+        if not os.path.exists(icon_path):
+            self._brand_icon.clear()
+            return
+        pm = QPixmap(icon_path).scaled(
+            18, 18,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation)
+        self._brand_icon.setPixmap(pm)
 
     def _create_traffic_light(self, symbol, obj_name):
         btn = QPushButton(symbol)

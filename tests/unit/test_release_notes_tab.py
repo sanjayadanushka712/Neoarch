@@ -18,6 +18,14 @@ def test_release_notes_tab_uses_curated_changelog(qapp):
     tab.deleteLater()
 
 
+def test_release_notes_tab_shows_the_pinned_giveaway(qapp):
+    tab = _ReleaseNotesTab()
+    labels = [w.text() for w in tab.findChildren(QLabel)]
+    assert any("Halloween theme giveaway" in t for t in labels)
+    assert any("dsanjaya712@gmail.com" in t for t in labels)
+    tab.deleteLater()
+
+
 def test_release_url_keeps_legacy_v_prefix():
     from neoarch.frontend.components import about_tab
 

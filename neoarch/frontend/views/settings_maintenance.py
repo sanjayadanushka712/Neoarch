@@ -89,14 +89,15 @@ class MaintenanceSettingsWidget(QWidget):
 
     def refresh_mirrors(self):
         from neoarch.backend.services.mirrors import (
-            refresh_mirrors, reflector_path)
+            available_mirror_tool, refresh_mirrors)
         from threading import Thread
 
-        if not reflector_path():
+        if not available_mirror_tool():
             self.app.show_message.emit(
                 "Mirrors",
-                _("reflector isn't installed. Install the 'reflector' "
-                  "package first."))
+                _("No supported mirror tool is installed. Install reflector, "
+                  "pacman-mirrors, or cachyos-rate-mirrors for your "
+                  "distribution."))
             return
         latest = self.mirror_count.value()
         self.mirror_btn.setEnabled(False)
@@ -215,9 +216,10 @@ class MaintenanceSettingsWidget(QWidget):
             _("Refresh Mirrors"), self.refresh_mirrors)
         mirrors.addWidget(row(
             _("Refresh mirror list"),
-            _("Download the fastest HTTPS mirrors with reflector and write "
-              "them to /etc/pacman.d/mirrorlist. Reflector must be "
-              "installed."),
+            _("Download the fastest mirrors with your distribution's "
+              "supported tool and write them to the system mirror list. "
+              "NeoArch uses reflector, pacman-mirrors, or "
+              "cachyos-rate-mirrors automatically."),
             control=self.mirror_btn))
         self.layout.addWidget(mirrors_card)
 

@@ -21,7 +21,9 @@ from PyQt6.QtGui import (
     QTextCursor, QKeySequence, QShortcut,
 )
 
-from neoarch.frontend.icon_registry import icon_path, render_pixmap
+from neoarch.frontend.icon_registry import (
+    brand_logo_path, icon_path, render_pixmap,
+)
 from neoarch.frontend.components.title_bar import _TitleBar
 from neoarch.frontend.components.large_search_box import LargeSearchBox
 from neoarch.frontend.components.packages_grid_view import PackagesGridView
@@ -113,8 +115,11 @@ class _ViewsMixin:
         outer_layout.setSpacing(0)
 
         # Content wrapper with glow border effect
-        wrapper = QFrame()
+        from neoarch.frontend.components.app_window_frame import AppWindowFrame
+
+        wrapper = AppWindowFrame()
         wrapper.setObjectName("appWindow")
+        self._app_window_frame = wrapper
 
         # NOTE: No QGraphicsDropShadowEffect on the window wrapper.
         # A graphics effect on a container holding the entire UI forces Qt to
@@ -152,6 +157,7 @@ class _ViewsMixin:
 
         # Ensure proper sizing
         self.adjustSize()
+        self._sync_theme_background()
 
     def _setup_console_shortcuts(self):
         """Keyboard shortcuts for the console strip.
@@ -224,7 +230,7 @@ class _ViewsMixin:
         logo_label = QLabel()
         logo_label.setObjectName("sidebarLogo")
         logo_label.setFixedSize(36, 36)
-        logo_path = icon_path("app/logo")
+        logo_path = brand_logo_path()
         pm = QPixmap(logo_path)
         if not pm.isNull():
             logo_label.setPixmap(pm.scaled(36, 36, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
@@ -1496,6 +1502,7 @@ class _ViewsMixin:
         self.console_panel = ConsolePanel(icon_provider=self.get_svg_icon)
         self.console_panel.heightChanged.connect(self._on_console_height_changed)
         self.console_panel.expandedChanged.connect(self._on_console_expanded_changed)
+        self.console_panel.wrapChanged.connect(self._on_console_wrap_changed)
         self.console_panel.statusMessage.connect(self._on_console_status_message)
         self.packages_panel_layout.addWidget(self.console_panel)
         self._console_expanded = False
@@ -1514,6 +1521,8 @@ class _ViewsMixin:
         except Exception:
             stored = CONSOLE_DEFAULT_HEIGHT
         self.console_panel.set_height(max(CONSOLE_MIN_HEIGHT, stored))
+        self.console_panel.set_wrap(
+            bool(self.settings.get('console_wrap', True)))
 
         # Hidden by default; shown via the bottom-right toggle
         try:
@@ -2593,7 +2602,7 @@ class _ViewsMixin:
                 # Apply any pending dependency alert now that UI exists
                 self.about_view.set_dep_alert(
                     getattr(self, '_dep_missing', []),
-                    getattr(self, '_dep_optional_missing', []))
+                    getattr(self, '_dep_optional_outstanding', []))
             self.about_view.setVisible(True)
             if getattr(self, '_dep_missing', None):
                 # Alert active: land on Diagnostics where the fix lives
@@ -4752,6 +4761,14 @@ class _ViewsMixin:
         except Exception:
             pass
 
+    def _on_console_wrap_changed(self, wrap):
+        """Persist the console's soft-wrap preference."""
+        try:
+            self.settings['console_wrap'] = bool(wrap)
+            self.save_settings()
+        except Exception:
+            pass
+
     def _on_console_expanded_changed(self, expanded):
         """Grow the console over the package table, or restore the layout."""
         self._console_expanded = bool(expanded)
@@ -4807,15 +4824,40 @@ class _ViewsMixin:
         except Exception:
             pass
 
+    def _seen_optional_deps(self):
+        settings = getattr(self, 'settings', None)
+        if not isinstance(settings, dict):
+            return set()
+        try:
+            return {str(name) for name in
+                    (settings.get('optional_deps_seen') or []) if name}
+        except Exception:
+            return set()
+
+    def _acknowledge_optional_deps(self, names):
+        """Remember optional integrations after Diagnostics has shown them."""
+        names = [str(name) for name in (names or []) if name]
+        settings = getattr(self, 'settings', None)
+        if not names or not isinstance(settings, dict):
+            return
+        seen = self._seen_optional_deps()
+        updated = seen | set(names)
+        if updated == seen:
+            return
+        settings['optional_deps_seen'] = sorted(updated)
+        try:
+            save = getattr(self, 'save_settings', None)
+            if callable(save):
+                save()
+        except Exception:
+            pass
+
     def _update_dep_alert(self, missing):
         """Reflect missing dependencies on the About sidebar icon.
 
-        Swaps between about.svg and about-fail.svg and forwards the list
-        to the About page's Diagnostics tab indicator.
-
-        Only *required* dependencies flag the icon red: optional components
-        (flatpak, npm, docker, fwupd, pipx, \u2026) degrade gracefully and are
-        still listed with their Install button on the Diagnostics page.
+        Required dependencies always alert. Optional integrations alert only
+        until the user has opened Diagnostics, then become neutral. Each new
+        optional integration re-arms the notice once.
         """
         try:
             missing = [m for m in (missing or []) if m]
@@ -4830,8 +4872,11 @@ class _ViewsMixin:
         except Exception:
             self._dep_missing = list(missing)
             self._dep_optional_missing = []
+        seen_optional = self._seen_optional_deps()
+        self._dep_optional_outstanding = [
+            m for m in self._dep_optional_missing if m not in seen_optional]
         has_issue = bool(self._dep_missing)
-        has_optional = bool(self._dep_optional_missing)
+        has_optional = bool(self._dep_optional_outstanding)
 
         label = getattr(self, '_about_icon_label', None)
         about_icon_path = icon_path("about")
@@ -4862,13 +4907,13 @@ class _ViewsMixin:
         av = getattr(self, 'about_view', None)
         if av is not None:
             av.set_dep_alert(
-                self._dep_missing, self._dep_optional_missing)
+                self._dep_missing, self._dep_optional_outstanding)
 
         badge = getattr(self, '_about_dep_badge', None)
         if badge is not None:
             if has_issue or has_optional:
                 count = (len(self._dep_missing) if has_issue
-                         else len(self._dep_optional_missing))
+                         else len(self._dep_optional_outstanding))
                 badge.setStyleSheet(f"""
                     background-color: {Colors.RED if has_issue else Colors.GREEN};
                     color: {Colors.WHITE};

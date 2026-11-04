@@ -2309,6 +2309,9 @@ msgstr "{count} 件不足 — NeoArch の動作に {req} が必要です"
 msgid "{count} optional component(s) missing — features above will stay hidden until installed"
 msgstr "任意コンポーネントが {count} 件不足 — 上記の機能はインストールされるまで非表示のままです"
 
+msgid "{count} optional integration(s) not installed"
+msgstr "{count} 件の任意の統合がインストールされていません"
+
 msgid "{count} packages were found, {count} of which match the specified filters{suffix}"
 msgstr "{count} パッケージが見つかり、そのうち {count} が指定されたフィルターに一致{suffix}"
 
@@ -3590,3 +3593,83 @@ msgstr "NeoArch は実行中です"
 
 msgid "Open NeoArch from the system tray icon."
 msgstr "システムトレイのアイコンから NeoArch を開いてください。"
+
+msgid "Pro Themes"
+msgstr "Proテーマ"
+
+msgid "Exclusive full-window artwork"
+msgstr "限定フルウィンドウアートワーク"
+
+msgid "Premium themes with blurred backdrops and tailored palettes."
+msgstr "ぼかした背景と専用パレットを備えたプレミアムテーマ。"
+
+msgid "No supported mirror tool is installed. Install reflector, pacman-mirrors, or cachyos-rate-mirrors for your distribution."
+msgstr "対応するミラーツールがインストールされていません。お使いのディストリビューション用に reflector、pacman-mirrors、または cachyos-rate-mirrors をインストールしてください。"
+
+msgid "Download the fastest mirrors with your distribution's supported tool and write them to the system mirror list. NeoArch uses reflector, pacman-mirrors, or cachyos-rate-mirrors automatically."
+msgstr "お使いのディストリビューションの対応ツールで最速のミラーをダウンロードし、システムのミラーリストに書き込みます。NeoArch は reflector、pacman-mirrors、cachyos-rate-mirrors を自動的に使用します。"
+
+msgid "Locked"
+msgstr "ロック中"
+
+msgid "Locked theme"
+msgstr "ロックされたテーマ"
+
+msgid "This Pro theme is locked. NeoArch Pro and EndeavourOS are available for free."
+msgstr "この Pro テーマはロックされています。NeoArch Pro と EndeavourOS は無料で利用できます。"
+
+
+msgid "Invalid unlock code"
+msgstr "無効なロック解除コード"
+
+msgid "The unlock code for this Pro theme is incorrect."
+msgstr "この Pro テーマのロック解除コードが正しくありません。"
+
+msgid "This Pro theme is locked. Enter its unlock code to use it."
+msgstr "この Pro テーマはロックされています。使用するにはロック解除コードを入力してください。"
+
+msgid "Unlock"
+msgstr "ロック解除"
+
+msgid "Unlock code"
+msgstr "ロック解除コード"
+
+msgid "Try 30 min"
+msgstr "30分試す"
+
+msgid "Trial: {time} left"
+msgstr "試用: 残り {time}"
+
+msgid "Trial ended"
+msgstr "試用終了"
+
+msgid "Trial unavailable"
+msgstr "試用利用不可"
+
+msgid "This theme's free trial is no longer available."
+msgstr "このテーマの無料試用は利用できなくなりました。"
+
+msgid "Pro trial ended"
+msgstr "Pro 試用終了"
+
+msgid "Your 30-minute trial for {theme} has ended."
+msgstr "{theme} の 30 分間の試用が終了しました。"
+
+msgid "Decorative rim using the active theme's glow color."
+msgstr "アクティブなテーマのグロー色を使った装飾的な縁取りです。"
+
+msgid "Pinned"
+msgstr "ピン留め"
+
+msgid "Halloween theme giveaway"
+msgstr "ハロウィンテーマ ギブアウェイ"
+
+msgid "Limited-time offer"
+msgstr "期間限定オファー"
+
+msgid "Share NeoArch on 5 social media sites or forums — any platform or community works. Take a screenshot of each post or copy its link, then email them to dsanjaya712@gmail.com."
+msgstr "NeoArch を 5 つのソーシャルメディアサイトまたはフォーラム（どのプラットフォームやコミュニティでも可）で共有してください。各投稿のスクリーンショットを撮るかリンクをコピーし、dsanjaya712@gmail.com までメールで送ってください。"
+
+msgid "Get the Halloween theme free. This offer is available for a limited time only."
+msgstr "ハロウィンテーマを無料で入手できます。このオファーは期間限定です。"
+

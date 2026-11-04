@@ -426,7 +426,12 @@ class _BundlesSourcePanel(QWidget):
         code_row.addWidget(self._share_code_label, 1)
 
         copy_btn = QPushButton(_("Copy"))
-        copy_btn.setFixedSize(42, 22)
+        self._copy_btn = copy_btn
+        # Let the translated label decide the width. A fixed 42px button clips
+        # longer translations ("Kopieren", "Копировать", "පිටපත් කරන්න").
+        copy_btn.setFixedHeight(22)
+        copy_btn.setMinimumWidth(max(42, copy_btn.sizeHint().width()))
+        copy_btn.setSizePolicy(QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed)
         copy_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         copy_btn.setStyleSheet(f"""
             QPushButton {{

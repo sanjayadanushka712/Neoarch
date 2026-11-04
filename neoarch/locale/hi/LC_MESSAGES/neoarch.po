@@ -2309,6 +2309,9 @@ msgstr "{count} अनुपलब्ध — NeoArch के लिए {req} आ�
 msgid "{count} optional component(s) missing — features above will stay hidden until installed"
 msgstr "{count} वैकल्पिक घटक अनुपलब्ध — ऊपर दी गई विशेषताएँ इंस्टॉल होने तक छिपी रहेंगी"
 
+msgid "{count} optional integration(s) not installed"
+msgstr "{count} वैकल्पिक इंटीग्रेशन इंस्टॉल नहीं हैं"
+
 msgid "{count} packages were found, {count} of which match the specified filters{suffix}"
 msgstr "{count} पैकेज मिले, जिनमें से {count} निर्दिष्ट फ़िल्टर से मेल खाते हैं{suffix}"
 
@@ -3590,3 +3593,83 @@ msgstr "NeoArch चल रहा है"
 
 msgid "Open NeoArch from the system tray icon."
 msgstr "सिस्टम ट्रे आइकन से NeoArch खोलें।"
+
+msgid "Pro Themes"
+msgstr "प्रो थीम्स"
+
+msgid "Exclusive full-window artwork"
+msgstr "विशेष पूर्ण-विंडो कलाकृति"
+
+msgid "Premium themes with blurred backdrops and tailored palettes."
+msgstr "धुंधले बैकड्रॉप और अनुकूलित पैलेट वाले प्रीमियम थीम।"
+
+msgid "No supported mirror tool is installed. Install reflector, pacman-mirrors, or cachyos-rate-mirrors for your distribution."
+msgstr "कोई समर्थित मिरर टूल स्थापित नहीं है। अपने वितरण के लिए reflector, pacman-mirrors या cachyos-rate-mirrors स्थापित करें।"
+
+msgid "Download the fastest mirrors with your distribution's supported tool and write them to the system mirror list. NeoArch uses reflector, pacman-mirrors, or cachyos-rate-mirrors automatically."
+msgstr "अपने वितरण के समर्थित टूल से सबसे तेज़ मिरर डाउनलोड करें और उन्हें सिस्टम मिरर सूची में लिखें। NeoArch स्वचालित रूप से reflector, pacman-mirrors या cachyos-rate-mirrors का उपयोग करता है।"
+
+msgid "Locked"
+msgstr "लॉक किया गया"
+
+msgid "Locked theme"
+msgstr "लॉक किया गया थीम"
+
+msgid "This Pro theme is locked. NeoArch Pro and EndeavourOS are available for free."
+msgstr "यह Pro थीम लॉक है। NeoArch Pro और EndeavourOS मुफ़्त में उपलब्ध हैं।"
+
+
+msgid "Invalid unlock code"
+msgstr "अमान्य अनलॉक कोड"
+
+msgid "The unlock code for this Pro theme is incorrect."
+msgstr "इस प्रो थीम का अनलॉक कोड गलत है।"
+
+msgid "This Pro theme is locked. Enter its unlock code to use it."
+msgstr "यह प्रो थीम लॉक है। इसका उपयोग करने के लिए इसका अनलॉक कोड दर्ज करें।"
+
+msgid "Unlock"
+msgstr "अनलॉक करें"
+
+msgid "Unlock code"
+msgstr "अनलॉक कोड"
+
+msgid "Try 30 min"
+msgstr "30 मिनट आज़माएँ"
+
+msgid "Trial: {time} left"
+msgstr "परीक्षण: {time} शेष"
+
+msgid "Trial ended"
+msgstr "परीक्षण समाप्त"
+
+msgid "Trial unavailable"
+msgstr "परीक्षण उपलब्ध नहीं"
+
+msgid "This theme's free trial is no longer available."
+msgstr "इस थीम का निःशुल्क परीक्षण अब उपलब्ध नहीं है।"
+
+msgid "Pro trial ended"
+msgstr "प्रो परीक्षण समाप्त"
+
+msgid "Your 30-minute trial for {theme} has ended."
+msgstr "{theme} के लिए आपका 30 मिनट का परीक्षण समाप्त हो गया है।"
+
+msgid "Decorative rim using the active theme's glow color."
+msgstr "सक्रिय थीम के ग्लो रंग का उपयोग करने वाला सजावटी किनारा।"
+
+msgid "Pinned"
+msgstr "पिन किया गया"
+
+msgid "Halloween theme giveaway"
+msgstr "हैलोवीन थीम गिवअवे"
+
+msgid "Limited-time offer"
+msgstr "सीमित समय का ऑफ़र"
+
+msgid "Share NeoArch on 5 social media sites or forums — any platform or community works. Take a screenshot of each post or copy its link, then email them to dsanjaya712@gmail.com."
+msgstr "NeoArch को 5 सोशल मीडिया साइटों या फ़ोरम पर साझा करें — कोई भी प्लेटफ़ॉर्म या कम्युनिटी मान्य है। हर पोस्ट का स्क्रीनशॉट लें या उसका लिंक कॉपी करें, फिर उन्हें dsanjaya712@gmail.com पर ईमेल करें।"
+
+msgid "Get the Halloween theme free. This offer is available for a limited time only."
+msgstr "हैलोवीन थीम मुफ़्त पाएं। यह ऑफ़र केवल सीमित समय के लिए उपलब्ध है।"
+

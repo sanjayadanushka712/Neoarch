@@ -481,6 +481,37 @@ def _discover_table():
     return table
 
 
+def test_duplicate_package_rows_are_collapsed(qapp):
+    # The same identity must not appear twice: both rows share a check key, so
+    # ticking one would mark both and the panel would report two packages.
+    table = UpdatesTable(_FakeApp())
+    table.set_enrich(False)
+    table.set_packages([
+        {"name": "bash", "id": "bash", "version": "5.2", "source": "pacman"},
+        {"name": "bash", "id": "bash", "version": "5.2", "source": "pacman"},
+    ])
+
+    assert table.row_count() == 1
+    _click_row(table, 0)
+    assert len(table.panel_packages()) == 1
+    assert len(table.checked_packages()) == 1
+
+
+def test_append_packages_skips_duplicate_rows(qapp):
+    table = UpdatesTable(_FakeApp())
+    table.set_enrich(False)
+    table.set_packages([
+        {"name": "bash", "id": "bash", "version": "5.2", "source": "pacman"},
+    ])
+
+    table.append_packages([
+        {"name": "bash", "id": "bash", "version": "5.2", "source": "pacman"},
+        {"name": "curl", "id": "curl", "version": "8.0", "source": "pacman"},
+    ])
+
+    assert [p["name"] for p in table.model.packages()] == ["bash", "curl"]
+
+
 def test_discover_installed_result_is_not_marked(qapp):
     # An installed search hit has nothing to install, so clicking it must not
     # add it to the marks the count and the panel read.

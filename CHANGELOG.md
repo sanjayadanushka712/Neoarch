@@ -10,6 +10,51 @@ dialog shows after an update.
 
 ---
 
+## 3.7.0 — 2026-11-04
+
+### New Features
+
+- **Pro theme collection.** NeoArch now ships a full Pro theme set with
+  wallpapers, brand artwork, and per-theme glow effects. NeoArch Pro,
+  Endeavour, and V4 remain free; the rest unlock with a theme code or a
+  one-time 30-minute local trial. The Halloween theme is included as a
+  locked Pro theme.
+
+- **Halloween theme giveaway.** A pinned post in What's New and About →
+  Release Notes explains the limited-time offer: share NeoArch on 5 social
+  media sites or forums, then email screenshots or links to
+  dsanjaya712@gmail.com to receive the Halloween theme free.
+
+- **Arch-based distro support.** NeoArch detects EndeavourOS, CachyOS,
+  Garuda Linux, and Manjaro, and uses distro-aware mirror tools, keyrings,
+  protected repositories, and Manjaro's release branch.
+
+- **New appearance defaults.** Fresh installs start in NeoArch window mode
+  with the Endeavour Pro theme and decorative glow enabled.
+
+- **Optional dependency notices.** Missing optional integrations are
+  reported once, can be re-armed when new optional dependencies appear, and
+  are marked as optional in `neoarch doctor`.
+
+- **Console wrapping.** The console output panel can wrap long lines, and
+  the preference is persisted in settings.
+
+### Improvements
+
+- Pro themes show wallpaper previews in Appearance, with unlock and trial
+  controls available directly on locked theme rows.
+
+- The What's New dialog and Release Notes page share a single pinned
+  announcement card with the giveaway screenshot.
+
+- Tray icons, title-bar artwork, and tray menus now follow the active theme.
+
+- Theme changes fall back cleanly to Dark if a saved theme cannot be
+  applied.
+
+- Doctor output distinguishes missing required tools from optional
+  integrations instead of treating every missing tool as a failure.
+
 ## 3.6.0 — 2026-11-02
 
 ### New Features

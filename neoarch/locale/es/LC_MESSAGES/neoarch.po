@@ -2375,6 +2375,9 @@ msgstr "{count} faltan — {req} son necesarios para que NeoArch funcione"
 msgid "{count} optional component(s) missing — features above will stay hidden until installed"
 msgstr "{count} componente(s) opcional(es) faltan — las funciones anteriores permanecerán ocultas hasta que se instalen"
 
+msgid "{count} optional integration(s) not installed"
+msgstr "{count} integración(es) opcional(es) no instalada(s)"
+
 msgid "{count} packages were found, {count} of which match the specified filters{suffix}"
 msgstr "{count} paquetes encontrados, de los cuales {count} coinciden con los filtros especificados{suffix}"
 
@@ -3663,3 +3666,83 @@ msgstr "NeoArch se está ejecutando"
 
 msgid "Open NeoArch from the system tray icon."
 msgstr "Abre NeoArch desde el icono de la bandeja del sistema."
+
+msgid "Pro Themes"
+msgstr "Temas Pro"
+
+msgid "Exclusive full-window artwork"
+msgstr "Ilustración exclusiva de ventana completa"
+
+msgid "Premium themes with blurred backdrops and tailored palettes."
+msgstr "Temas premium con fondos desenfocados y paletas personalizadas."
+
+msgid "No supported mirror tool is installed. Install reflector, pacman-mirrors, or cachyos-rate-mirrors for your distribution."
+msgstr "No hay ninguna herramienta de espejos compatible instalada. Instala reflector, pacman-mirrors o cachyos-rate-mirrors para tu distribución."
+
+msgid "Download the fastest mirrors with your distribution's supported tool and write them to the system mirror list. NeoArch uses reflector, pacman-mirrors, or cachyos-rate-mirrors automatically."
+msgstr "Descarga los espejos más rápidos con la herramienta compatible de tu distribución y los escribe en la lista de espejos del sistema. NeoArch usa reflector, pacman-mirrors o cachyos-rate-mirrors automáticamente."
+
+msgid "Locked"
+msgstr "Bloqueado"
+
+msgid "Locked theme"
+msgstr "Tema bloqueado"
+
+msgid "This Pro theme is locked. NeoArch Pro and EndeavourOS are available for free."
+msgstr "Este tema Pro está bloqueado. NeoArch Pro y EndeavourOS están disponibles gratis."
+
+
+msgid "Invalid unlock code"
+msgstr "Código de desbloqueo no válido"
+
+msgid "The unlock code for this Pro theme is incorrect."
+msgstr "El código de desbloqueo de este tema Pro es incorrecto."
+
+msgid "This Pro theme is locked. Enter its unlock code to use it."
+msgstr "Este tema Pro está bloqueado. Introduce su código de desbloqueo para usarlo."
+
+msgid "Unlock"
+msgstr "Desbloquear"
+
+msgid "Unlock code"
+msgstr "Código de desbloqueo"
+
+msgid "Try 30 min"
+msgstr "Probar 30 min"
+
+msgid "Trial: {time} left"
+msgstr "Prueba: quedan {time}"
+
+msgid "Trial ended"
+msgstr "Prueba finalizada"
+
+msgid "Trial unavailable"
+msgstr "Prueba no disponible"
+
+msgid "This theme's free trial is no longer available."
+msgstr "La prueba gratuita de este tema ya no está disponible."
+
+msgid "Pro trial ended"
+msgstr "Prueba Pro finalizada"
+
+msgid "Your 30-minute trial for {theme} has ended."
+msgstr "Tu prueba de 30 minutos de {theme} ha finalizado."
+
+msgid "Decorative rim using the active theme's glow color."
+msgstr "Borde decorativo con el color de resplandor del tema activo."
+
+msgid "Pinned"
+msgstr "Fijado"
+
+msgid "Halloween theme giveaway"
+msgstr "Sorteo del tema de Halloween"
+
+msgid "Limited-time offer"
+msgstr "Oferta por tiempo limitado"
+
+msgid "Share NeoArch on 5 social media sites or forums — any platform or community works. Take a screenshot of each post or copy its link, then email them to dsanjaya712@gmail.com."
+msgstr "Comparte NeoArch en 5 redes sociales o foros — cualquier plataforma o comunidad sirve. Haz una captura de cada publicación o copia su enlace y envíalos por correo a dsanjaya712@gmail.com."
+
+msgid "Get the Halloween theme free. This offer is available for a limited time only."
+msgstr "Obtén el tema de Halloween gratis. Esta oferta solo está disponible por tiempo limitado."
+

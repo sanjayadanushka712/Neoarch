@@ -10,6 +10,8 @@ inherited from the Dark theme, which makes small accent-only themes possible.
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
 import os
 from pathlib import Path
@@ -26,8 +28,19 @@ __all__ = [
     "THEMES",
     "THEME_DIRS",
     "ThemeManager",
+    "brand_assets_for_theme",
+    "get_theme_background",
     "get_theme_data",
+    "get_theme_effects",
+    "is_theme_locked",
+    "FREE_PRO_THEMES",
+    "PRO_UNLOCK_HASHES",
+    "UNLOCKED_PRO_SETTING",
+    "normalise_unlocked_themes",
+    "theme_glow_enabled",
+    "verify_theme_unlock_code",
     "load_themes",
+    "PRO_TIER",
     "reload_themes",
     "system_font_families",
     "system_metric_scale",
@@ -39,7 +52,38 @@ __all__ = [
 BUILTIN_THEME_DIR = ASSETS_DIR / "themes"
 DARK_THEME_ID = "dark"
 SYSTEM_THEME_ID = "system"
-DEFAULT_THEME_ID = SYSTEM_THEME_ID
+DEFAULT_THEME_ID = "neoarch-pro-endeavour"
+PRO_TIER = "pro"
+# These Pro themes stay available to everyone.  The rest of the Pro
+# collection can be unlocked with the per-theme passwords below; unlocked
+# ids are persisted in the main settings file.  Only salted hashes ship.
+FREE_PRO_THEMES = frozenset({
+    "neoarch-pro",
+    "neoarch-pro-endeavour",
+    "neoarch-pro-v4",
+})
+UNLOCKED_PRO_SETTING = "unlocked_pro_themes"
+# Only salted PBKDF2 hashes are stored here; plaintext codes never ship.
+PRO_UNLOCK_HASHES = {
+    "neoarch-pro-evergreen":
+        "pbkdf2_sha256$600000$c332b53fe6058229f018085e12ae138d$dd0fb331d4b73603a7edf3acdf8e6c022fabe01933745761c544bdc523f6cdba",
+    "neoarch-pro-ember":
+        "pbkdf2_sha256$600000$42c72c9cb734d77cee3768d15d134dbd$c38727abf6e9c5179aa9acb8dbd95036e24c2c1414ad124fb5f1750db58abf63",
+    "neoarch-pro-glacier":
+        "pbkdf2_sha256$600000$4e0997c032f456f2718329f913625ddb$74da07258bd9780a596d5bef5517502a4704e9da4d118ef4664cc981207c62b8",
+    "neoarch-pro-aero":
+        "pbkdf2_sha256$600000$41c1da7889c543bf2e749694e6d8c11a$73b55855fe1ae905c76b538f76b54859f57f5507403628a3178741407fe3fbd8",
+    "neoarch-pro-lagoon":
+        "pbkdf2_sha256$600000$dff600520dfd4424972ca77f788fe84d$384874048d1cf3ea8294fea81f2b53320ef3391a4c03ea88d1d0b260536f44ba",
+    "neoarch-pro-moss":
+        "pbkdf2_sha256$600000$cff70a88c8acbfa85eb585663c22fc28$0eee9d027bb6f89fb42a1aee4e185a5fdf9357ce03dcc4b437ecbfaf1ef317f5",
+    "neoarch-pro-sakura":
+        "pbkdf2_sha256$600000$f39db6eec64d681c5d79084a8a4e1828$5690762c8f3aef629f58b97bbdea686a3fa8b277f90e9445fb1e3b5081838a4a",
+    "neoarch-pro-crystal":
+        "pbkdf2_sha256$600000$b7a9bf8359ece5fe3c385cd717687c13$cd4aebadd2619cddd103c4068c1b318b687c7cbdcd666eec2f17bb1baaaacd40",
+    "neoarch-pro-halloween":
+        "pbkdf2_sha256$600000$1ad2ea6473af6711318ea7d60f681b54$304011c7d0d1befbb9eb5ed4fa5395479686db05a236b44e540ee2cac4ae8e1e",
+}
 
 
 def system_theme_id() -> str:
@@ -298,6 +342,9 @@ def _system_theme_data(resolved_id: str, base: dict | None) -> dict | None:
         ),
         "is_dark": is_dark,
         "coming_soon": False,
+        "tier": "standard",
+        "background": None,
+        "effects": None,
         "colors": colors,
     }
 
@@ -390,6 +437,98 @@ def get_theme_data(theme_id: str) -> dict | None:
     return THEMES.get(theme_id)
 
 
+def brand_assets_for_theme(theme: dict | None) -> tuple[str, str]:
+    """Return the icon/logo asset names declared by ``theme``.
+
+    Any theme may override its brand artwork.  Pro themes without explicit
+    artwork still fall back to the bundled Pro icon/logo.
+    """
+    if not isinstance(theme, dict):
+        return "", ""
+    icon = str(theme.get("brand_icon") or "").strip()
+    logo = str(theme.get("brand_logo") or "").strip()
+    if theme.get("tier") == PRO_TIER:
+        icon = icon or "app/icon-pro"
+        logo = logo or "app/logo-pro"
+    return icon, logo
+
+
+def normalise_unlocked_themes(values) -> frozenset[str]:
+    """Return a clean set of unlocked theme ids from a settings value."""
+    if isinstance(values, str):
+        values = [values]
+    if not isinstance(values, (list, tuple, set, frozenset)):
+        return frozenset()
+    return frozenset(
+        str(value).strip() for value in values
+        if isinstance(value, str) and str(value).strip()
+    )
+
+
+def verify_theme_unlock_code(theme_id: str, code) -> bool:
+    """Verify a password against the stored PBKDF2 hash for a Pro theme."""
+    encoded = PRO_UNLOCK_HASHES.get(theme_id)
+    if not encoded or code is None:
+        return False
+    try:
+        scheme, iterations, salt_hex, expected_hex = encoded.split("$", 3)
+        if scheme != "pbkdf2_sha256":
+            return False
+        expected = bytes.fromhex(expected_hex)
+        actual = hashlib.pbkdf2_hmac(
+            "sha256",
+            str(code).strip().encode("utf-8"),
+            bytes.fromhex(salt_hex),
+            int(iterations),
+        )
+    except (TypeError, ValueError):
+        return False
+    return hmac.compare_digest(actual, expected)
+
+
+def is_theme_locked(theme_id: str, unlocked=None) -> bool:
+    """Return True when a Pro theme must not be applied without an unlock.
+
+    Free Pro themes, explicitly unlocked Pro themes, and every
+    standard/system theme remain selectable.
+    """
+    if theme_id == SYSTEM_THEME_ID or theme_id in FREE_PRO_THEMES:
+        return False
+    if theme_id in normalise_unlocked_themes(unlocked):
+        return False
+    theme = THEMES.get(theme_id)
+    return bool(theme and theme.get("tier") == PRO_TIER)
+
+
+def get_theme_effects(theme_id: str) -> dict | None:
+    """Return the optional visual effects declared by a concrete theme."""
+    if theme_id == SYSTEM_THEME_ID:
+        return None
+    theme = THEMES.get(theme_id)
+    if not theme:
+        return None
+    effects = theme.get("effects")
+    return dict(effects) if isinstance(effects, dict) else None
+
+
+def theme_glow_enabled(theme_id: str | None) -> bool:
+    """True when a theme's glow effect is enabled by default."""
+    effects = get_theme_effects(theme_id) if theme_id else None
+    glow = (effects or {}).get("glow")
+    return bool(isinstance(glow, dict) and glow.get("enabled", True))
+
+
+def get_theme_background(theme_id: str) -> dict | None:
+    """Return the optional wallpaper configuration for a concrete theme."""
+    if theme_id == SYSTEM_THEME_ID:
+        return None
+    theme = THEMES.get(theme_id)
+    if not theme:
+        return None
+    background = theme.get("background")
+    return dict(background) if isinstance(background, dict) else None
+
+
 def theme_search_paths() -> list[Path]:
     """Return theme directories in increasing priority order."""
     return [
@@ -421,6 +560,9 @@ def _tokens_fallback() -> dict:
         "description": "Default premium dark theme",
         "is_dark": True,
         "coming_soon": False,
+        "tier": "standard",
+        "background": None,
+        "effects": None,
         "colors": colors,
         "source_colors": dict(tokens.SourceColors),
     }
@@ -442,7 +584,73 @@ def _read_theme_file(path: Path) -> dict | None:
     if not theme_id:
         return None
     data["id"] = theme_id
+    for key in ("brand_icon", "brand_logo"):
+        value = str(data.get(key) or "").strip()
+        if not value or os.path.isabs(value):
+            continue
+        candidate = path.parent / value
+        if candidate.is_file():
+            data[key] = str(candidate)
+    background = data.get("background")
+    if isinstance(background, dict):
+        image = str(background.get("image") or "").strip()
+        if image:
+            image_path = Path(image).expanduser()
+            if not image_path.is_absolute():
+                image_path = path.parent / image_path
+            background = dict(background)
+            background["image"] = str(image_path)
+            data["background"] = background
     return data
+
+
+def _normalise_effects(raw) -> dict | None:
+    if not isinstance(raw, dict):
+        return None
+    glow_raw = raw.get("glow")
+    if not isinstance(glow_raw, dict):
+        return None
+    try:
+        width = float(glow_raw.get("width", 1.0))
+    except (TypeError, ValueError):
+        width = 1.0
+    try:
+        opacity = float(glow_raw.get("opacity", 0.55))
+    except (TypeError, ValueError):
+        opacity = 0.55
+    return {
+        "glow": {
+            "enabled": bool(glow_raw.get("enabled", True)),
+            "color": str(glow_raw.get("color") or "").strip(),
+            "width": max(0.5, min(4.0, width)),
+            "opacity": max(0.0, min(1.0, opacity)),
+        }
+    }
+
+
+def _normalise_background(raw) -> dict | None:
+    if not isinstance(raw, dict):
+        return None
+    image = str(raw.get("image") or "").strip()
+    if not image:
+        return None
+    try:
+        blur = int(float(raw.get("blur", 0) or 0))
+    except (TypeError, ValueError):
+        blur = 0
+    try:
+        opacity = float(raw.get("opacity", 1.0))
+    except (TypeError, ValueError):
+        opacity = 1.0
+    return {
+        "image": image,
+        "fit": str(raw.get("fit") or "cover").strip().lower(),
+        "position": str(raw.get("position") or "center").strip().lower(),
+        "blur": max(0, min(64, blur)),
+        "opacity": max(0.0, min(1.0, opacity)),
+        "scrim": str(raw.get("scrim") or "").strip(),
+        "mode": str(raw.get("mode") or "image").strip().lower(),
+    }
 
 
 def _normalise(theme_id: str, raw: dict, base: dict | None) -> dict:
@@ -451,12 +659,18 @@ def _normalise(theme_id: str, raw: dict, base: dict | None) -> dict:
     colors.update(raw.get("colors", {}))
     source_colors = dict(base.get("source_colors", {}))
     source_colors.update(raw.get("source_colors", {}))
+    tier = str(raw.get("tier") or "standard").strip().lower()
     return {
         "id": theme_id,
         "name": str(raw.get("name") or theme_id.replace("-", " ").title()),
         "description": str(raw.get("description") or ""),
         "is_dark": bool(raw.get("is_dark", base.get("is_dark", True))),
         "coming_soon": bool(raw.get("coming_soon", False)),
+        "tier": tier if tier else "standard",
+        "brand_icon": str(raw.get("brand_icon") or "").strip(),
+        "brand_logo": str(raw.get("brand_logo") or "").strip(),
+        "background": _normalise_background(raw.get("background")),
+        "effects": _normalise_effects(raw.get("effects")),
         "colors": colors,
         "source_colors": source_colors,
     }
@@ -553,6 +767,40 @@ class ThemeManager(QObject):
     def resolved_id(self):
         return self._resolved_id
 
+    def _owner_settings(self):
+        """Return settings from the owning app, falling back to disk early."""
+        try:
+            parent = self.parent()
+        except RuntimeError:
+            return None
+        if parent is None:
+            return None
+        settings = getattr(parent, "settings", None)
+        if isinstance(settings, dict):
+            return settings
+        try:
+            from neoarch.backend.services.settings import load_settings
+            return load_settings()
+        except Exception:
+            return None
+
+    def unlocked_theme_ids(self):
+        """Return Pro themes unlocked in the owning app's saved settings."""
+        settings = self._owner_settings()
+        if settings is None:
+            return frozenset()
+        return normalise_unlocked_themes(
+            settings.get(UNLOCKED_PRO_SETTING, ()))
+
+    def trial_status(self, theme_id):
+        """Return the local trial status for a locked Pro theme."""
+        settings = self._owner_settings()
+        if settings is None:
+            from neoarch.backend.services.pro_trials import TrialStatus
+            return TrialStatus("tampered", 0)
+        from neoarch.backend.services.pro_trials import trial_status
+        return trial_status(settings, theme_id)
+
     def _resolve_theme_id(self, theme_id):
         if theme_id == SYSTEM_THEME_ID:
             resolved = system_theme_id()
@@ -618,7 +866,9 @@ class ThemeManager(QObject):
             theme = _system_theme_data(resolved_id, base)
         else:
             theme = THEMES.get(resolved_id)
-        if theme is None or theme.get("coming_soon"):
+        locked = is_theme_locked(resolved_id, self.unlocked_theme_ids())
+        if (theme is None or theme.get("coming_soon")
+                or (locked and not self.trial_status(resolved_id).usable)):
             return False
         previous_id = self._current_id
         previous_resolved = self._resolved_id
@@ -702,7 +952,11 @@ class ThemeManager(QObject):
         reload_themes()
         if self._current_id not in THEMES and self._current_id != SYSTEM_THEME_ID:
             self._current_id = DEFAULT_THEME_ID
-        return self.apply_theme(self._current_id)
+        if self.apply_theme(self._current_id):
+            return True
+        if self._current_id != DARK_THEME_ID:
+            return self.apply_theme(DARK_THEME_ID)
+        return False
 
     def _save(self):
         try:
@@ -713,7 +967,7 @@ class ThemeManager(QObject):
             pass
 
     def load_saved(self):
-        """Load the saved theme from disk, falling back to the system theme."""
+        """Load the saved theme from disk, falling back to the default theme."""
         theme_id = DEFAULT_THEME_ID
         try:
             with open(self._settings_path) as f:
@@ -723,4 +977,5 @@ class ThemeManager(QObject):
                     theme_id = saved
         except Exception:
             pass
-        self.apply_theme(theme_id)
+        if not self.apply_theme(theme_id) and theme_id != DARK_THEME_ID:
+            self.apply_theme(DARK_THEME_ID)
