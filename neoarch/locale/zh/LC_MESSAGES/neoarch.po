@@ -3673,3 +3673,9 @@ msgstr "在 5 个社交媒体网站或论坛上分享 NeoArch——任何平台�
 msgid "Get the Halloween theme free. This offer is available for a limited time only."
 msgstr "免费获得万圣节主题。此优惠仅在限定时间内提供。"
 
+
+msgid "Wallpaper unavailable"
+msgstr "壁纸不可用"
+
+msgid "The full wallpaper could not be downloaded. A preview will be used instead."
+msgstr "完整壁纸下载失败，将改用预览图。"

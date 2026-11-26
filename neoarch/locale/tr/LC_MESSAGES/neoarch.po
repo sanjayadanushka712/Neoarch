@@ -3673,3 +3673,9 @@ msgstr "NeoArch'ı 5 sosyal medya sitesinde veya forumda paylaşın — herhangi
 msgid "Get the Halloween theme free. This offer is available for a limited time only."
 msgstr "Halloween temasını ücretsiz alın. Bu teklif yalnızca sınırlı bir süre için geçerlidir."
 
+
+msgid "Wallpaper unavailable"
+msgstr "Duvar kağıdı kullanılamıyor"
+
+msgid "The full wallpaper could not be downloaded. A preview will be used instead."
+msgstr "Tam duvar kağıdı indirilemedi. Bunun yerine bir önizleme kullanılacak."

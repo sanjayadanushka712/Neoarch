@@ -63,6 +63,18 @@ class _CloudHelper(QObject):
 _SELF_CONTAINED_VIEWS = frozenset({"appimage", "git", "docker", "settings", "about"})
 
 
+def _operation_running(app):
+    return (getattr(app, '_installing', False) or
+            hasattr(app, 'install_cancel_event'))
+
+
+def _operation_owns_view(app):
+    operation_view = getattr(app, '_operation_view', None)
+    return (_operation_running(app) and
+            operation_view is not None and
+            operation_view == getattr(app, 'current_view', None))
+
+
 def _fmt_size(b):
     try:
         mb = float(b) / (1024 * 1024)
@@ -586,8 +598,7 @@ class _ViewsMixin:
         # background callback may re-plant the table beneath the progress
         # overlay (that stacking is the "animation on top, table below"
         # corruption).
-        if (getattr(self, '_installing', False) and
-                getattr(self, '_operation_view', None) == getattr(self, 'current_view', None)):
+        if _operation_owns_view(self):
             self.package_table.setVisible(False)
             self.packages_grid.setVisible(False)
             if hasattr(self, 'updates_table'):
@@ -2784,13 +2795,14 @@ class _ViewsMixin:
         # results arrive so the loading indicator never lingers through the
         # slow first database sync; the final emit then completes the legacy
         # package table, source filters, counts, and notifications.
-        self.loading_widget.setVisible(False)
-        self.loading_widget.stop_animation()
-        try:
-            if hasattr(self, 'loading_container'):
-                self.loading_container.setVisible(False)
-        except Exception:
-            pass
+        if not _operation_running(self):
+            self.loading_widget.setVisible(False)
+            self.loading_widget.stop_animation()
+            try:
+                if hasattr(self, 'loading_container'):
+                    self.loading_container.setVisible(False)
+            except Exception:
+                pass
         self._show_active_view()
         if self.current_view == "updates" and hasattr(self, 'updates_table'):
             try:
@@ -2866,13 +2878,14 @@ class _ViewsMixin:
 
     def on_load_error(self):
         # Hide loading spinner, stop animation, and show packages table (empty)
-        self.loading_widget.setVisible(False)
-        self.loading_widget.stop_animation()
-        try:
-            if hasattr(self, 'loading_container'):
-                self.loading_container.setVisible(False)
-        except Exception:
-            pass
+        if not _operation_running(self):
+            self.loading_widget.setVisible(False)
+            self.loading_widget.stop_animation()
+            try:
+                if hasattr(self, 'loading_container'):
+                    self.loading_container.setVisible(False)
+            except Exception:
+                pass
         self._show_active_view()
         try:
             if self.current_view == "updates" and hasattr(self, 'updates_table'):
@@ -2937,7 +2950,6 @@ class _ViewsMixin:
                 pass
             self.cancel_install_btn.setVisible(can_cancel)
         elif status == "success":
-            self._installing = False
             self._install_succeeded = True
             self.loading_widget.set_message(_("Success"))
             self.cancel_install_btn.setVisible(False)
@@ -2952,7 +2964,6 @@ class _ViewsMixin:
             # Keep spinner visible briefly to show success, then hide
             QTimer.singleShot(1000, self.finish_installation_progress)
         elif status == "failed":
-            self._installing = False
             installed = getattr(self, '_installed_packages', None) or {}
             is_update = getattr(self, 'updates_all', None) is not None
             if installed:
@@ -2972,7 +2983,6 @@ class _ViewsMixin:
             self._last_install_result = None
             QTimer.singleShot(2000, self.finish_installation_progress)
         elif status == "cancelled":
-            self._installing = False
             self.loading_widget.set_message(_("Installation cancelled"))
             self.cancel_install_btn.setVisible(False)
             self._notify(_("Installation cancelled"), _("The operation was cancelled."), level="warning", event="errors")
@@ -3341,6 +3351,8 @@ class _ViewsMixin:
                 # and makes switch_view's can_restore skip the real load — the
                 # "no updates until a manual refresh" bug. Leave a clean slate;
                 # the loader paints once its results land.
+                return
+            if not rows and _operation_running(self):
                 return
             q = ''
             try:

@@ -3673,3 +3673,9 @@ msgstr "Teile NeoArch auf 5 sozialen Netzwerken oder Foren — jede Plattform od
 msgid "Get the Halloween theme free. This offer is available for a limited time only."
 msgstr "Erhalte das Halloween-Theme kostenlos. Dieses Angebot ist nur für kurze Zeit verfügbar."
 
+
+msgid "Wallpaper unavailable"
+msgstr "Hintergrundbild nicht verfügbar"
+
+msgid "The full wallpaper could not be downloaded. A preview will be used instead."
+msgstr "Das vollständige Hintergrundbild konnte nicht heruntergeladen werden. Stattdessen wird eine Vorschau verwendet."

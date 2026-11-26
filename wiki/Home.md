@@ -79,5 +79,5 @@ NeoArch is free software licensed under the [GNU General Public License v3.0 or 
 
 ---
 
-**Last Updated:** October 2026  
-**Version:** 3.7.0
+**Last Updated:** November 2026
+**Version:** 3.8.0

@@ -175,16 +175,16 @@ class _Stub(_ViewsMixin):
 
 
 class _FakeWidget:
-    @staticmethod
-    def setVisible(*a):
-        return None
+    def __init__(self):
+        self.visibility_calls = []
 
-    @staticmethod
-    def stop_animation(*a):
-        return None
+    def setVisible(self, visible):
+        self.visibility_calls.append(visible)
 
-    @staticmethod
-    def isHidden(*a):
+    def stop_animation(self):
+        self.visibility_calls.append("stop")
+
+    def isHidden(self):
         return False
 
 
@@ -241,6 +241,20 @@ def test_show_active_view_other_pages_unaffected(qapp):
     stub._show_active_view()
     assert not stub.updates_table.isHidden(), \
         "non-origin pages render normally during the operation"
+
+
+def test_show_active_view_hides_table_after_terminal_status(qapp):
+    """The cancel event outlives the terminal status; it must still keep the
+    origin page spinner-only until finish_installation_progress runs."""
+    stub = _Stub()
+    stub.current_view = "updates"
+    stub._installing = False
+    stub._operation_view = "updates"
+    stub.install_cancel_event = object()
+    stub.updates_table.setVisible(True)
+
+    stub._show_active_view()
+    assert stub.updates_table.isHidden()
 
 
 WAIT_TITLE = "Waiting for the update to finish\u2026"
@@ -425,13 +439,20 @@ def test_pending_update_all_on_installed_page_paints_nothing(qapp):
 
 def test_pending_update_all_updates_page_paints_and_triggers(qapp):
     """On the Updates page itself the pending update-all still paints the real
-    updates list and then starts."""
+    updates list and then starts, without hiding the operation spinner."""
     stub = _Stub()
     stub.current_view = "updates"
     stub._pending_update_all = True
     stub._updates_load_id = 9
     calls = []
-    stub._do_update_all = lambda: calls.append("update-all")
+    def _start_update():
+        calls.append("update-all")
+        stub._installing = True
+        stub._operation_view = "updates"
+        stub.install_cancel_event = object()
+        stub.loading_widget.visibility_calls.clear()
+        stub.loading_widget.setVisible(True)
+    stub._do_update_all = _start_update
     stub.update_updates_header_counts = lambda: None
     stub.package_table = _FakeLegacy()
 
@@ -441,6 +462,10 @@ def test_pending_update_all_updates_page_paints_and_triggers(qapp):
     assert stub._pending_update_all is False
     assert stub.updates_all == [_pkg("linux"), _pkg("glibc")]
     assert sorted(_rows_of(stub)) == ["glibc", "linux"], "updates list was not painted"
+    assert stub.loading_widget.visibility_calls == [True], \
+        "the loader result hid the update spinner right after starting the update"
+    assert stub.updates_table.isHidden(), \
+        "the updates table must stay hidden behind the operation spinner"
 
 
 class _FakeLegacy:
@@ -501,6 +526,42 @@ def test_on_packages_loaded_marks_updates_received(qapp):
 
     assert stub._updates_loaded is True
     assert stub._updates_loading is False
+
+
+def test_background_refresh_keeps_spinner_during_update(qapp):
+    """A parallel auto-refresh result must not stop the update's spinner."""
+    stub = _Stub()
+    stub.current_view = "updates"
+    stub.loading_context = "updates"
+    stub._updates_load_id = 3
+    stub._installing = True
+    stub._operation_view = "updates"
+    stub.install_cancel_event = object()
+    stub.updates_table.setVisible(True)
+
+    stub.on_packages_loaded([_pkg("linux")], 3, False)
+
+    assert stub.loading_widget.visibility_calls == []
+    assert stub.updates_table.isHidden()
+
+
+def test_empty_refresh_does_not_claim_all_caught_up_during_update(qapp):
+    """A DB-locked empty result landing mid-update must not paint a bogus empty
+    state under the spinner."""
+    stub = _Stub()
+    stub.current_view = "updates"
+    stub._updates_load_id = 3
+    stub._updates_loaded = True
+    stub._installing = True
+    stub._operation_view = "updates"
+    stub.install_cancel_event = object()
+    stub.updates_table.set_empty_text("Keep this", "During the update")
+    stub.package_table = _FakeLegacy()
+    stub.update_updates_header_counts = lambda: None
+
+    stub.on_packages_loaded([], 3, True)
+
+    assert stub.updates_table._empty._title.text() == "Keep this"
 
 
 class _FakePluginsView:

@@ -611,3 +611,29 @@ def test_apply_window_effects_skips_before_settings_loaded(qapp):
         pass
 
     assert _SettingsMixin.apply_window_effects(_Uninitialised()) is None
+
+
+def test_locked_theme_apply_downloads_full_wallpaper(qapp, monkeypatch):
+    from neoarch.backend.services import theme_assets
+
+    class _UiCall:
+        @staticmethod
+        def emit(callback):
+            callback()
+
+    app = _FakeApp(WINDOW_MODE_NEOARCH)
+    app.ui_call = _UiCall()
+    calls = []
+
+    def _download(theme_id, callback):
+        calls.append(theme_id)
+        callback(theme_id, "/tmp/wallpaper.jpg")
+
+    monkeypatch.setattr(theme_assets, "needs_download", lambda theme_id: True)
+    monkeypatch.setattr(theme_assets, "download_async", _download)
+    widget = AppearanceSettingsWidget(app)
+
+    widget._apply_theme_with_wallpaper("neoarch-pro-moss")
+
+    assert calls == ["neoarch-pro-moss"]
+    assert app._theme_manager.current_id == "neoarch-pro-moss"

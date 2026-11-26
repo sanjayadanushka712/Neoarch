@@ -10,6 +10,29 @@ dialog shows after an update.
 
 ---
 
+## 3.8.0 — 2026-11-26
+
+### New Features
+
+- **On-demand Pro wallpapers.** Locked Pro themes download their full
+  wallpaper on first use and cache it locally with SHA-256 verification.
+  Installed packages now ship lightweight previews instead of the full
+  locked wallpapers, cutting roughly 23 MB from every install.
+
+### Bug Fixes
+
+- **Update progress stays visible.** Background package-list refreshes and
+  terminal install status events no longer hide the spinner while an update
+  is still completing.
+
+- **Theme asset cleanup.** A failed temporary-cache setup no longer raises
+  during wallpaper download cleanup.
+
+### Improvements
+
+- Pro theme previews and the new wallpaper messages are translated in all
+  bundled languages.
+
 ## 3.7.0 — 2026-11-04
 
 ### New Features

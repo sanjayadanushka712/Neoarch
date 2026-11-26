@@ -526,7 +526,12 @@ def get_theme_background(theme_id: str) -> dict | None:
     if not theme:
         return None
     background = theme.get("background")
-    return dict(background) if isinstance(background, dict) else None
+    if not isinstance(background, dict):
+        return None
+    from neoarch.backend.services import theme_assets
+    resolved = dict(background)
+    resolved["image"] = theme_assets.resolve_path(theme_id, background.get("image"))
+    return resolved
 
 
 def theme_search_paths() -> list[Path]:

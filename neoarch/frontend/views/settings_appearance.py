@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (
 
 from neoarch.frontend.icon_registry import render_pixmap
 from neoarch.frontend.tokens import Colors, Fonts, Radii, QSS, qcolor
-from neoarch.backend.services import pro_trials
+from neoarch.backend.services import pro_trials, theme_assets
 from neoarch.backend.services.i18n import _
 from neoarch.backend.services.settings import (
     DEFAULT_WINDOW_MODE,
@@ -79,7 +79,8 @@ class _Swatch(QWidget):
         self._c = theme_data["colors"]
         self._background = theme_data.get("background") or {}
         self._pixmap = QPixmap()
-        image = str(self._background.get("image") or "")
+        image = theme_assets.preview_path(
+            str(theme_data.get("id") or ""), self._background.get("image"))
         if image:
             candidate = QPixmap(image)
             if not candidate.isNull():
@@ -355,6 +356,7 @@ class AppearanceSettingsWidget(QWidget):
         self._cards = {}
         self._pro_cards = {}
         self._mode_cards = {}
+        self._pending_assets = set()
         self._trial_timer = QTimer(self)
         self._trial_timer.setInterval(1000)
         self._trial_timer.timeout.connect(self._refresh_trial_rows)
@@ -758,6 +760,40 @@ class AppearanceSettingsWidget(QWidget):
         return normalise_unlocked_themes(
             self.app.settings.get(UNLOCKED_PRO_SETTING, ()))
 
+    def _notify(self, title, message):
+        emitter = getattr(self.app, 'show_message', None)
+        if emitter is not None:
+            emitter.emit(title, message)
+
+    def _apply_theme_with_wallpaper(self, theme_id):
+        manager = getattr(self.app, '_theme_manager', None)
+        if manager:
+            manager.apply_theme(theme_id)
+        emitter = getattr(self.app, 'ui_call', None)
+        if (not theme_assets.needs_download(theme_id)
+                or theme_id in self._pending_assets
+                or emitter is None):
+            return
+        self._pending_assets.add(theme_id)
+
+        def _done(_theme_id, path):
+            def _on_ui():
+                self._pending_assets.discard(_theme_id)
+                if path is None:
+                    self._notify(
+                        _("Wallpaper unavailable"),
+                        _("The full wallpaper could not be downloaded. A preview will be used instead."))
+                    return
+                if manager:
+                    manager.apply_theme(_theme_id)
+            emitter = getattr(self.app, 'ui_call', None)
+            if emitter is not None:
+                emitter.emit(_on_ui)
+            else:
+                QTimer.singleShot(0, _on_ui)
+
+        theme_assets.download_async(theme_id, _done)
+
     def _start_trial(self, theme_id):
         ledger = pro_trials.start_trial(self.app.settings, theme_id)
         if ledger is None:
@@ -769,9 +805,7 @@ class AppearanceSettingsWidget(QWidget):
             self._refresh_trial_rows()
             return False
         self.app.update_setting(pro_trials.TRIAL_SETTING, ledger)
-        manager = getattr(self.app, '_theme_manager', None)
-        if manager:
-            manager.apply_theme(theme_id)
+        self._apply_theme_with_wallpaper(theme_id)
         self._refresh_trial_rows()
         return True
 
@@ -800,9 +834,7 @@ class AppearanceSettingsWidget(QWidget):
         unlocked = set(self._unlocked_themes())
         unlocked.add(theme_id)
         self.app.update_setting(UNLOCKED_PRO_SETTING, sorted(unlocked))
-        manager = getattr(self.app, '_theme_manager', None)
-        if manager:
-            manager.apply_theme(theme_id)
+        self._apply_theme_with_wallpaper(theme_id)
         return True
 
     def _apply_theme(self, theme_id):
@@ -817,9 +849,7 @@ class AppearanceSettingsWidget(QWidget):
                         _("This Pro theme is locked. Enter its unlock code "
                           "to use it."))
                 return
-        manager = getattr(self.app, '_theme_manager', None)
-        if manager:
-            manager.apply_theme(theme_id)
+        self._apply_theme_with_wallpaper(theme_id)
 
     def _reload_themes(self):
         manager = getattr(self.app, '_theme_manager', None)

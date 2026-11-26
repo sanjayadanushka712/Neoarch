@@ -3673,3 +3673,9 @@ msgstr "NeoArch を 5 つのソーシャルメディアサイトまたはフォ�
 msgid "Get the Halloween theme free. This offer is available for a limited time only."
 msgstr "ハロウィンテーマを無料で入手できます。このオファーは期間限定です。"
 
+
+msgid "Wallpaper unavailable"
+msgstr "壁紙を利用できません"
+
+msgid "The full wallpaper could not be downloaded. A preview will be used instead."
+msgstr "完全な壁紙をダウンロードできませんでした。代わりにプレビューを使用します。"

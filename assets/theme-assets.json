@@ -1,0 +1,86 @@
+{
+  "themes": {
+    "neoarch-pro": {
+      "preview": "previews/neoarch-pro.webp"
+    },
+    "neoarch-pro-aero": {
+      "bytes": 2717974,
+      "file": "neoarch-pro-aero.jpg",
+      "preview": "previews/neoarch-pro-aero.webp",
+      "sha256": "efb677febacb9a91d41c223a53e01e5b3e10d594a58eee2079980f256c6ade79",
+      "url": "https://raw.githubusercontent.com/sanjayadanushka712/Neoarch/main/assets/themes/backgrounds/neoarch-pro-aero.jpg",
+      "version": 1
+    },
+    "neoarch-pro-crystal": {
+      "bytes": 2754131,
+      "file": "neoarch-pro-crystal.jpg",
+      "preview": "previews/neoarch-pro-crystal.webp",
+      "sha256": "158fbef2c88a405a85a861ec87915f1d393bac377009553cd19cb07304469e42",
+      "url": "https://raw.githubusercontent.com/sanjayadanushka712/Neoarch/main/assets/themes/backgrounds/neoarch-pro-crystal.jpg",
+      "version": 1
+    },
+    "neoarch-pro-ember": {
+      "bytes": 2351014,
+      "file": "neoarch-pro-ember.jpg",
+      "preview": "previews/neoarch-pro-ember.webp",
+      "sha256": "7ab50885bfe1b397049dfce119fa7065bd9b15d972f1451cacfb44b3f31d4093",
+      "url": "https://raw.githubusercontent.com/sanjayadanushka712/Neoarch/main/assets/themes/backgrounds/neoarch-pro-ember.jpg",
+      "version": 1
+    },
+    "neoarch-pro-endeavour": {
+      "preview": "previews/neoarch-pro-endeavour.webp"
+    },
+    "neoarch-pro-evergreen": {
+      "bytes": 2513551,
+      "file": "neoarch-pro-evergreen.jpg",
+      "preview": "previews/neoarch-pro-evergreen.webp",
+      "sha256": "be83ed739612b3b8b55475a6e1d40758c4721a4955d1529679e5f5a8b92a7b60",
+      "url": "https://raw.githubusercontent.com/sanjayadanushka712/Neoarch/main/assets/themes/backgrounds/neoarch-pro-evergreen.jpg",
+      "version": 1
+    },
+    "neoarch-pro-glacier": {
+      "bytes": 2874764,
+      "file": "neoarch-pro-glacier.jpg",
+      "preview": "previews/neoarch-pro-glacier.webp",
+      "sha256": "4dcc107712518029cb6a044ee340c568195f879615be5bec2813a747e50bff4b",
+      "url": "https://raw.githubusercontent.com/sanjayadanushka712/Neoarch/main/assets/themes/backgrounds/neoarch-pro-glacier.jpg",
+      "version": 1
+    },
+    "neoarch-pro-halloween": {
+      "bytes": 2672793,
+      "file": "neoarch-pro-halloween.jpg",
+      "preview": "previews/neoarch-pro-halloween.webp",
+      "sha256": "9ccd314e09f45f8c556e3989cd286ad1b445b3cec73106d6f851170baac12a61",
+      "url": "https://raw.githubusercontent.com/sanjayadanushka712/Neoarch/main/assets/themes/backgrounds/neoarch-pro-halloween.jpg",
+      "version": 1
+    },
+    "neoarch-pro-lagoon": {
+      "bytes": 2509850,
+      "file": "neoarch-pro-lagoon.jpg",
+      "preview": "previews/neoarch-pro-lagoon.webp",
+      "sha256": "e213273554d1994d4ea7e82f6ba1c115b0fffc09fe8341f0bc8468a5580f9381",
+      "url": "https://raw.githubusercontent.com/sanjayadanushka712/Neoarch/main/assets/themes/backgrounds/neoarch-pro-lagoon.jpg",
+      "version": 1
+    },
+    "neoarch-pro-moss": {
+      "bytes": 3043253,
+      "file": "neoarch-pro-moss.jpg",
+      "preview": "previews/neoarch-pro-moss.webp",
+      "sha256": "ab9085ca76441112341fbd9ab630b53d1b1aed6cb84e6ad7932f594e42ffdfbc",
+      "url": "https://raw.githubusercontent.com/sanjayadanushka712/Neoarch/main/assets/themes/backgrounds/neoarch-pro-moss.jpg",
+      "version": 1
+    },
+    "neoarch-pro-sakura": {
+      "bytes": 2383449,
+      "file": "neoarch-pro-sakura.jpg",
+      "preview": "previews/neoarch-pro-sakura.webp",
+      "sha256": "b4d80292d6a786f6b10d46a21bc897a38a3cda8971f376829dde052cb0190a09",
+      "url": "https://raw.githubusercontent.com/sanjayadanushka712/Neoarch/main/assets/themes/backgrounds/neoarch-pro-sakura.jpg",
+      "version": 1
+    },
+    "neoarch-pro-v4": {
+      "preview": "previews/neoarch-pro-v4.webp"
+    }
+  },
+  "version": 1
+}
