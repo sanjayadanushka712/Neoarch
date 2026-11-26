@@ -184,7 +184,8 @@ class _FakeWidget:
     def stop_animation(self):
         self.visibility_calls.append("stop")
 
-    def isHidden(self):
+    @staticmethod
+    def isHidden():
         return False
 
 
@@ -775,8 +776,8 @@ class _FilteredFakePluginsView(_FakePluginsView):
     """Simulates the source-panel filters already applied on the grid."""
 
     def _get_filtered_plugins(self):
-        return [card for card in super()._get_filtered_plugins()
-                if card.get("installed") is False]
+        parent = _FakePluginsView._get_filtered_plugins(self)
+        return [card for card in parent if card.get("installed") is False]
 
 
 def test_sync_plugins_table_respects_source_panel_filters(qapp):

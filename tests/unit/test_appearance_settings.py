@@ -36,7 +36,8 @@ class _FakeThemeManager:
         self.current_id = theme_id
         return True
 
-    def reload(self):
+    @staticmethod
+    def reload():
         return True
 
 
@@ -400,10 +401,12 @@ def test_apply_window_effects_updates_real_widget(qapp):
                 "window_radius": 8,
             }
 
-        def _window_mode(self):
+        @staticmethod
+        def _window_mode():
             return WINDOW_MODE_SYSTEM
 
-        def centralWidget(self):
+        @staticmethod
+        def centralWidget():
             return None
 
     window = _Window(True)
@@ -444,10 +447,12 @@ def test_wallpaper_theme_stays_transparent(qapp):
             }
             self._theme_manager = _Manager()
 
-        def _window_mode(self):
+        @staticmethod
+        def _window_mode():
             return WINDOW_MODE_NEOARCH
 
-        def centralWidget(self):
+        @staticmethod
+        def centralWidget():
             return None
 
     old_effects = (
@@ -525,11 +530,13 @@ def test_import_export_preserves_system_transparency(tmp_path, monkeypatch):
             }
             self.rebuilt = False
 
-        def log(self, _message):
-            pass
+        @staticmethod
+        def log(*_args):
+            return None
 
-        def _show_message(self, _title, _message):
-            pass
+        @staticmethod
+        def _show_message(*_args):
+            return None
 
         def build_settings_ui(self):
             self.rebuilt = True
@@ -577,10 +584,12 @@ def test_apply_window_effects_uses_theme_defined_glow(qapp):
                 "window_radius": 8,
             }
 
-        def _window_mode(self):
+        @staticmethod
+        def _window_mode():
             return WINDOW_MODE_NEOARCH
 
-        def centralWidget(self):
+        @staticmethod
+        def centralWidget():
             return None
 
     window = _Window()
