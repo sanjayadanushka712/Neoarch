@@ -3,7 +3,7 @@
 ## General Questions
 
 ### What is NeoArch?
-NeoArch is a modern, user-friendly GUI package manager for Arch Linux. It provides a unified interface to manage packages from multiple sources: Pacman (official), AUR (community), Flatpak (universal), and npm (JavaScript).
+NeoArch is a modern, user-friendly GUI package manager for Arch Linux and supported Arch-based distributions. It provides a unified interface to manage packages from multiple sources: Pacman (official), AUR (community), Flatpak (universal), and npm (JavaScript).
 
 ### Why should I use NeoArch instead of the terminal?
 - **Visual Interface**: Easier to browse and discover packages
@@ -20,7 +20,14 @@ Yes! NeoArch is designed with security in mind:
 - Always review AUR packages before installation
 
 ### Can I use NeoArch on non-Arch systems?
-NeoArch is specifically designed for Arch Linux. It may work on Arch-based distributions (Manjaro, EndeavourOS, etc.) but is not officially supported.
+NeoArch supports Arch Linux and these tested Arch-based distributions:
+
+- EndeavourOS
+- CachyOS
+- Garuda Linux
+- Manjaro (stable, testing, and unstable branches)
+
+Other Arch-based distributions may work, but are best-effort. Non-Arch systems (Debian, Fedora, openSUSE, etc.) are not supported.
 
 ## Installation & Setup
 
@@ -34,7 +41,7 @@ See [Installation Guide](Installation.md) for other methods.
 ### What are the system requirements?
 - Python 3.8+
 - PyQt6
-- Arch Linux
+- Arch Linux or a supported Arch-based distribution
 - Internet connection
 - Administrative privileges (sudo)
 

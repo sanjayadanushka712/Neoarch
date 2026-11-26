@@ -85,6 +85,23 @@ def test_tray_menu_actions_and_badge(qapp):
     tray.deleteLater()
 
 
+def test_tray_menu_tracks_theme_accent(qapp):
+    from neoarch.frontend import tokens
+
+    original = tokens.Colors.ACCENT_SOFT
+    fake = _FakeApp()
+    try:
+        tokens.Colors.ACCENT_SOFT = "rgba(1, 2, 3, 0.5)"
+        tray = TrayIcon(fake, APP_ICON)
+        assert "1, 2, 3" in tray.menu.styleSheet()
+        tokens.Colors.ACCENT_SOFT = "rgba(4, 5, 6, 0.5)"
+        tray.refresh_theme()
+        assert "4, 5, 6" in tray.menu.styleSheet()
+    finally:
+        tokens.Colors.ACCENT_SOFT = original
+        tray.deleteLater()
+
+
 def test_tray_available_returns_bool(qapp):
     assert isinstance(tray_available(), bool)
 
@@ -105,6 +122,17 @@ def test_set_updates_count_updates_tray(qapp):
 def test_tray_activation_shows_window(qapp):
     fake = _FakeApp()
     tray = TrayIcon(fake, APP_ICON)
-    tray._on_activated(tray.ActivationReason.Trigger)
+    tray._on_activated(tray.ActivationReason.DoubleClick)
     assert fake.shown >= 1
+    tray.deleteLater()
+
+
+def test_tray_trigger_opens_themed_menu(qapp):
+    fake = _FakeApp()
+    tray = TrayIcon(fake, APP_ICON)
+    calls = []
+    tray.show_menu = lambda: calls.append(True)
+    tray._on_activated(tray.ActivationReason.Trigger)
+    assert calls == [True]
+    assert tray.contextMenu() is tray.menu
     tray.deleteLater()

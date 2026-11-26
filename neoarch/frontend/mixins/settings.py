@@ -272,17 +272,40 @@ class _SettingsMixin:
         except Exception:
             pass
 
-    def apply_window_effects(self):
-        """Apply the window glow-border and corner-radius settings live.
-
-        The glow rim renders on a translucent frameless window, which can
-        leave stray lines on some compositors/GPU drivers — hence it is
-        opt-in (default OFF) and switchable without restarting.
-        """
+    def _sync_window_effect_tokens(self):
+        """Refresh window tokens from settings, returning the native flag."""
         from neoarch.frontend import tokens
+        from neoarch.frontend.themes import (
+            get_theme_background,
+            get_theme_effects,
+        )
+
+        if 'settings' not in self.__dict__:
+            return None
+
         native = self._window_mode() == settings_service.WINDOW_MODE_SYSTEM
-        tokens.WINDOW_GLOW = (
-            bool(self.settings.get('window_glow', False)) and not native)
+        manager = self.__dict__.get('_theme_manager')
+        theme_id = manager.current_id if manager is not None else None
+        effects = get_theme_effects(theme_id) if theme_id else None
+        glow = (effects or {}).get("glow")
+        glow = glow if isinstance(glow, dict) else {}
+        explicit = self.settings.get('window_glow_explicit')
+        if explicit is None:
+            explicit = bool(self.settings.get('window_glow', False))
+        glow_on = (
+            bool(self.settings.get('window_glow', False))
+            if explicit else bool(glow.get("enabled", False))
+        )
+        tokens.WINDOW_GLOW = glow_on and not native
+        tokens.WINDOW_GLOW_COLOR = str(glow.get("color") or "")
+        try:
+            tokens.WINDOW_GLOW_WIDTH = float(glow.get("width", 1.0))
+        except (TypeError, ValueError):
+            tokens.WINDOW_GLOW_WIDTH = 1.0
+        try:
+            tokens.WINDOW_GLOW_OPACITY = float(glow.get("opacity", 1.0))
+        except (TypeError, ValueError):
+            tokens.WINDOW_GLOW_OPACITY = 1.0
         try:
             radius = int(self.settings.get('window_radius', 8))
         except (TypeError, ValueError):
@@ -302,9 +325,27 @@ class _SettingsMixin:
             if (not native or system_transparency)
             else 1.0
         )
+        tokens.WINDOW_BACKGROUND_ACTIVE = bool(
+            theme_id and not native and get_theme_background(theme_id)
+        )
+        return native
+
+    def apply_window_effects(self):
+        """Apply the window glow-border and corner-radius settings live.
+
+        The glow rim renders on a translucent frameless window, which can
+        leave stray lines on some compositors/GPU drivers — hence it is
+        opt-in (default OFF) and switchable without restarting.
+        """
+        from neoarch.frontend import tokens
+
+        native = _SettingsMixin._sync_window_effect_tokens(self)
+        if native is None:
+            return
         self.setAttribute(
             Qt.WidgetAttribute.WA_TranslucentBackground,
-            (not native) or system_transparency,
+            (not native) or bool(
+                self.settings.get('window_system_transparency', False)),
         )
 
         outer = self.centralWidget()
@@ -316,6 +357,18 @@ class _SettingsMixin:
 
         tokens.rebuild_stylesheet()
         self.setStyleSheet(tokens.DARK_STYLESHEET)
+        frame = self.__dict__.get('_app_window_frame')
+        if frame is not None:
+            frame.update()
+
+    def preview_window_effects(self):
+        """Update only the window frame while a slider is being dragged."""
+        native = _SettingsMixin._sync_window_effect_tokens(self)
+        if native is None:
+            return
+        frame = self.__dict__.get('_app_window_frame')
+        if frame is not None:
+            frame.update()
 
     def export_settings(self):
         return settings_service.export_settings(self)

@@ -101,3 +101,20 @@ def test_populate_custom_keyrings(monkeypatch):
     monkeypatch.setattr(subprocess, "run", fake_run)
     keyring.populate_keyring(["archlinux"])
     assert calls[-1][-1] == "archlinux"
+
+
+def test_populate_uses_installed_distro_keyrings(monkeypatch):
+    calls = []
+
+    def fake_run(cmd, timeout=900, env=None, **kw):
+        calls.append(cmd)
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(keyring, "get_auth_command", lambda: ["sudo", "-A"])
+    monkeypatch.setattr(keyring, "get_askpass_env", lambda: {})
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    monkeypatch.setattr(
+        keyring.distro, "available_keyrings",
+        lambda: ("manjaro", "archlinux"))
+    assert keyring.populate_keyring() is True
+    assert calls[-1][-2:] == ["manjaro", "archlinux"]

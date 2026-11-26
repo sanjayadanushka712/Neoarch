@@ -77,6 +77,21 @@ def test_pacman_aur_always_enabled():
     assert card.sources["AUR"].enabled
 
 
+def test_share_copy_button_fits_translated_label(qapp, monkeypatch):
+    import neoarch.backend.services.i18n as i18n
+    from neoarch.frontend.mixins.filters import _BundlesSourcePanel
+
+    monkeypatch.setattr(i18n, "_language", "de")
+    monkeypatch.setattr(i18n, "_catalog", {"Copy": "Kopieren"})
+
+    panel = _BundlesSourcePanel()
+    button = panel._copy_btn
+
+    assert button.text() == "Kopieren"
+    assert button.minimumWidth() >= button.sizeHint().width()
+    assert button.minimumWidth() > 42
+
+
 def _real_item(name):
     from neoarch.frontend.components.source_item import SourceItem
     return SourceItem(name, "")

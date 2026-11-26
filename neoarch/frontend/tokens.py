@@ -44,6 +44,9 @@ def qcolor(value, alpha=None) -> QColor:
 
 def icon_tint() -> str:
     """Default stroke-icon tint: white on dark themes, muted text on light."""
+    themed = getattr(Colors, "ICON_TINT", "")
+    if themed:
+        return themed
     return Colors.WHITE if qcolor(Colors.BG).lightness() < 128 else Colors.TEXT_2
 
 
@@ -91,6 +94,8 @@ class Colors:
     TEXT_2 = "#8B8D97"
     TEXT_3 = "#5C5E66"
     TEXT_ON_ACCENT = "#0C0C0E"
+    # Optional theme override for tinted SVG icons (empty = auto).
+    ICON_TINT = ""
     TEXT_ON_WHITE = "#0C0C0E"
 
     # Primary accent
@@ -566,18 +571,15 @@ QSS.regenerate()
 # default because translucent rims can leave artifacts on some
 # compositors/GPU drivers.
 WINDOW_GLOW = False
+WINDOW_GLOW_COLOR = ""
+WINDOW_GLOW_WIDTH = 1.0
+WINDOW_GLOW_OPACITY = 1.0
 WINDOW_RADIUS = 8
 WINDOW_OPACITY = 0.75
+WINDOW_BACKGROUND_ACTIVE = False
 
 
 def _build_main_stylesheet():
-    frame_border = (
-        f"border: 1px solid {Colors.ACCENT_SOFT};" if WINDOW_GLOW
-        else "border: none;")
-    bg = qcolor(Colors.BG)
-    window_bg = (
-        f"rgba({bg.red()}, {bg.green()}, {bg.blue()}, {WINDOW_OPACITY})"
-    )
     return f"""
 QMainWindow {{
     background-color: transparent;
@@ -589,8 +591,8 @@ QWidget#appOuter {{
 }}
 
 QFrame#appWindow {{
-    background-color: {window_bg};
-    {frame_border}
+    background-color: transparent;
+    border: none;
     border-radius: {WINDOW_RADIUS}px;
 }}
 

@@ -1,8 +1,8 @@
-"""Dependency-alert behavior: only required deps flag the About icon red.
+"""Dependency-alert behavior: required deps always alert.
 
 Optional components (flatpak, npm, docker, fwupd, pipx, ...) degrade
-gracefully; their absence is still shown on the Diagnostics page (orange
-warn + Install) but must not turn the main panel icon red.
+gracefully. They get an orange first-run notice, become neutral after the
+user opens Diagnostics, and re-arm only when a new optional dep appears.
 """
 
 import pytest
@@ -95,13 +95,14 @@ class _IconRecorder:
         return QIcon()
 
 
-def _make_app():
+def _make_app(seen=None):
     app = object.__new__(_ViewsMixin)
     app._about_icon_label = _Label()
     app.nav_buttons = {"about": _NavBtn()}
     app.about_view = _AboutView()
     app._about_dep_badge = _Badge()
     app.get_svg_icon = _IconRecorder()
+    app.settings = {"optional_deps_seen": list(seen or [])}
     return app
 
 
@@ -124,6 +125,54 @@ def test_optional_missing_shows_green_icon_and_badge(monkeypatch):
 
     path = str(icon_call[0]).replace("\\", "/")
     assert path.endswith("about.svg")
+
+
+def test_seen_optional_missing_is_muted(monkeypatch):
+    _set_catalog(monkeypatch, pacman=True, fwupdmgr=False, pipx=False)
+    app = _make_app(seen=["fwupdmgr", "pipx"])
+    app._update_dep_alert(["fwupdmgr", "pipx"])
+    assert app._dep_missing == []
+    assert app._dep_optional_missing == ["fwupdmgr", "pipx"]
+    assert app._dep_optional_outstanding == []
+    assert app._about_dep_badge.visible is False
+    assert app.get_svg_icon.calls[-1][2] is None
+    assert app.nav_buttons["about"].tip == "About"
+    assert app.about_view.required == []
+    assert app.about_view.optional == []
+
+
+def test_new_optional_missing_rearms_notice(monkeypatch):
+    from neoarch.frontend.tokens import Colors
+
+    _set_catalog(monkeypatch, pacman=True, fwupdmgr=False, pipx=False)
+    app = _make_app(seen=["fwupdmgr"])
+    app._update_dep_alert(["fwupdmgr", "pipx"])
+    assert app._dep_optional_outstanding == ["pipx"]
+    assert app._about_dep_badge.visible is True
+    assert app._about_dep_badge.text == "1"
+    assert app.get_svg_icon.calls[-1][2] == Colors.GREEN
+    assert app.nav_buttons["about"].tip == "About \u2014 optional components missing"
+    assert app.about_view.optional == ["pipx"]
+
+
+def test_acknowledge_optional_deps_persists(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        "neoarch.frontend.mixins.views.save_settings",
+        lambda settings, log=None: calls.append(dict(settings)),
+        raising=False)
+    app = _make_app(seen=["fwupdmgr"])
+
+    def save():
+        calls.append(dict(app.settings))
+
+    app.save_settings = save
+    app._acknowledge_optional_deps(["pipx"])
+    assert app.settings["optional_deps_seen"] == ["fwupdmgr", "pipx"]
+    assert calls
+
+    app._acknowledge_optional_deps(["pipx"])
+    assert len(calls) == 1
 
 
 def test_required_missing_alerts(monkeypatch):
@@ -189,6 +238,40 @@ def test_pipx_resolves_to_real_pacman_package():
     # target-not-found fails silently while still claiming "Setup finished".
     from neoarch.backend.sys_utils import resolve_pkg_names
     assert resolve_pkg_names(["pipx"]) == ["python-pipx"]
+
+
+def test_diagnostics_first_visit_warns_then_mutes(monkeypatch, qapp):
+    from PyQt6.QtWidgets import QLabel
+    from neoarch.frontend.tokens import Colors, Fonts
+    from neoarch.frontend.components.about_tab import _DiagnosticsTab
+
+    class _DiagApp:
+        def __init__(self):
+            self.settings = {"optional_deps_seen": []}
+            self.alerts = []
+
+        def _acknowledge_optional_deps(self, names):
+            seen = set(self.settings["optional_deps_seen"])
+            self.settings["optional_deps_seen"] = sorted(seen | set(names))
+
+        def _update_dep_alert(self, missing):
+            self.alerts.append(list(missing))
+
+    _set_catalog(monkeypatch, pacman=True, fwupdmgr=False, pipx=False)
+    app = _DiagApp()
+    tab = _DiagnosticsTab(main_app=app)
+
+    tab._refresh_deps()
+    assert app.settings["optional_deps_seen"] == ["fwupdmgr", "pipx"]
+    assert "optional component(s) missing" in tab._dep_summary.text()
+    assert str(Colors.ORANGE) in tab._dep_summary.styleSheet()
+    assert app.alerts
+
+    tab._refresh_deps()
+    assert tab._dep_summary.text() == "2 optional integration(s) not installed"
+    assert str(Colors.TEXT_3) in tab._dep_summary.styleSheet()
+    labels = [w.text() for w in tab.findChildren(QLabel)]
+    assert "\u2022 not installed" in labels
 
 
 def test_alert_nav_button_dot_states(qapp):

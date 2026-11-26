@@ -73,6 +73,35 @@ def test_whats_new_respects_limit():
     assert len(rn.whats_new(blocks, "", limit=2)) <= 2
 
 
+def test_pinned_announcement_has_the_halloween_giveaway_details():
+    pin = rn.pinned_announcement()
+    assert pin["title"] == "Halloween theme giveaway"
+    assert "5 social media sites or forums" in pin["body"]
+    assert "any platform or community works" in pin["body"]
+    assert "dsanjaya712@gmail.com" in pin["body"]
+    assert "Halloween theme free" in pin["reward"]
+    assert "limited time" in pin["reward"].lower()
+    assert pin["email"] == "dsanjaya712@gmail.com"
+    assert "action" not in pin
+    assert os.path.exists(pin["image"])
+
+
+def test_pinned_announcement_is_translated_in_every_catalog():
+    from neoarch.backend.services import i18n
+
+    keys = (
+        "Pinned",
+        "Halloween theme giveaway",
+        "Limited-time offer",
+        rn.pinned_announcement()["body"],
+        rn.pinned_announcement()["reward"],
+    )
+    for lang in i18n.available_languages():
+        cat = i18n.load_catalog(lang)
+        missing = [key for key in keys if not cat.get(key)]
+        assert not missing, f"missing {lang} pinned translations: {missing}"
+
+
 def test_latest_release_respects_toggle():
     os.environ["NEOARCH_CHECK_RELEASES"] = "0"
     try:

@@ -12,9 +12,11 @@ Two modes:
 """
 
 import html
+import os
 import re
 
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmap
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QScrollArea, QWidget, QFrame,
@@ -26,7 +28,8 @@ from neoarch.frontend.components.dark_dialogs import (
     _dialog_style, _DialogTitleBar, _apply_dialog_flags,
 )
 from neoarch.backend.services.i18n import _
-from neoarch.backend.services.release_notes import latest_release, SECTION_LABELS
+from neoarch.backend.services.release_notes import (
+    latest_release, pinned_announcement, SECTION_LABELS)
 
 
 def _open_url(url):
@@ -70,6 +73,77 @@ def _render_body(text):
             continue
         lines.append(f"<div>{_rich(line)}</div>")
     return "".join(lines)
+
+
+def pinned_announcement_card(image_width=560):
+    """Pinned homepage post shared by the dialog and the Release Notes tab."""
+    data = pinned_announcement()
+
+    card = QFrame()
+    card.setObjectName("cardFrame")
+    card.setStyleSheet(
+        Styles.card(bg=Colors.SURFACE_2, border=Colors.GOLD_BORDER))
+    lay = QVBoxLayout(card)
+    lay.setContentsMargins(20, 16, 20, 18)
+    lay.setSpacing(12)
+
+    head = QHBoxLayout()
+    head.setSpacing(8)
+
+    pin = QLabel(html.escape(data["badge"].upper()))
+    pin.setStyleSheet(
+        f"background: {Colors.GOLD_SOFT};"
+        f" color: {Colors.GOLD};"
+        f" border: 1px solid {Colors.GOLD_BORDER};"
+        f" border-radius: {Radii.FULL}px;"
+        f" padding: 3px 9px; font-size: {Fonts.XS};"
+        f" font-weight: {Fonts.SEMI}; letter-spacing: 0.6px;")
+    head.addWidget(pin)
+
+    offer = QLabel(html.escape(data["offer"]))
+    offer.setStyleSheet(
+        f"color: {Colors.TEXT_3}; font-size: {Fonts.SM};"
+        " background: transparent; border: none;")
+    head.addWidget(offer)
+    head.addStretch(1)
+    lay.addLayout(head)
+
+    title = QLabel(html.escape(data["title"]))
+    title.setWordWrap(True)
+    title.setStyleSheet(
+        f"color: {Colors.TEXT}; font-size: {Fonts.CARD_TITLE};"
+        f" font-weight: {Fonts.SEMI}; background: transparent;"
+        " border: none;")
+    lay.addWidget(title)
+
+    image_path = data.get("image", "")
+    if image_path and os.path.exists(image_path):
+        pixmap = QPixmap(image_path)
+        if not pixmap.isNull():
+            shot = QLabel()
+            shot.setPixmap(pixmap.scaledToWidth(
+                image_width, Qt.TransformationMode.SmoothTransformation))
+            shot.setStyleSheet("background: transparent; border: none;")
+            lay.addWidget(shot)
+
+    body = QLabel(_rich(data["body"]))
+    body.setTextFormat(Qt.TextFormat.RichText)
+    body.setWordWrap(True)
+    body.setStyleSheet(
+        f"color: {Colors.TEXT_2}; font-size: {Fonts.BASE};"
+        " background: transparent; border: none;")
+    lay.addWidget(body)
+
+    reward = QLabel(_rich(data["reward"]))
+    reward.setTextFormat(Qt.TextFormat.RichText)
+    reward.setWordWrap(True)
+    reward.setStyleSheet(
+        f"color: {Colors.GOLD}; font-size: {Fonts.BASE};"
+        f" font-weight: {Fonts.SEMI}; background: transparent;"
+        " border: none;")
+    lay.addWidget(reward)
+
+    return card
 
 
 class WhatIsNewDialog(QDialog):
@@ -121,6 +195,7 @@ class WhatIsNewDialog(QDialog):
         cl.setContentsMargins(0, 0, 6, 0)
         cl.setSpacing(14)
 
+        cl.addWidget(pinned_announcement_card())
         body = self._latest.get("body") if self._mode == "update" else ""
         if body:
             cl.addWidget(self._release_body_card(body))

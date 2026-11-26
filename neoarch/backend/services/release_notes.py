@@ -19,7 +19,8 @@ import time
 import urllib.request
 from typing import Dict, List, Optional
 
-from neoarch.resources.paths import PROJECT_ROOT, APP_NAME
+from neoarch.backend.services.i18n import _
+from neoarch.resources.paths import PROJECT_ROOT, APP_NAME, ASSETS_DIR
 
 __all__ = [
     "parse_changelog",
@@ -28,11 +29,15 @@ __all__ = [
     "latest_release",
     "commit_count",
     "changelog_versions",
+    "pinned_announcement",
+    "PINNED_ANNOUNCEMENT_IMAGE",
     "CHANGELOG_PATH",
     "REPO_STATS_CACHE",
 ]
 
 CHANGELOG_PATH = PROJECT_ROOT / "CHANGELOG.md"
+PINNED_ANNOUNCEMENT_IMAGE = (
+    ASSETS_DIR / "icons" / "screenshots" / "halloween-theme-giveaway.png")
 
 _REPO_URL = "https://api.github.com/repos/sanjayadanushka712/Neoarch"
 _RELEASE_URL = f"{_REPO_URL}/releases/latest"
@@ -130,6 +135,24 @@ def whats_new(blocks: List[Dict], last_seen: str, limit: int = 4) -> List[Dict]:
     newer = [b for b in blocks if version_key(b.get("version", "")) > seen_key]
     # Changelog blocks are parsed in file order, which is newest-first.
     return newer[:limit]
+
+
+def pinned_announcement() -> Dict:
+    """Curated pin shown above the changelog in every release-notes view."""
+    return {
+        "badge": _("Pinned"),
+        "title": _("Halloween theme giveaway"),
+        "offer": _("Limited-time offer"),
+        "body": _(
+            "Share NeoArch on 5 social media sites or forums — any platform "
+            "or community works. Take a screenshot of each post or copy its "
+            "link, then email them to dsanjaya712@gmail.com."),
+        "reward": _(
+            "Get the Halloween theme free. This offer is available for a "
+            "limited time only."),
+        "email": "dsanjaya712@gmail.com",
+        "image": str(PINNED_ANNOUNCEMENT_IMAGE),
+    }
 
 
 def changelog_versions() -> List[str]:

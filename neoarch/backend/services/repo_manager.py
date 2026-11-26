@@ -19,6 +19,7 @@ maintainer key, fetch the mirror list over HTTPS, append
 import re
 import time
 
+from neoarch.backend.services import distro
 from neoarch.backend.services.i18n import _
 
 PACMAN_CONF = "/etc/pacman.conf"
@@ -28,6 +29,8 @@ _PACMAN_MIRRORS_CONF = "/etc/pacman-mirrors.conf"
 
 # Repos every Arch install gets on the base file; toggling these off can
 # strand dependencies, so the GUI keeps a read-only "System" label on them.
+# Distro-owned repos (endeavouros, cachyos*, garuda, chaotic-aur on Garuda)
+# are protected through the distro profile as well.
 SYSTEM_REPOS = {"core", "extra", "multilib", "testing"}
 
 # Marker above a section block that NeoArch added.
@@ -121,7 +124,7 @@ def list_repos():
             "include": s["include"],
             "servers": list(s["servers"]),
             "managed": s["managed"],
-            "system": s["name"].lower() in SYSTEM_REPOS,
+            "system": distro.is_protected_repo(s["name"]),
         })
     return out
 
@@ -202,7 +205,7 @@ def apply_enable(lines, name, enabled):
         raise ValueError(_("Repository '[{name}]' not found.").format(name=name))
     if found["enabled"] == bool(enabled):
         return lines
-    if name.lower() in SYSTEM_REPOS:
+    if distro.is_protected_repo(name):
         raise ValueError(
             _("'{name}' is a system repository and can't be toggled here.").format(name=name))
     out = [line for line in lines]
@@ -276,7 +279,7 @@ def add_repo(name, servers=None, include=None, sync=True):
     name = (name or "").strip()
     if not _NAME_RE.match(name):
         return False, _("Invalid repository name (letters, numbers, '.', '-' and '_').")
-    if name.lower() in SYSTEM_REPOS:
+    if distro.is_protected_repo(name):
         return False, _("'{name}' is a system repository.").format(name=name)
     servers = [s.strip() for s in (servers or []) if (s or "").strip()]
     include = (include or "").strip()
@@ -434,10 +437,15 @@ def chaotic_preflight():
                  branch=branch or _("stable"))
 
 
+def is_protected_repo(name):
+    """True when a repo is owned by Arch or the running distribution."""
+    return distro.is_protected_repo(name)
+
+
 __all__ = [
     "PACMAN_CONF", "SYSTEM_REPOS",
     "parse_pacman_conf", "list_repos",
     "build_block", "apply_add", "apply_remove", "apply_enable",
     "add_repo", "remove_repo", "set_repo_enabled", "add_chaotic_aur",
-    "read_os_release", "chaotic_preflight",
+    "read_os_release", "chaotic_preflight", "is_protected_repo",
 ]

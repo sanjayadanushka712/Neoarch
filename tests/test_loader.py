@@ -854,6 +854,10 @@ def test_load_updates_skips_disabled_sources(monkeypatch):
                         forbid("sync"))
     monkeypatch.setattr("neoarch.backend.package.loader._attach_installed_dates",
                         lambda rows: rows)
+    monkeypatch.setattr("neoarch.backend.package.loader.sys_utils.pipx_source_enabled",
+                        lambda: True)
+    monkeypatch.setattr("neoarch.backend.package.loader.sys_utils.cmd_exists",
+                        lambda name: name == "pipx")
     monkeypatch.setattr(
         "neoarch.backend.package.loader._check_pipx_updates",
         lambda: [{"name": "black", "version": "1.0", "new_version": "2.0",

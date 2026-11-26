@@ -971,14 +971,18 @@ def cmd_config(args) -> None:
 
 def cmd_doctor(args) -> None:
     checks: List[Dict] = []
-    missing = sys_utils.get_missing_dependencies()
-    for dep in missing:
-        checks.append({"check": f"dependency: {dep}", "ok": False, "message": "missing"})
-    checks.append({"check": "pacman", "ok": sys_utils.cmd_exists("pacman"), "message": ""})
-    for tool in ("git", "flatpak", "node", "npm", "docker"):
-        checks.append({"check": tool, "ok": sys_utils.cmd_exists(tool), "message": ""})
-    aur = sys_utils.get_aur_helper()
-    checks.append({"check": "aur helper", "ok": aur is not None, "message": aur or "none installed"})
+    for dep in sys_utils.get_dependency_catalog():
+        present = bool(dep.get("present"))
+        required = bool(dep.get("required"))
+        status = "ok" if present else ("fail" if required else "skip")
+        checks.append({
+            "check": dep["name"],
+            "ok": present,
+            "optional": not required,
+            "status": status,
+            "message": "" if present else (
+                "missing" if required else "not installed"),
+        })
     pkgs = _list_pacman(False, False, False)
     checks.append({"check": "installed packages", "ok": True, "message": str(len(pkgs))})
     updates = _run(["pacman", "-Qu"], timeout=60).stdout.splitlines()
@@ -991,8 +995,11 @@ def cmd_doctor(args) -> None:
     else:
         all_ok = True
         for c in checks:
-            mark = "ok" if c["ok"] else "FAIL"
-            if not c["ok"]:
+            if c.get("status") == "skip":
+                mark = "--"
+            else:
+                mark = "ok" if c["ok"] else "FAIL"
+            if c.get("status") == "fail":
                 all_ok = False
             extra = f" ({c['message']})" if c.get("message") else ""
             print(f"[{mark}] {c['check']}{extra}")

@@ -9,9 +9,12 @@ from neoarch.frontend.icon_registry import (
     ICON_PATHS,
     brand_icon_candidates,
     brand_icon_path,
+    brand_logo_path,
     icon_path,
     render_icon,
     render_pixmap,
+    set_brand_assets,
+    set_brand_pro,
     source_icon_path,
     status_icon_path,
 )
@@ -49,6 +52,26 @@ def test_status_and_brand_helpers():
     assert status_icon_path("high") == icon_path("status/high")
     assert brand_icon_path() in brand_icon_candidates()
     assert os.path.isfile(brand_icon_path())
+
+
+def test_pro_brand_icon_uses_themed_artwork():
+    try:
+        set_brand_pro(False)
+        assert Path(brand_icon_path()).name == "icon.png"
+        set_brand_pro(True)
+        assert Path(brand_icon_path()).name == "icon-pro.png"
+        assert Path(brand_logo_path()).name == "logo-pro.png"
+    finally:
+        set_brand_pro(False)
+
+
+def test_themed_brand_assets_can_be_selected_per_theme():
+    try:
+        set_brand_assets("app/icon-pro-evergreen", "app/logo-pro-evergreen")
+        assert Path(brand_icon_path()).name == "icon-pro-evergreen.png"
+        assert Path(brand_logo_path()).name == "logo-pro-evergreen.png"
+    finally:
+        set_brand_assets()
 
 
 def test_render_svg_and_png(qapp):

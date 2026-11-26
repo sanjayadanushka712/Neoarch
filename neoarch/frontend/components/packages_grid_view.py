@@ -596,9 +596,21 @@ class PackagesGridView(QScrollArea):
             self._grid.addWidget(card, r, c)
         self._sync_empty()
 
+    @staticmethod
+    def _pkg_key(pkg):
+        return (pkg.get("name") or "", pkg.get("source") or "")
+
     def populate(self, packages: list[dict]):
         self.clear()
-        for i, pkg in enumerate(packages):
+        seen = set()
+        unique = []
+        for pkg in packages:
+            key = self._pkg_key(pkg)
+            if key in seen:
+                continue
+            seen.add(key)
+            unique.append(pkg)
+        for i, pkg in enumerate(unique):
             self.add_package(pkg, i)
         self._relayout()
         self._sync_empty()
@@ -613,7 +625,17 @@ class PackagesGridView(QScrollArea):
         return [c.row for c in self._cards if c.is_checked()]
 
     def get_checked_packages(self) -> list[dict]:
-        return [c.pkg for c in self._cards if c.is_checked()]
+        seen = set()
+        packages = []
+        for card in self._cards:
+            if not card.is_checked():
+                continue
+            key = self._pkg_key(card.pkg)
+            if key in seen:
+                continue
+            seen.add(key)
+            packages.append(card.pkg)
+        return packages
 
     def set_all_checked(self, checked: bool) -> None:
         """Tick/un-tick every card in the grid (select-all in grid view)."""

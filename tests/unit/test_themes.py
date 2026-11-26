@@ -1,16 +1,29 @@
 import json
 import re
+from pathlib import Path
 
 import pytest
 
 from neoarch.frontend import themes
+from neoarch.frontend.tokens import icon_tint
 from neoarch.frontend.themes import (
     BUILTIN_THEME_DIR,
+    DEFAULT_THEME_ID,
     SYSTEM_THEME_ID,
     THEMES,
     ThemeManager,
+    FREE_PRO_THEMES,
+    PRO_UNLOCK_HASHES,
+    UNLOCKED_PRO_SETTING,
+    brand_assets_for_theme,
+    get_theme_background,
     get_theme_data,
+    get_theme_effects,
+    is_theme_locked,
     load_themes,
+    normalise_unlocked_themes,
+    theme_glow_enabled,
+    verify_theme_unlock_code,
 )
 
 
@@ -35,11 +48,167 @@ def test_builtin_themes_load():
 
     assert set(themes) == {
         "dark", "light", "dracula", "nord",
-        "solarized-dark", "forest-green",
+        "solarized-dark", "forest-green", "neoarch-pro",
+        "neoarch-pro-evergreen", "neoarch-pro-ember",
+        "neoarch-pro-glacier", "neoarch-pro-aero",
+        "neoarch-pro-lagoon", "neoarch-pro-moss",
+        "neoarch-pro-sakura", "neoarch-pro-crystal",
+        "neoarch-pro-endeavour", "neoarch-pro-v4",
+        "neoarch-pro-halloween",
     }
     assert themes["dark"]["colors"]["BG"] == "#0C0C0E"
     assert re.fullmatch(r"#[0-9A-Fa-f]{6}", themes["light"]["colors"]["BG"])
     assert themes["light"]["is_dark"] is False
+
+
+def test_pro_theme_background_metadata_is_loaded():
+    themes = load_themes([BUILTIN_THEME_DIR])
+    pro = themes["neoarch-pro"]
+
+    assert pro["tier"] == "pro"
+    assert pro["background"]["blur"] == 22
+    assert Path(pro["background"]["image"]).is_file()
+
+
+@pytest.mark.parametrize("theme_id, accent, is_dark", [
+    ("neoarch-pro-evergreen", "#67AB7C", True),
+    ("neoarch-pro-ember", "#E1A866", True),
+    ("neoarch-pro-glacier", "#4F7899", False),
+    ("neoarch-pro-aero", "#42AFCB", True),
+    ("neoarch-pro-lagoon", "#66BED2", True),
+    ("neoarch-pro-moss", "#9FB87C", True),
+    ("neoarch-pro-sakura", "#C48DD8", True),
+    ("neoarch-pro-crystal", "#4DAEAB", True),
+    ("neoarch-pro-endeavour", "#9B6BFF", True),
+    ("neoarch-pro-v4", "#62E6D4", True),
+    ("neoarch-pro-halloween", "#F08A24", True),
+])
+def test_pro_theme_has_background_and_brand_artwork(theme_id, accent, is_dark):
+    themes = load_themes([BUILTIN_THEME_DIR])
+    pro = themes[theme_id]
+
+    assert pro["tier"] == "pro"
+    assert pro["brand_icon"] == f"app/icon-pro-{theme_id.rsplit('-', 1)[-1]}"
+    assert pro["brand_logo"] == f"app/logo-pro-{theme_id.rsplit('-', 1)[-1]}"
+    assert Path(pro["background"]["image"]).is_file()
+    assert pro["colors"]["ACCENT"] == accent
+    assert pro["is_dark"] is is_dark
+
+
+def test_brand_assets_honour_any_theme_tier():
+    assert brand_assets_for_theme({
+        "tier": "standard",
+        "brand_icon": "custom/icon",
+        "brand_logo": "custom/logo",
+    }) == ("custom/icon", "custom/logo")
+    assert brand_assets_for_theme({"tier": "pro"}) == (
+        "app/icon-pro", "app/logo-pro")
+    assert brand_assets_for_theme({"tier": "standard"}) == ("", "")
+    assert brand_assets_for_theme(None) == ("", "")
+
+
+def test_custom_theme_brand_assets_resolve_next_to_json(tmp_path):
+    icon = tmp_path / "custom-icon.png"
+    logo = tmp_path / "custom-logo.png"
+    icon.write_bytes(b"icon")
+    logo.write_bytes(b"logo")
+    (tmp_path / "custom.json").write_text(json.dumps({
+        "id": "custom",
+        "brand_icon": "custom-icon.png",
+        "brand_logo": "custom-logo.png",
+    }), encoding="utf-8")
+
+    theme = load_themes([tmp_path])["custom"]
+
+    assert theme["brand_icon"] == str(icon)
+    assert theme["brand_logo"] == str(logo)
+
+
+@pytest.mark.parametrize("theme_id", [
+    "neoarch-pro",
+    "neoarch-pro-evergreen",
+    "neoarch-pro-ember",
+    "neoarch-pro-glacier",
+    "neoarch-pro-aero",
+    "neoarch-pro-lagoon",
+    "neoarch-pro-moss",
+    "neoarch-pro-sakura",
+    "neoarch-pro-crystal",
+    "neoarch-pro-endeavour",
+    "neoarch-pro-v4",
+    "neoarch-pro-halloween",
+])
+def test_pro_themes_define_glow_effects(theme_id):
+    theme = get_theme_data(theme_id)
+    effects = get_theme_effects(theme_id)
+
+    assert effects is not None
+    assert effects["glow"]["enabled"] is True
+    assert effects["glow"]["color"] == theme["colors"]["ACCENT"]
+    assert 0.5 <= effects["glow"]["width"] <= 4.0
+    assert 0.0 <= effects["glow"]["opacity"] <= 1.0
+    assert theme_glow_enabled(theme_id) is True
+    assert get_theme_effects("dark") is None
+    assert theme_glow_enabled("dark") is False
+
+
+def test_pro_theme_tints_stroke_icons(tmp_path, qapp):
+    manager = ThemeManager()
+    manager._settings_path = str(tmp_path / "theme.json")
+    try:
+        assert manager.apply_theme("neoarch-pro")
+        assert icon_tint() == "#D9C6FF"
+    finally:
+        manager.apply_theme("dark")
+
+
+def test_background_image_path_resolves_relative_to_theme(tmp_path):
+    _write_theme(tmp_path, "custom-pro.json", {
+        "id": "custom-pro",
+        "tier": "pro",
+        "background": {"image": "art/background.jpg"},
+    })
+
+    themes = load_themes([BUILTIN_THEME_DIR, tmp_path])
+
+    assert themes["custom-pro"]["background"]["image"] == str(
+        tmp_path / "art" / "background.jpg")
+
+
+def test_free_pro_themes_apply_and_other_pro_themes_are_locked(tmp_path, qapp):
+    manager = ThemeManager()
+    manager._settings_path = str(tmp_path / "theme.json")
+    try:
+        assert FREE_PRO_THEMES == {
+            "neoarch-pro",
+            "neoarch-pro-endeavour",
+            "neoarch-pro-v4",
+        }
+        assert manager.apply_theme("neoarch-pro")
+        assert get_theme_background("neoarch-pro")["blur"] == 22
+        assert manager.apply_theme("neoarch-pro-endeavour")
+        assert manager.current_id == "neoarch-pro-endeavour"
+        assert manager.apply_theme("neoarch-pro-v4")
+        assert manager.current_id == "neoarch-pro-v4"
+
+        for theme_id in THEMES:
+            if get_theme_data(theme_id).get("tier") != "pro":
+                continue
+            if theme_id in FREE_PRO_THEMES:
+                continue
+            assert is_theme_locked(theme_id)
+            assert not manager.apply_theme(theme_id)
+            assert manager.current_id == "neoarch-pro-v4"
+
+        assert get_theme_background(SYSTEM_THEME_ID) is None
+    finally:
+        manager.apply_theme("dark")
+
+
+def test_standard_and_free_pro_themes_are_not_locked():
+    for theme_id in ("dark", "light", "dracula", "neoarch-pro",
+                     "neoarch-pro-endeavour", "neoarch-pro-v4"):
+        assert not is_theme_locked(theme_id)
 
 
 def test_partial_user_theme_inherits_dark(tmp_path):
@@ -307,14 +476,14 @@ def test_system_palette_raises_low_contrast_borders(monkeypatch, qapp):
     assert alpha > 0.10
 
 
-def test_load_saved_defaults_to_system(tmp_path, monkeypatch):
-    monkeypatch.setattr(themes, "system_theme_id", lambda: "light")
+def test_load_saved_defaults_to_endeavour(tmp_path):
     manager = ThemeManager()
     manager._settings_path = str(tmp_path / "missing.json")
     try:
         manager.load_saved()
-        assert manager.current_id == SYSTEM_THEME_ID
-        assert manager.resolved_id == "light"
+        assert DEFAULT_THEME_ID == "neoarch-pro-endeavour"
+        assert manager.current_id == DEFAULT_THEME_ID
+        assert manager.resolved_id == DEFAULT_THEME_ID
     finally:
         manager.apply_theme("dark")
 
@@ -343,3 +512,122 @@ def test_system_theme_uses_palette_when_color_scheme_unknown(monkeypatch):
     monkeypatch.setattr(QApplication, "instance", staticmethod(lambda: _App()))
 
     assert themes.system_theme_id() == "light"
+
+
+def test_locked_pro_themes_store_only_salted_password_hashes():
+    locked = {
+        theme_id for theme_id, theme in THEMES.items()
+        if theme.get("tier") == "pro" and theme_id not in FREE_PRO_THEMES
+    }
+
+    assert set(PRO_UNLOCK_HASHES) == locked
+    for theme_id, encoded in PRO_UNLOCK_HASHES.items():
+        assert is_theme_locked(theme_id)
+        scheme, iterations, salt_hex, digest_hex = encoded.split("$", 3)
+        assert scheme == "pbkdf2_sha256"
+        assert int(iterations) >= 600_000
+        assert len(bytes.fromhex(salt_hex)) == 16
+        assert len(bytes.fromhex(digest_hex)) == 32
+        assert not verify_theme_unlock_code(theme_id, "wrong-code")
+
+
+def test_unlock_password_is_verified_against_pbkdf2_hash(monkeypatch):
+    import hashlib
+
+    password = "TestOnly-Crystal-123"
+    salt = bytes.fromhex("00112233445566778899aabbccddeeff")
+    iterations = 1_000
+    digest = hashlib.pbkdf2_hmac(
+        "sha256", password.encode("utf-8"), salt, iterations)
+    encoded = f"pbkdf2_sha256${iterations}${salt.hex()}${digest.hex()}"
+    monkeypatch.setitem(
+        themes.PRO_UNLOCK_HASHES, "neoarch-pro-crystal", encoded)
+
+    assert verify_theme_unlock_code("neoarch-pro-crystal", password)
+    assert verify_theme_unlock_code("neoarch-pro-crystal", f" {password} ")
+    assert not verify_theme_unlock_code(
+        "neoarch-pro-crystal", password.lower())
+    assert not verify_theme_unlock_code("neoarch-pro-crystal", "")
+    assert not verify_theme_unlock_code("neoarch-pro-ember", password)
+
+
+def test_unlocked_pro_theme_can_be_applied(tmp_path, qapp):
+    from PyQt6.QtCore import QObject
+
+    class _Owner(QObject):
+        def __init__(self):
+            super().__init__()
+            self.settings = {
+                UNLOCKED_PRO_SETTING: ["neoarch-pro-ember"],
+            }
+
+    owner = _Owner()
+    manager = ThemeManager(owner)
+    manager._settings_path = str(tmp_path / "theme.json")
+    try:
+        assert manager.apply_theme("neoarch-pro-ember")
+        assert manager.current_id == "neoarch-pro-ember"
+        assert not manager.apply_theme("neoarch-pro-crystal")
+    finally:
+        manager.apply_theme("dark")
+
+
+def test_pro_theme_trial_allows_apply_until_expiry(
+        tmp_path, qapp, monkeypatch):
+    import time
+    from PyQt6.QtCore import QObject
+    from neoarch.backend.services import pro_trials
+
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "data"))
+
+    class _Owner(QObject):
+        def __init__(self):
+            super().__init__()
+            self.settings = {UNLOCKED_PRO_SETTING: []}
+
+    now = time.time()
+    active_owner = _Owner()
+    pro_trials.start_trial(
+        active_owner.settings, "neoarch-pro-sakura", now=now)
+    active_manager = ThemeManager(active_owner)
+    active_manager._settings_path = str(tmp_path / "active-theme.json")
+
+    expired_owner = _Owner()
+    pro_trials.start_trial(
+        expired_owner.settings, "neoarch-pro-ember",
+        now=now - pro_trials.TRIAL_DURATION_SECONDS - 1)
+    expired_manager = ThemeManager(expired_owner)
+    expired_manager._settings_path = str(tmp_path / "expired-theme.json")
+    try:
+        assert active_manager.apply_theme("neoarch-pro-sakura")
+        assert active_manager.current_id == "neoarch-pro-sakura"
+        assert not expired_manager.apply_theme("neoarch-pro-ember")
+    finally:
+        active_manager.apply_theme("dark")
+
+
+def test_unlocked_theme_setting_is_normalised():
+    assert normalise_unlocked_themes("neoarch-pro-moss") == {
+        "neoarch-pro-moss"}
+    assert normalise_unlocked_themes([
+        " neoarch-pro-moss ", "", None, "neoarch-pro-aero",
+    ]) == {"neoarch-pro-moss", "neoarch-pro-aero"}
+    assert normalise_unlocked_themes(None) == frozenset()
+
+
+def test_theme_manager_reads_unlocked_settings_before_app_is_ready(
+        tmp_path, qapp, monkeypatch):
+    from PyQt6.QtCore import QObject
+    from neoarch.backend.services import settings as settings_service
+
+    owner = QObject()
+    manager = ThemeManager(owner)
+    manager._settings_path = str(tmp_path / "theme.json")
+    monkeypatch.setattr(
+        settings_service, "load_settings",
+        lambda: {UNLOCKED_PRO_SETTING: ["neoarch-pro-sakura"]})
+    try:
+        assert manager.apply_theme("neoarch-pro-sakura")
+        assert manager.current_id == "neoarch-pro-sakura"
+    finally:
+        manager.apply_theme("dark")

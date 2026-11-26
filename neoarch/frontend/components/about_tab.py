@@ -725,6 +725,13 @@ class _ReleaseNotesTab(QWidget):
         cl.setContentsMargins(0, 0, 0, 0)
         cl.setSpacing(20)
 
+        from neoarch.backend.services.release_notes import (
+            parse_changelog, whats_new)
+        from neoarch.frontend.components.whats_new_dialog import (
+            _rich, pinned_announcement_card)
+
+        cl.addWidget(pinned_announcement_card())
+
         # Current version card
         ver_card = _card()
         vl = QVBoxLayout(ver_card)
@@ -735,10 +742,6 @@ class _ReleaseNotesTab(QWidget):
         title_row.addWidget(_link_btn(_("What's New"), self._open_whats_new))
         vl.addLayout(title_row)
         cl.addWidget(ver_card)
-
-        from neoarch.backend.services.release_notes import (
-            parse_changelog, whats_new)
-        from neoarch.frontend.components.whats_new_dialog import _rich
 
         icons = {
             "New Features": _ICON_SPARKLES,
@@ -1395,10 +1398,12 @@ class _StatusDot(QLabel):
             "ok": Colors.GREEN,
             "warn": Colors.ORANGE,
             "error": Colors.RED,
+            "optional": Colors.TEXT_3,
             "info": Colors.TEXT_2,
         }
         c = color_map.get(status, Colors.TEXT_2)
-        self.setText(_("\u2022 {status}").format(status=status.upper()))
+        label = _("not installed") if status == "optional" else status.upper()
+        self.setText(_("\u2022 {status}").format(status=label))
         self.setStyleSheet(
             f"color: {c}; font-size: {Fonts.XS}; font-weight: {Fonts.SEMI};"
             " background: transparent; border: none;")
@@ -1603,6 +1608,20 @@ class _DiagnosticsTab(QWidget):
                     if sub.widget():
                         sub.widget().deleteLater()
 
+    def _seen_optional_deps(self):
+        settings = getattr(self.main_app, 'settings', None)
+        if isinstance(settings, dict):
+            try:
+                return {str(name) for name in
+                        (settings.get('optional_deps_seen') or []) if name}
+            except Exception:
+                return set()
+        try:
+            from neoarch.backend.services.settings import get_seen_optional_deps
+            return get_seen_optional_deps()
+        except Exception:
+            return set()
+
     def _refresh_deps(self):
         try:
             from neoarch.backend.sys_utils import (
@@ -1613,12 +1632,16 @@ class _DiagnosticsTab(QWidget):
             self._dep_summary.setText(_("Check failed: {e}").format(e=e))
             return
 
+        seen_optional = self._seen_optional_deps()
         self._clear_dep_rows()
         missing = []
+        unseen_optional = []
         for dep in catalog:
             present = dep["present"]
             if not present:
                 missing.append(dep["name"])
+                if not dep["required"] and dep["name"] not in seen_optional:
+                    unseen_optional.append(dep["name"])
             row = QHBoxLayout()
             row.setSpacing(12)
 
@@ -1639,7 +1662,12 @@ class _DiagnosticsTab(QWidget):
             if present:
                 row.addWidget(_StatusDot("ok"))
             else:
-                status = "error" if dep["required"] else "warn"
+                if dep["required"]:
+                    status = "error"
+                elif dep["name"] in seen_optional:
+                    status = "optional"
+                else:
+                    status = "warn"
                 row.addWidget(_StatusDot(status))
                 install_btn = _secondary_btn(_("Install"), lambda: None)
                 install_btn.clicked.disconnect()
@@ -1667,7 +1695,7 @@ class _DiagnosticsTab(QWidget):
                 f"font-size: {Fonts.SM}; color: {Colors.RED};"
                 f" font-weight: {Fonts.SEMI};"
                 "background: transparent; border: none;")
-        else:
+        elif unseen_optional:
             self._dep_summary.setText(
                 _("{count} optional component(s) missing \u2014 "
                   "features above will stay hidden until installed").format(
@@ -1675,6 +1703,14 @@ class _DiagnosticsTab(QWidget):
             self._dep_summary.setStyleSheet(
                 f"font-size: {Fonts.SM}; color: {Colors.ORANGE};"
                 f" font-weight: {Fonts.SEMI};"
+                "background: transparent; border: none;")
+        else:
+            self._dep_summary.setText(
+                _("{count} optional integration(s) not installed").format(
+                    count=len(missing)))
+            self._dep_summary.setStyleSheet(
+                f"font-size: {Fonts.SM}; color: {Colors.TEXT_3};"
+                f" font-weight: {Fonts.MEDIUM};"
                 "background: transparent; border: none;")
         self._install_all_btn.setEnabled(bool(missing))
 
@@ -1684,6 +1720,16 @@ class _DiagnosticsTab(QWidget):
                   "these rows never clear; unset the env var for real checks"))
 
         app = self.main_app
+        if unseen_optional:
+            if app is not None and hasattr(app, "_acknowledge_optional_deps"):
+                app._acknowledge_optional_deps(unseen_optional)
+            else:
+                try:
+                    from neoarch.backend.services.settings import (
+                        mark_optional_deps_seen)
+                    mark_optional_deps_seen(unseen_optional)
+                except Exception:
+                    pass
         if app is not None and hasattr(app, "_update_dep_alert"):
             app._update_dep_alert(missing)
 
@@ -2018,8 +2064,9 @@ class AboutTab(QWidget):
     def set_dep_alert(self, required, optional=()):
         """Dot on the Diagnostics nav in the About sidebar.
 
-        Red when required dependencies are missing; green when only
-        optional components (flatpak, npm, pipx, fwupd, ...) are missing.
+        Red when required dependencies are missing; green for optional
+        integrations the user has not seen yet. Once Diagnostics has shown
+        them, only newly missing optional integrations re-arm the dot.
         """
         state = "error" if required else ("warn" if optional else None)
         if len(self._nav_btns) > 3:

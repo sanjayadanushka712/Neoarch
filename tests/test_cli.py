@@ -1,5 +1,6 @@
 import os
 import sys
+from types import SimpleNamespace
 
 import pytest
 
@@ -7,6 +8,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from neoarch.cli import (
     _build_parser,
+    cmd_doctor,
     _scan_global_flags,
     _normalize_argv,
     _list_pacman,
@@ -100,6 +102,46 @@ def test_list_pacman_parses_installed(tmp_path):
     pkgs = _list_pacman(False, False, False)
     assert isinstance(pkgs, list)
     assert all("name" in p and "version" in p for p in pkgs)
+
+
+def _doctor_setup(monkeypatch, pacman_present, npm_present):
+    catalog = [
+        {"name": "pacman", "pkg": "pacman", "required": True,
+         "feature": "core", "present": pacman_present},
+        {"name": "npm", "pkg": "npm", "required": False,
+         "feature": "npm", "present": npm_present},
+    ]
+    monkeypatch.setattr(
+        "neoarch.cli.sys_utils.get_dependency_catalog",
+        lambda: catalog)
+    monkeypatch.setattr("neoarch.cli._list_pacman", lambda *a: [])
+    monkeypatch.setattr(
+        "neoarch.cli._run",
+        lambda *a, **k: SimpleNamespace(stdout=""))
+    monkeypatch.setattr("neoarch.cli._list_backups", lambda: [])
+
+
+def test_doctor_optional_missing_is_skipped(monkeypatch, capsys):
+    _doctor_setup(monkeypatch, pacman_present=True, npm_present=False)
+
+    cmd_doctor(SimpleNamespace(json=False))
+    out = capsys.readouterr().out
+
+    assert "[ok] pacman" in out
+    assert "[--] npm (not installed)" in out
+    assert "System looks healthy." in out
+    assert "Issues found" not in out
+
+
+def test_doctor_counts_only_required_as_issues(monkeypatch, capsys):
+    _doctor_setup(monkeypatch, pacman_present=False, npm_present=False)
+
+    cmd_doctor(SimpleNamespace(json=False))
+    out = capsys.readouterr().out
+
+    assert "[FAIL] pacman (missing)" in out
+    assert "[--] npm (not installed)" in out
+    assert "Issues found" in out
 
 
 def test_config_roundtrip(tmp_path, monkeypatch):

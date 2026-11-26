@@ -7,7 +7,7 @@ from neoarch.backend.services.settings import (
     WINDOW_MODE_SYSTEM,
 )
 from neoarch.frontend.main_window import ArchPkgManagerUniGetUI
-from neoarch.frontend.themes import SYSTEM_THEME_ID
+from neoarch.frontend.themes import DEFAULT_THEME_ID, SYSTEM_THEME_ID
 
 
 class _FakeThemeManager:
@@ -40,11 +40,13 @@ def _fake_window(mode, theme_id):
     return window
 
 
-def test_default_window_mode_is_native_system():
-    assert DEFAULT_WINDOW_MODE == WINDOW_MODE_SYSTEM
-    assert DEFAULT_SETTINGS['window_mode'] == WINDOW_MODE_SYSTEM
+def test_default_appearance_is_endeavour_frame_with_glow():
+    assert DEFAULT_WINDOW_MODE == WINDOW_MODE_NEOARCH
+    assert DEFAULT_SETTINGS['window_mode'] == WINDOW_MODE_NEOARCH
+    assert DEFAULT_SETTINGS['window_glow'] is True
     assert DEFAULT_SETTINGS['neoarch_theme'] == ''
     assert DEFAULT_SETTINGS['window_system_transparency'] is False
+    assert DEFAULT_THEME_ID == 'neoarch-pro-endeavour'
 
 
 def test_switch_to_native_preserves_neoarch_theme_and_applies_system():
@@ -86,16 +88,16 @@ def test_switch_back_to_neoarch_replaces_a_stale_system_theme():
 
     ArchPkgManagerUniGetUI.set_window_mode(window, WINDOW_MODE_NEOARCH)
 
-    assert window.settings['neoarch_theme'] == 'dark'
-    assert window._theme_manager.applied == ['dark']
+    assert window.settings['neoarch_theme'] == DEFAULT_THEME_ID
+    assert window._theme_manager.applied == [DEFAULT_THEME_ID]
 
 
-def test_switch_back_without_saved_theme_uses_dark():
+def test_switch_back_without_saved_theme_uses_default():
     window = _fake_window(WINDOW_MODE_SYSTEM, '')
 
     ArchPkgManagerUniGetUI.set_window_mode(window, WINDOW_MODE_NEOARCH)
 
-    assert window._theme_manager.applied == ['dark']
+    assert window._theme_manager.applied == [DEFAULT_THEME_ID]
 
 
 def test_unknown_window_mode_is_ignored():

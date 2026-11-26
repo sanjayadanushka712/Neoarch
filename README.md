@@ -2,7 +2,7 @@
 
 # NeoArch
 
-<sub>Modern package manager for Arch Linux — pacman · AUR · Flatpak · npm</sub>
+<sub>Modern package manager for Arch Linux and Arch-based distros — pacman · AUR · Flatpak · npm</sub>
 
 <br/>
 
@@ -211,7 +211,7 @@ Launch the app from your application menu or run `neoarch`; the CLI runs as `neo
 
 **Option B — from source**
 
-Requirements: Arch Linux · Python 3.8+ · PyQt6 · sudo.
+Requirements: Arch Linux or a supported Arch-based distro (EndeavourOS, CachyOS, Garuda, Manjaro) · Python 3.8+ · PyQt6 · sudo.
 
 ```bash
 sudo pacman -S --needed python python-pyqt6 python-requests qt6-svg git flatpak nodejs npm

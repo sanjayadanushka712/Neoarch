@@ -26,6 +26,9 @@ __all__ = [
     "status_icon_path",
     "brand_icon_path",
     "brand_icon_candidates",
+    "brand_logo_path",
+    "set_brand_assets",
+    "set_brand_pro",
     "has_icon",
     "render_pixmap",
     "render_icon",
@@ -49,7 +52,29 @@ ICON_PATHS = {
     "updates": "updates.svg",
     "user": "user.svg",
     "app/icon": "app/icon.png",
+    "app/icon-pro": "app/icon-pro.png",
+    "app/icon-pro-aero": "app/icon-pro-aero.png",
+    "app/icon-pro-crystal": "app/icon-pro-crystal.png",
+    "app/icon-pro-ember": "app/icon-pro-ember.png",
+    "app/icon-pro-endeavour": "app/icon-pro-endeavour.png",
+    "app/icon-pro-evergreen": "app/icon-pro-evergreen.png",
+    "app/icon-pro-glacier": "app/icon-pro-glacier.png",
+    "app/icon-pro-lagoon": "app/icon-pro-lagoon.png",
+    "app/icon-pro-moss": "app/icon-pro-moss.png",
+    "app/icon-pro-sakura": "app/icon-pro-sakura.png",
+    "app/icon-pro-v4": "app/icon-pro-v4.png",
     "app/logo": "app/logo.png",
+    "app/logo-pro": "app/logo-pro.png",
+    "app/logo-pro-aero": "app/logo-pro-aero.png",
+    "app/logo-pro-crystal": "app/logo-pro-crystal.png",
+    "app/logo-pro-ember": "app/logo-pro-ember.png",
+    "app/logo-pro-endeavour": "app/logo-pro-endeavour.png",
+    "app/logo-pro-evergreen": "app/logo-pro-evergreen.png",
+    "app/logo-pro-glacier": "app/logo-pro-glacier.png",
+    "app/logo-pro-lagoon": "app/logo-pro-lagoon.png",
+    "app/logo-pro-moss": "app/logo-pro-moss.png",
+    "app/logo-pro-sakura": "app/logo-pro-sakura.png",
+    "app/logo-pro-v4": "app/logo-pro-v4.png",
     "app/developer": "app/developer.png",
     "app/qr-code": "app/qr-code.png",
     "app/sponsor-ferreol": "app/sponsor-ferreol.png",
@@ -154,6 +179,29 @@ BRAND_ICON_CANDIDATES = (
     "app",
 )
 
+_BRAND_PRO_CANDIDATES = (
+    "app/icon-pro",
+    "app/logo-pro",
+)
+
+_brand_icon = ""
+_brand_logo = ""
+
+
+def set_brand_assets(icon: str = "", logo: str = "") -> None:
+    """Select themed brand artwork, or clear it for the default assets."""
+    global _brand_icon, _brand_logo
+    _brand_icon = str(icon or "").strip()
+    _brand_logo = str(logo or "").strip()
+
+
+def set_brand_pro(enabled: bool) -> None:
+    """Select the Pro-branded logo assets for the active theme."""
+    if enabled:
+        set_brand_assets("app/icon-pro", "app/logo-pro")
+    else:
+        set_brand_assets()
+
 
 def icon_path(name: str) -> str:
     """Return the absolute path for a logical icon name or relative path."""
@@ -176,7 +224,12 @@ def status_icon_path(state: str) -> str:
 
 def brand_icon_candidates() -> list[str]:
     """Return brand/logo candidates in preference order."""
-    return [icon_path(name) for name in BRAND_ICON_CANDIDATES]
+    names = BRAND_ICON_CANDIDATES
+    if _brand_icon:
+        names = (_brand_icon,) + names
+    elif _brand_logo:
+        names = _BRAND_PRO_CANDIDATES + names
+    return [icon_path(name) for name in names]
 
 
 def brand_icon_path() -> str:
@@ -186,6 +239,13 @@ def brand_icon_path() -> str:
         if os.path.exists(path):
             return path
     return candidates[-1]
+
+
+def brand_logo_path() -> str:
+    """Return the horizontal sidebar/About logo for the active brand."""
+    name = _brand_logo or "app/logo"
+    path = icon_path(name)
+    return path if os.path.exists(path) else icon_path("app/logo")
 
 
 def has_icon(name: str) -> bool:

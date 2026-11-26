@@ -4,16 +4,26 @@ Main window module for NeoArch Package Manager
 """
 
 import os
+import time
 from typing import Any
 
-from PyQt6.QtWidgets import QMainWindow, QSizePolicy, QWidget
+from PyQt6.QtWidgets import QApplication, QMainWindow, QSizePolicy, QWidget
 from PyQt6.QtCore import Qt, QTimer, QEvent, QPoint, pyqtSignal
 
 from neoarch.backend.services import network_latency
 from neoarch.managers.plugin_manager import PluginsManager
-from neoarch.frontend.icon_registry import icon_path
+from neoarch.frontend.icon_registry import icon_path, set_brand_assets
 from neoarch.frontend.styles import Styles
-from neoarch.frontend.themes import SYSTEM_THEME_ID, THEMES, ThemeManager
+from neoarch.frontend.themes import (
+    DEFAULT_THEME_ID,
+    SYSTEM_THEME_ID,
+    THEMES,
+    ThemeManager,
+    brand_assets_for_theme,
+    get_theme_background,
+    get_theme_data,
+    is_theme_locked,
+)
 from neoarch.backend.services.settings import (
     DEFAULT_WINDOW_MODE,
     WINDOW_MODE_NEOARCH,
@@ -72,9 +82,7 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
         self._theme_manager.load_saved()
         # Re-apply stylesheet after theme load
         self.setStyleSheet(Styles.get_dark_stylesheet())
-        brand_path = _get_brand_icon_path()
-        if os.path.exists(brand_path):
-            self.setWindowIcon(_build_window_icon(brand_path))
+        self._sync_brand_icon()
         # self.set_minimal_icon()
         self._resize_margin = 6
         self._resize_edge = None
@@ -120,12 +128,18 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
         elif self._theme_manager.current_id == SYSTEM_THEME_ID:
             # A NeoArch frame always needs one of its own themes; System is
             # reserved for Native system mode.
-            theme_id = self.settings.get('neoarch_theme') or 'dark'
+            theme_id = self.settings.get('neoarch_theme') or DEFAULT_THEME_ID
             if theme_id == SYSTEM_THEME_ID or theme_id not in THEMES:
-                theme_id = 'dark'
+                theme_id = DEFAULT_THEME_ID
             self.settings['neoarch_theme'] = theme_id
+            applied = self._theme_manager.apply_theme(theme_id)
+            if not applied and theme_id != DEFAULT_THEME_ID:
+                theme_id = DEFAULT_THEME_ID
+                self.settings['neoarch_theme'] = theme_id
+                applied = self._theme_manager.apply_theme(theme_id)
             self.save_settings()
-            self._theme_manager.apply_theme(theme_id)
+            if not applied:
+                self._theme_manager.apply_theme(DEFAULT_THEME_ID)
         self.apply_logging_config()
         # Activate the saved UI/CLI language catalog
         try:
@@ -153,6 +167,12 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
         self.installation_progress.connect(self.on_installation_progress)
         self.progress_update.connect(self.on_progress_update)
         self.ui_call.connect(self._on_ui_call)
+        self._trial_touch_at = 0.0
+        self._trial_warning_theme = ""
+        self._trial_timer = QTimer(self)
+        self._trial_timer.setInterval(1000)
+        self._trial_timer.timeout.connect(self._watch_pro_trials)
+        self._trial_timer.start()
         # Background loading coordination
         self.loading_context: Any = None
         self.cancel_update_load = False
@@ -255,7 +275,7 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
             self._update_bundle_buttons()
 
     def _window_mode(self):
-        """Return the saved window mode, falling back to the system default."""
+        """Return the saved window mode, falling back to the app default."""
         mode = str(self.settings.get('window_mode', DEFAULT_WINDOW_MODE))
         if mode in (WINDOW_MODE_SYSTEM, WINDOW_MODE_NEOARCH):
             return mode
@@ -308,20 +328,100 @@ class ArchPkgManagerUniGetUI(_ViewsMixin, _OperationsMixin, _BundlesMixin, _Sear
             if not applied:
                 QTimer.singleShot(0, self.rebuild_ui)
         else:
-            theme_id = self.settings.get('neoarch_theme') or 'dark'
+            theme_id = self.settings.get('neoarch_theme') or DEFAULT_THEME_ID
             if theme_id == SYSTEM_THEME_ID or theme_id not in THEMES:
-                theme_id = 'dark'
+                theme_id = DEFAULT_THEME_ID
             self.settings['neoarch_theme'] = theme_id
             self.settings['window_mode'] = WINDOW_MODE_NEOARCH
             self.save_settings()
             self.refresh_window_mode()
             applied = manager.apply_theme(theme_id) if manager else False
+            if not applied and theme_id != DEFAULT_THEME_ID:
+                theme_id = DEFAULT_THEME_ID
+                self.settings['neoarch_theme'] = theme_id
+                self.save_settings()
+                applied = manager.apply_theme(theme_id) if manager else False
             if not applied:
                 QTimer.singleShot(0, self.rebuild_ui)
+
+    def _sync_theme_background(self):
+        """Apply or clear the active theme's wallpaper on the window frame."""
+        frame = getattr(self, '_app_window_frame', None)
+        if frame is None:
+            return
+        manager = getattr(self, '_theme_manager', None)
+        theme_id = manager.current_id if manager is not None else None
+        frame.set_theme_background(
+            get_theme_background(theme_id) if theme_id else None)
+
+    def _sync_brand_icon(self):
+        """Use brand artwork declared by the active theme, if any."""
+        manager = getattr(self, '_theme_manager', None)
+        theme = get_theme_data(manager.current_id) if manager is not None else None
+        set_brand_assets(*brand_assets_for_theme(theme))
+        path = _get_brand_icon_path()
+        if os.path.exists(path):
+            icon = _build_window_icon(path)
+            self.setWindowIcon(icon)
+            app = QApplication.instance()
+            if app is not None:
+                app.setWindowIcon(icon)
+        title_bar = getattr(self, '_title_bar', None)
+        if title_bar is not None:
+            title_bar.refresh_brand_icon()
+        tray = getattr(self, 'tray_icon', None)
+        if tray is not None:
+            if os.path.exists(path):
+                tray.set_base_icon(path)
+            tray.refresh_theme()
+
+    def _watch_pro_trials(self):
+        """Expire active Pro trials and keep the signed ledger current."""
+        from neoarch.backend.services import pro_trials
+        from neoarch.backend.services.i18n import _
+
+        now = time.time()
+        if now - self._trial_touch_at >= 30:
+            ledger = pro_trials.touch_trial(self.settings, now)
+            if ledger is not None:
+                self.settings[pro_trials.TRIAL_SETTING] = ledger
+                self.save_settings()
+            self._trial_touch_at = now
+
+        manager = self.__dict__.get('_theme_manager')
+        if manager is None:
+            return
+        theme_id = manager.current_id
+        if not is_theme_locked(theme_id, manager.unlocked_theme_ids()):
+            return
+        status = pro_trials.trial_status(self.settings, theme_id, now)
+        if status.usable:
+            return
+
+        title = ""
+        body = ""
+        if status.state == "expired":
+            theme_name = (get_theme_data(theme_id) or {}).get("name", theme_id)
+            title = _("Pro trial ended")
+            body = _("Your 30-minute trial for {theme} has ended.").format(
+                theme=theme_name)
+        elif status.state == "tampered":
+            title = _("Trial unavailable")
+            body = _("This theme's free trial is no longer available.")
+
+        self.settings['neoarch_theme'] = DEFAULT_THEME_ID
+        self.save_settings()
+        manager.apply_theme(DEFAULT_THEME_ID)
+        if title and self._trial_warning_theme != theme_id:
+            self.show_message.emit(title, body)
+            self._trial_warning_theme = theme_id
 
     def _on_theme_changed(self, theme_id):
         """Reapply the stylesheet and rebuild widgets that cache colors."""
         from neoarch.frontend import tokens
+        self._sync_theme_background()
+        self._sync_brand_icon()
+        self.apply_window_effects()
         self.setStyleSheet(tokens.DARK_STYLESHEET)
         try:
             from neoarch.frontend.components.dark_dialogs import refresh_open_dialogs

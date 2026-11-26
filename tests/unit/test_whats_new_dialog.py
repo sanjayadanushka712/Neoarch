@@ -1,6 +1,6 @@
 import pytest
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import QApplication, QLabel
+from PyQt6.QtWidgets import QApplication, QLabel, QPushButton
 
 from neoarch.frontend.components.whats_new_dialog import (
     WhatIsNewDialog, _render_body, _rich,
@@ -34,6 +34,17 @@ def test_whats_new_dialog_matches_dialog_shell(qapp):
     assert dlg.windowFlags() & Qt.WindowType.FramelessWindowHint
     assert dlg.continue_btn.text() == "Continue"
     assert dlg.minimumWidth() >= 560
+    dlg.deleteLater()
+
+
+def test_whats_new_dialog_pins_the_halloween_giveaway(qapp):
+    dlg = WhatIsNewDialog([], current_version="3.7.0")
+    labels = [w.text() for w in dlg.findChildren(QLabel)]
+    assert any("Halloween theme giveaway" in t for t in labels)
+    assert any("PINNED" in t for t in labels)
+    assert any("dsanjaya712@gmail.com" in t for t in labels)
+    buttons = [b.text() for b in dlg.findChildren(QPushButton)]
+    assert "Claim by email" not in buttons
     dlg.deleteLater()
 
 
